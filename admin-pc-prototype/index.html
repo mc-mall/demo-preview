@@ -19,15 +19,15 @@
         <form id="loginForm" class="login-card">
           <div class="form-head">
             <h2>后台登录</h2>
-            <p>员工账号名 + 密码登录。演示账号：mcadmin / mc1234</p>
+            <p>请输入员工账号和密码。</p>
           </div>
           <label>
             <span>账号</span>
-            <input id="username" type="text" value="mcadmin" autocomplete="username" required />
+            <input id="username" type="text" placeholder="请输入员工账号" autocomplete="username" required />
           </label>
           <label>
             <span>密码</span>
-            <input id="password" type="password" value="mc1234" autocomplete="current-password" required />
+            <input id="password" type="password" placeholder="请输入登录密码" autocomplete="current-password" required />
           </label>
           <p id="loginError" class="login-error" aria-live="polite"></p>
           <button class="primary-btn" type="submit">登录后台</button>
@@ -114,8 +114,8 @@
             <div class="admin-profile">
               <span>MC</span>
               <div>
-                <strong>管理员</strong>
-                <small>mcadmin</small>
+                <strong>后台员工</strong>
+                <small>员工账号</small>
               </div>
             </div>
             <button id="logoutBtn" class="ghost-btn" type="button">退出</button>
