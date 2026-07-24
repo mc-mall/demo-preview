@@ -1,0 +1,63 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Prepare public site
+        shell: bash
+        run: |
+          site_dir="${RUNNER_TEMP}/mc-mall-site"
+          mkdir -p "${site_dir}"
+          rsync -a --prune-empty-dirs \
+            --include='*/' \
+            --include='*.html' \
+            --include='*.css' \
+            --include='*.js' \
+            --include='*.json' \
+            --include='*.png' \
+            --include='*.jpg' \
+            --include='*.jpeg' \
+            --include='*.gif' \
+            --include='*.webp' \
+            --include='*.svg' \
+            --include='*.ico' \
+            --include='*.woff' \
+            --include='*.woff2' \
+            --include='*.ttf' \
+            --include='*.eot' \
+            --exclude='*' \
+            ./ "${site_dir}/"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/mc-mall-site
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

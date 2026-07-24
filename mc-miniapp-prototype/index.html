@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MC 澳设商城客户端 H5 Demo</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="phone-shell" aria-label="MC 澳设商城客户端 H5 Demo">
+    <header class="app-header">
+      <button id="backBtn" class="icon-btn hidden" type="button" aria-label="返回">‹</button>
+      <div>
+        <p id="headerKicker">MC Mall</p>
+        <h1 id="headerTitle">MC 澳设商城</h1>
+      </div>
+      <button id="loginShortcut" class="avatar-btn" type="button" aria-label="登录">未</button>
+    </header>
+
+    <section id="homeView" class="view active" data-title="MC 澳设商城" data-kicker="MC Mall">
+      <div class="notice-ticker" aria-label="优惠活动">
+        <span>优惠活动，敬请注意！！满MOP200 配送费全免</span>
+      </div>
+
+      <div id="homeBanner" class="home-banner"></div>
+
+      <div class="search-card">
+        <input id="homeSearch" type="search" placeholder="搜索校服、球衣、外套、学校" />
+        <button type="button" data-search-trigger>搜索</button>
+      </div>
+
+      <section class="section-block">
+        <div class="section-head">
+          <h3>学校 / 单位入口</h3>
+          <button class="text-btn" type="button" data-go="schoolView">全部</button>
+        </div>
+        <div id="unitStrip" class="unit-strip"></div>
+      </section>
+
+      <section class="section-block">
+        <div class="section-head">
+          <h3>热销分类</h3>
+          <button class="text-btn" type="button" data-go="categoryView">全部商品</button>
+        </div>
+        <div id="hotCategories" class="hot-category-grid"></div>
+      </section>
+
+      <section class="service-band">
+        <div>
+          <span>Custom Service</span>
+          <strong>团体服、球队服、学校合作咨询</strong>
+          <small>提交需求后进入后台 CRM 商机列表，由业务人员线下跟进。</small>
+        </div>
+        <button type="button" data-go="customView">咨询</button>
+      </section>
+
+      <section class="section-block">
+        <div class="section-head">
+          <h3>热门商品</h3>
+          <button class="text-btn" type="button" data-go="categoryView">分类</button>
+        </div>
+        <div id="featuredProducts" class="product-grid"></div>
+      </section>
+    </section>
+
+    <section id="schoolView" class="view" data-title="学校入口" data-kicker="School">
+      <div class="filter-pills" id="unitTypeTabs"></div>
+      <div id="schoolList" class="school-list"></div>
+    </section>
+
+    <section id="categoryView" class="view" data-title="商品分类" data-kicker="Products">
+      <div class="category-layout">
+        <aside id="categoryTabs"></aside>
+        <div>
+          <div class="search-card compact">
+            <input id="productSearch" type="search" placeholder="搜索商品 / SKU / 单位" />
+          </div>
+          <div id="productList" class="product-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="detailView" class="view" data-title="商品详情" data-kicker="Product">
+      <div id="productDetail"></div>
+    </section>
+
+    <section id="cartView" class="view" data-title="购物车" data-kicker="Cart">
+      <div id="cartList" class="cart-list"></div>
+      <div class="cart-footer">
+        <div>
+          <span>合计</span>
+          <strong id="cartTotal">MOP 0</strong>
+        </div>
+        <button id="checkoutBtn" class="primary-action" type="button">去结算</button>
+      </div>
+    </section>
+
+    <section id="checkoutView" class="view" data-title="确认订单" data-kicker="Checkout">
+      <div class="form-card">
+        <h3>收货 / 自提信息</h3>
+        <div class="segmented" id="deliverySegment">
+          <button class="active" type="button" data-delivery="澳门本地配送">本地配送</button>
+          <button type="button" data-delivery="门店自提">门店自提</button>
+        </div>
+        <section id="addressField" class="checkout-address-section" aria-label="配送地址">
+          <div class="checkout-field-title">收货地址</div>
+          <div id="checkoutAddressPanel"></div>
+        </section>
+        <section id="pickupField" class="pickup-store-card hidden" aria-label="自提门店信息">
+          <h4>澳設黑沙環門市</h4>
+          <p><strong>交收地址：</strong>澳門黑沙環馬路52號 廣耀工業大厦 二樓全層</p>
+          <p><strong>營業時間：</strong>星期一 至 星期五 11:00-20:00/星期六 至 星期日 12:00-18:00</p>
+          <p><strong>聯繫方式：</strong> 853 28550201</p>
+        </section>
+        <label>
+          <span>订单备注</span>
+          <textarea id="buyerRemark"></textarea>
+        </label>
+      </div>
+      <div class="summary-card">
+        <h3>订单明细</h3>
+        <div id="checkoutItems"></div>
+        <div class="summary-line"><span>商品金额</span><strong id="checkoutSubtotal">MOP 0</strong></div>
+        <div class="summary-line"><span>配送费</span><strong id="shippingFee">MOP 0</strong></div>
+        <div class="summary-line total"><span>应付金额</span><strong id="payableAmount">MOP 0</strong></div>
+        <button id="submitOrderBtn" class="primary-action block" type="button">提交订单</button>
+      </div>
+      <section class="checkout-notices" aria-label="结账注意事项">
+        <h3>注意事項</h3>
+        <ul>
+          <li>&quot;會員結帳&quot; 下次消費購買時可查詢之前購買貨品的類型及尺碼！</li>
+          <li>本公司產品只設換貨，不設退貨。(如有任何問題，可查詢售賣資訊）</li>
+          <li>由第三方配送，費用MOP15.00（優惠減免除外）；</li>
+          <li>如選門店自取，則不產生配送費用，配貨成功後（72小時內）本公司會另行電話通知貴客來門店取貨。</li>
+          <li>澳設macauclothing有保留及更改優惠的權利。</li>
+        </ul>
+      </section>
+    </section>
+
+    <section id="payView" class="view" data-title="订单支付" data-kicker="Payment">
+      <div id="paymentPanel" class="payment-panel"></div>
+    </section>
+
+    <section id="ordersView" class="view" data-title="我的订单" data-kicker="Orders">
+      <div class="filter-pills" id="orderTabs"></div>
+      <div id="orderList" class="order-list"></div>
+    </section>
+
+    <section id="orderDetailView" class="view" data-title="订单详情" data-kicker="Order">
+      <div id="orderDetail"></div>
+    </section>
+
+    <section id="afterSaleView" class="view" data-title="申请售后" data-kicker="After Sale">
+      <div class="form-card">
+        <h3>售后申请</h3>
+        <label>
+          <span>售后类型</span>
+          <select id="afterSaleType">
+            <option>换码</option>
+            <option>退货</option>
+            <option>退款</option>
+            <option>其他问题</option>
+          </select>
+        </label>
+        <label>
+          <span>问题说明</span>
+          <textarea id="afterSaleReason">尺码不合适，希望更换大一码。</textarea>
+        </label>
+        <button id="submitAfterSaleBtn" class="primary-action block" type="button">提交售后</button>
+      </div>
+    </section>
+
+    <section id="customView" class="view" data-title="定制咨询" data-kicker="Custom">
+      <div class="custom-banner" role="img" aria-label="提供全天候形象解決方案，滿足多元場景需求">
+        <strong>提供全天候形象解決方案，滿足多元場景需求</strong>
+      </div>
+      <div class="case-list">
+        <article><strong>球队训练服补单</strong><span>80-120 件 · 印号与队徽</span></article>
+        <article><strong>学校冬季外套合作</strong><span>500 件以上 · 尺码统计</span></article>
+        <article><strong>企业团体 Polo 衫</strong><span>60 件 · 胸前刺绣 Logo</span></article>
+      </div>
+      <div class="form-card">
+        <h3>咨询表单</h3>
+        <label><span>联系人</span><input id="leadName" type="text" /></label>
+        <label><span>联系电话</span><input id="leadPhone" type="tel" /></label>
+        <label>
+          <span>需求类型</span>
+          <select id="leadType">
+            <option>团购咨询</option>
+            <option>定制咨询</option>
+            <option>学校合作咨询</option>
+          </select>
+        </label>
+        <label><span>数量 / 预算 / 交期</span><textarea id="leadNeed"></textarea></label>
+        <button id="submitLeadBtn" class="primary-action block" type="button">提交咨询</button>
+      </div>
+    </section>
+
+    <section id="profileView" class="view" data-title="会员中心" data-kicker="Member">
+      <div id="profilePanel"></div>
+    </section>
+
+    <section id="addressView" class="view" data-title="收货地址" data-kicker="Address">
+      <div id="addressManagerPanel"></div>
+    </section>
+
+    <nav class="tabbar" aria-label="底部导航">
+      <button class="active" type="button" data-tab="homeView"><span>⌂</span>首页</button>
+      <button type="button" data-tab="categoryView"><span>□</span>分类</button>
+      <button type="button" data-tab="cartView"><span>◌</span>购物车<i id="cartBadge">0</i></button>
+      <button type="button" data-tab="ordersView"><span>≡</span>订单</button>
+      <button type="button" data-tab="profileView"><span>◇</span>我的</button>
+    </nav>
+  </main>
+
+  <dialog id="loginDialog" class="sheet-dialog">
+    <form method="dialog">
+      <button class="close-btn" value="cancel" aria-label="关闭">×</button>
+      <h3>登录 / 注册</h3>
+      <p>演示验证码固定为 123456。登录后购物车、订单、售后和咨询表单会沉淀为客户数据。</p>
+      <label><span>手机号</span><input id="loginPhone" value="6688 1024" /></label>
+      <label><span>验证码</span><input id="loginCode" value="123456" /></label>
+      <button id="quickWechatLogin" class="ghost-action" type="button">微信一键登录演示</button>
+      <button id="phoneLoginBtn" class="primary-action block" type="button">手机号登录</button>
+    </form>
+  </dialog>
+
+  <dialog id="addressDialog" class="sheet-dialog">
+    <form method="dialog">
+      <button class="close-btn" value="cancel" aria-label="关闭">×</button>
+      <h3 id="addressDialogTitle">新增收货地址</h3>
+      <p>请填写收货人及澳门地区配送信息。</p>
+      <label><span>收货人</span><input id="addressName" type="text" /></label>
+      <label><span>联系电话</span><input id="addressPhone" type="tel" /></label>
+      <label>
+        <span>所在区域</span>
+        <select id="addressRegion">
+          <option value="">请选择区域</option>
+          <option>澳门半岛</option>
+          <option>氹仔</option>
+          <option>路环</option>
+        </select>
+      </label>
+      <label><span>详细地址</span><textarea id="addressDetail"></textarea></label>
+      <label><span>地址标签</span><input id="addressTag" type="text" placeholder="例如：家、公司、学校" /></label>
+      <label class="checkbox-label"><input id="addressIsDefault" type="checkbox" /><span>设为默认收货地址</span></label>
+      <button id="saveAddressBtn" class="primary-action block" type="button">保存地址</button>
+    </form>
+  </dialog>
+
+  <dialog id="addressDetailDialog" class="sheet-dialog">
+    <form method="dialog">
+      <button class="close-btn" value="cancel" aria-label="关闭">×</button>
+      <h3>收货地址详情</h3>
+      <div id="addressDetailPanel" class="address-detail-panel"></div>
+      <button class="ghost-action" value="cancel">关闭</button>
+    </form>
+  </dialog>
+
+  <dialog id="addressDeleteDialog" class="sheet-dialog">
+    <form method="dialog">
+      <button class="close-btn" value="cancel" aria-label="关闭">×</button>
+      <h3>删除收货地址</h3>
+      <p id="addressDeleteMessage">确认删除该收货地址吗？删除后无法恢复。</p>
+      <div class="dialog-actions">
+        <button class="ghost-action" value="cancel">取消</button>
+        <button id="confirmDeleteAddressBtn" class="danger-action" type="button">确认删除</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="checkoutAddressDialog" class="sheet-dialog">
+    <form method="dialog">
+      <button class="close-btn" value="cancel" aria-label="关闭">×</button>
+      <h3>选择收货地址</h3>
+      <p>选择本次订单使用的收货地址，不会更改默认地址设置。</p>
+      <div id="checkoutAddressOptions" class="checkout-address-options"></div>
+      <button id="addCheckoutAddressBtn" class="ghost-action" type="button">新增收货地址</button>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="./app.js"></script>
+</body>
+</html>

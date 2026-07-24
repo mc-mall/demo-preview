@@ -1,0 +1,1639 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MC 商城 PC 管理后台原型</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main id="loginView" class="login-view">
+      <section class="login-shell">
+        <div class="login-brand">
+          <span class="brand-mark">MC</span>
+          <div>
+            <p class="eyebrow">MC Uniform Custom Hub</p>
+            <h1>商城管理后台</h1>
+          </div>
+        </div>
+        <form id="loginForm" class="login-card">
+          <div class="form-head">
+            <h2>后台登录</h2>
+            <p>员工账号名 + 密码登录。演示账号：mcadmin / mc1234</p>
+          </div>
+          <label>
+            <span>账号</span>
+            <input id="username" type="text" value="mcadmin" autocomplete="username" required />
+          </label>
+          <label>
+            <span>密码</span>
+            <input id="password" type="password" value="mc1234" autocomplete="current-password" required />
+          </label>
+          <p id="loginError" class="login-error" aria-live="polite"></p>
+          <button class="primary-btn" type="submit">登录后台</button>
+        </form>
+      </section>
+    </main>
+
+    <main id="adminView" class="admin-view hidden">
+      <aside class="sidebar">
+        <div class="side-brand">
+          <span class="brand-mark">MC</span>
+          <div>
+            <strong>MC 商城</strong>
+            <small>一期运营后台</small>
+          </div>
+        </div>
+        <nav class="side-nav" aria-label="后台导航">
+          <button class="nav-item active" data-page="dashboard">
+            <span>⌂</span>
+            工作台
+          </button>
+          <div class="nav-group collapsed" data-nav-group>
+            <button class="nav-label" type="button" aria-expanded="false"><span>□</span>商品中心<b>⌄</b></button>
+            <button class="nav-item sub-item" data-page="products">
+              商品列表
+            </button>
+            <button class="nav-item sub-item" data-page="categories">
+              类目管理
+            </button>
+            <button class="nav-item sub-item" data-page="units">
+              归属单位
+            </button>
+            <button class="nav-item sub-item" data-page="inventoryAlerts">
+              库存预警
+            </button>
+          </div>
+          <div class="nav-group collapsed" data-nav-group>
+            <button class="nav-label" type="button" aria-expanded="false"><span>≡</span>订单中心<b>⌄</b></button>
+            <button class="nav-item sub-item" data-page="orders">
+              现货订单
+            </button>
+            <button class="nav-item sub-item" data-page="presaleOrders">
+              预售订单
+            </button>
+            <button class="nav-item sub-item" data-page="afterSales">
+              售后订单
+            </button>
+          </div>
+          <div class="nav-group collapsed" data-nav-group>
+            <button class="nav-label" type="button" aria-expanded="false"><span>◇</span>CRM 中心<b>⌄</b></button>
+            <button class="nav-item sub-item" data-page="customers">
+              客户列表
+            </button>
+            <button class="nav-item sub-item" data-page="opportunities">
+              商机列表
+            </button>
+          </div>
+          <div class="nav-group collapsed" data-nav-group>
+            <button class="nav-label" type="button" aria-expanded="false"><span>⚙</span>系统设置<b>⌄</b></button>
+            <button class="nav-item sub-item" data-page="employeeAccounts">
+              员工账号
+            </button>
+            <button class="nav-item sub-item" data-page="rolePermissions">
+              角色权限
+            </button>
+            <button class="nav-item sub-item" data-page="storeManagement">
+              门店管理
+            </button>
+            <button class="nav-item sub-item" data-page="deliveryConfiguration">
+              配送配置
+            </button>
+          </div>
+        </nav>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">PC Admin Prototype</p>
+            <h2 id="pageTitle">工作台</h2>
+          </div>
+          <div class="top-actions">
+            <button class="icon-btn" title="通知" type="button">●</button>
+            <div class="admin-profile">
+              <span>MC</span>
+              <div>
+                <strong>管理员</strong>
+                <small>mcadmin</small>
+              </div>
+            </div>
+            <button id="logoutBtn" class="ghost-btn" type="button">退出</button>
+          </div>
+        </header>
+
+        <section id="dashboardPage" class="page-panel">
+          <section class="dashboard-action-bar">
+            <div>
+              <p class="eyebrow">Store Service</p>
+              <h3>门店售后服务</h3>
+              <small>定制类、校服商品到店只换不退；请先查询原订单，再扫码完成库存换入换出。</small>
+            </div>
+            <button id="openExchangeBtn" class="primary-btn" type="button">换货</button>
+          </section>
+
+          <div class="metric-grid">
+            <article class="metric-card">
+              <p>总销售额</p>
+              <strong>MOP 428,650</strong>
+              <span class="trend up">较上月 +12.8%</span>
+            </article>
+            <article class="metric-card">
+              <p>总订单数</p>
+              <strong>3,286</strong>
+              <span class="trend up">今日新增 46</span>
+            </article>
+            <article class="metric-card">
+              <p>总会员数</p>
+              <strong>18,920</strong>
+              <span class="trend up">本周新增 312</span>
+            </article>
+            <article class="metric-card warning">
+              <p>待发货订单</p>
+              <strong>126</strong>
+              <span class="trend">需仓库处理</span>
+            </article>
+            <article class="metric-card danger">
+              <p>待处理售后</p>
+              <strong>18</strong>
+              <span class="trend">换码 11 / 退款 7</span>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+            <section class="content-panel chart-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Sales Trend</p>
+                  <h3>最近 30 天销售额</h3>
+                </div>
+                <div class="segmented">
+                  <button class="active" type="button">销售额</button>
+                  <button type="button">订单数</button>
+                </div>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="salesChart" aria-label="最近 30 天销售额折线图"></canvas>
+                <div id="chartTooltip" class="chart-tooltip hidden"></div>
+              </div>
+            </section>
+
+            <section class="content-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Todo</p>
+                  <h3>今日待办</h3>
+                </div>
+              </div>
+              <ul class="todo-list">
+                <li><span class="dot amber"></span>澳门本地配送待发货 82 单</li>
+                <li><span class="dot cyan"></span>门店自提待备货 44 单</li>
+                <li><span class="dot red"></span>售后待审核 18 单</li>
+                <li><button class="todo-link" type="button" data-jump-page="inventoryAlerts"><span class="dot red"></span>库存预警 <span id="inventoryTodoCount">0</span> 个 SKU</button></li>
+                <li><span class="dot blue"></span>定制咨询新线索 9 条</li>
+              </ul>
+            </section>
+          </div>
+        </section>
+
+        <section id="productsPage" class="page-panel hidden">
+          <div class="product-layout product-list-layout">
+            <section class="content-panel product-main">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Product Center</p>
+                  <h3>商品列表</h3>
+                </div>
+                <div class="panel-actions">
+                  <button id="openProductBtn" class="primary-btn compact" type="button">新增 SPU</button>
+                </div>
+              </div>
+
+              <div class="filter-row product-filter-row">
+                <label class="search-box">
+                  <span>⌕</span>
+                  <input id="productSearch" type="search" placeholder="搜索 SPU、SKU 货号、归属单位" />
+                </label>
+                <select id="categoryFilter" aria-label="类目筛选"></select>
+                <select id="unitFilter" aria-label="归属单位筛选"></select>
+                <select id="statusFilter" aria-label="状态筛选">
+                  <option value="all">全部状态</option>
+                  <option value="上架">上架</option>
+                  <option value="预售">预售</option>
+                  <option value="售罄">售罄</option>
+                  <option value="下架">下架</option>
+                </select>
+              </div>
+
+              <div class="status-tabs" role="tablist" aria-label="商品状态">
+                <button class="active" data-status="all" type="button">全部</button>
+                <button data-status="上架" type="button">上架</button>
+                <button data-status="预售" type="button">预售</button>
+                <button data-status="售罄" type="button">售罄</button>
+                <button data-status="下架" type="button">下架</button>
+              </div>
+
+              <div class="table-wrap">
+                <table class="spu-table">
+                  <thead>
+                    <tr>
+                      <th>SPU 商品</th>
+                      <th>三级类目</th>
+                      <th>归属单位</th>
+                      <th>SKU / 货号 / 库存</th>
+                      <th>价格</th>
+                      <th>状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="productRows"></tbody>
+                </table>
+              </div>
+              <div id="productPagination" class="pagination-bar"></div>
+            </section>
+          </div>
+        </section>
+
+
+
+        <section id="inventoryAlertsPage" class="page-panel hidden">
+          <section class="content-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Inventory Alert</p>
+                <h3>库存预警</h3>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="inventory-table">
+                <thead>
+                  <tr>
+                    <th>商品 / SKU</th>
+                    <th>唯一货号</th>
+                    <th>归属单位</th>
+                    <th>库存状态</th>
+                    <th>当前库存</th>
+                    <th>预警库存</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryAlertRows"></tbody>
+              </table>
+            </div>
+            <div id="inventoryAlertPagination" class="pagination-bar"></div>
+          </section>
+        </section>
+
+        <section id="categoriesPage" class="page-panel hidden">
+          <section class="content-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Category CRUD</p>
+                <h3>三级类目</h3>
+              </div>
+              <div class="panel-actions">
+                <button id="openCategoryCreateBtn" class="primary-btn compact" type="button">新增类目</button>
+              </div>
+            </div>
+            <div class="manage-list category-list" id="categoryTree"></div>
+          </section>
+        </section>
+
+        <section id="unitsPage" class="page-panel hidden">
+          <section class="content-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Unit CRUD</p>
+                <h3>归属单位</h3>
+              </div>
+              <div class="panel-actions">
+                <button id="openUnitCreateBtn" class="primary-btn compact" type="button">新增单位</button>
+              </div>
+            </div>
+            <div class="manage-list unit-page-list" id="unitList"></div>
+            <div id="unitPagination" class="pagination-bar"></div>
+          </section>
+        </section>
+
+        <section id="ordersPage" class="page-panel hidden">
+          <div class="order-layout">
+            <section class="content-panel order-main">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Order Center</p>
+                  <h3>现货订单</h3>
+                </div>
+                <div class="panel-actions">
+                  <button id="importShipmentsBtn" class="ghost-btn compact" type="button">导入批量发货</button>
+                  <button id="exportOrdersBtn" class="ghost-btn compact" type="button">导出订单</button>
+                </div>
+              </div>
+
+              <div class="metric-grid order-metrics">
+                <article class="metric-card">
+                  <p>待支付</p>
+                  <strong>42</strong>
+                  <span class="trend">超时自动关闭</span>
+                </article>
+                <article class="metric-card warning">
+                  <p>待发货</p>
+                  <strong>126</strong>
+                  <span class="trend">配送订单</span>
+                </article>
+                <article class="metric-card">
+                  <p>待自提</p>
+                  <strong>44</strong>
+                  <span class="trend">门店备货</span>
+                </article>
+                <article class="metric-card">
+                  <p>已完成</p>
+                  <strong>2,861</strong>
+                  <span class="trend up">完成率 87%</span>
+                </article>
+              </div>
+
+              <div class="filter-row order-filter-row">
+                <label class="search-box">
+                  <span>⌕</span>
+                  <input id="orderSearch" type="search" placeholder="搜索订单号、客户、商品、物流单号" />
+                </label>
+                <select id="orderStatusFilter" aria-label="订单状态筛选">
+                  <option value="all">全部履约状态</option>
+                  <option value="备货中">备货中</option>
+                  <option value="待拣货">待拣货</option>
+                  <option value="已拣货">已拣货</option>
+                  <option value="待发货">待发货</option>
+                  <option value="待签收">待签收</option>
+                  <option value="已到自提点">已到自提点</option>
+                  <option value="待自提">待自提</option>
+                  <option value="已完成">已完成</option>
+                </select>
+                <select id="orderUnitFilter" aria-label="学校筛选"></select>
+                <select id="deliveryFilter" aria-label="配送方式筛选">
+                  <option value="all">全部配送方式</option>
+                  <option value="澳门本地配送">澳门本地配送</option>
+                  <option value="门店自提">门店自提</option>
+                </select>
+                <select id="paymentFilter" aria-label="支付方式筛选">
+                  <option value="all">全部支付方式</option>
+                  <option value="Mpay">Mpay</option>
+                  <option value="微信支付">微信支付</option>
+                  <option value="线下登记">线下登记</option>
+                </select>
+                <select id="paymentStatusFilter" aria-label="支付状态筛选">
+                  <option value="all">全部支付状态</option>
+                  <option value="待支付">待支付</option>
+                  <option value="已支付">已支付</option>
+                  <option value="已退款">已退款</option>
+                </select>
+                <select id="afterSaleFilter" aria-label="是否售后筛选">
+                  <option value="all">是否售后</option>
+                  <option value="yes">有售后</option>
+                  <option value="no">无售后</option>
+                </select>
+                <input id="orderDateFilter" type="date" aria-label="下单时间筛选" />
+              </div>
+
+              <div class="status-tabs order-tabs" role="tablist" aria-label="订单状态">
+                <button class="active" data-order-tab="all" type="button">全部</button>
+                <button data-order-tab="待支付" type="button">待支付</button>
+                <button data-order-tab="待拣货" type="button">待拣货</button>
+                <button data-order-tab="待发货" type="button">待发货</button>
+                <button data-order-tab="待自提" type="button">待自提</button>
+                <button data-order-tab="待签收" type="button">待签收</button>
+                <button data-order-tab="已完成" type="button">已完成</button>
+                <button data-order-tab="售后中" type="button">售后中</button>
+              </div>
+
+              <div class="table-wrap">
+                <table class="order-table">
+                  <thead>
+                    <tr>
+                      <th>订单信息</th>
+                      <th>客户 / 学校</th>
+                      <th>销售 / 履约</th>
+                      <th>商品明细</th>
+                      <th>金额 / 支付</th>
+                      <th>配送 / 履约</th>
+                      <th>售后</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="orderRows"></tbody>
+                </table>
+              </div>
+              <div id="orderPagination" class="pagination-bar"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="presaleOrdersPage" class="page-panel hidden">
+          <div class="order-layout">
+            <section class="content-panel order-main">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Order Center</p>
+                  <h3>预售订单</h3>
+                </div>
+                <div class="panel-actions">
+                  <button id="importPresaleShipmentsBtn" class="ghost-btn compact" type="button">导入批量发货</button>
+                  <button id="exportPresaleOrdersBtn" class="ghost-btn compact" type="button">导出订单</button>
+                </div>
+              </div>
+
+              <div class="metric-grid order-metrics">
+                <article class="metric-card">
+                  <p>待支付</p>
+                  <strong>42</strong>
+                  <span class="trend">超时自动关闭</span>
+                </article>
+                <article class="metric-card warning">
+                  <p>待发货</p>
+                  <strong>126</strong>
+                  <span class="trend">配送订单</span>
+                </article>
+                <article class="metric-card">
+                  <p>待自提</p>
+                  <strong>44</strong>
+                  <span class="trend">门店备货</span>
+                </article>
+                <article class="metric-card">
+                  <p>已完成</p>
+                  <strong>2,861</strong>
+                  <span class="trend up">完成率 87%</span>
+                </article>
+              </div>
+
+              <div class="filter-row order-filter-row">
+                <label class="search-box">
+                  <span>⌕</span>
+                  <input id="presaleOrderSearch" type="search" placeholder="搜索预售订单号、客户、商品、物流单号" />
+                </label>
+                <select id="presaleOrderStatusFilter" aria-label="订单状态筛选">
+                  <option value="all">全部履约状态</option>
+                  <option value="待备货">待备货</option>
+                  <option value="备货中">备货中</option>
+                  <option value="可履约">可履约</option>
+                  <option value="待拣货">待拣货</option>
+                  <option value="已拣货">已拣货</option>
+                  <option value="待发货">待发货</option>
+                  <option value="待签收">待签收</option>
+                  <option value="已到自提点">已到自提点</option>
+                  <option value="待自提">待自提</option>
+                  <option value="已完成">已完成</option>
+                </select>
+                <select id="presaleOrderUnitFilter" aria-label="学校筛选"></select>
+                <select id="presaleDeliveryFilter" aria-label="配送方式筛选">
+                  <option value="all">全部配送方式</option>
+                  <option value="澳门本地配送">澳门本地配送</option>
+                  <option value="门店自提">门店自提</option>
+                </select>
+                <select id="presalePaymentFilter" aria-label="支付方式筛选">
+                  <option value="all">全部支付方式</option>
+                  <option value="Mpay">Mpay</option>
+                  <option value="微信支付">微信支付</option>
+                  <option value="线下登记">线下登记</option>
+                </select>
+                <select id="presalePaymentStatusFilter" aria-label="支付状态筛选">
+                  <option value="all">全部支付状态</option>
+                  <option value="待支付">待支付</option>
+                  <option value="已支付">已支付</option>
+                  <option value="已退款">已退款</option>
+                </select>
+                <select id="presaleAfterSaleFilter" aria-label="是否售后筛选">
+                  <option value="all">是否售后</option>
+                  <option value="yes">有售后</option>
+                  <option value="no">无售后</option>
+                </select>
+                <input id="presaleOrderDateFilter" type="date" aria-label="下单时间筛选" />
+              </div>
+
+              <div class="status-tabs order-tabs" role="tablist" aria-label="订单状态">
+                <button class="active" data-presale-order-tab="all" type="button">全部</button>
+                <button data-presale-order-tab="待支付" type="button">待支付</button>
+                <button data-presale-order-tab="待备货" type="button">待备货</button>
+                <button data-presale-order-tab="备货中" type="button">备货中</button>
+                <button data-presale-order-tab="可履约" type="button">可履约</button>
+                <button data-presale-order-tab="待拣货" type="button">待拣货</button>
+                <button data-presale-order-tab="待发货" type="button">待发货</button>
+                <button data-presale-order-tab="待自提" type="button">待自提</button>
+                <button data-presale-order-tab="待签收" type="button">待签收</button>
+                <button data-presale-order-tab="已完成" type="button">已完成</button>
+                <button data-presale-order-tab="售后中" type="button">售后中</button>
+              </div>
+
+              <div class="table-wrap">
+                <table class="order-table">
+                  <thead>
+                    <tr>
+                      <th>订单信息</th>
+                      <th>客户 / 学校</th>
+                      <th>销售 / 履约</th>
+                      <th>商品明细</th>
+                      <th>金额 / 支付</th>
+                      <th>配送 / 履约</th>
+                      <th>售后</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="presaleOrderRows"></tbody>
+                </table>
+              </div>
+              <div id="presaleOrderPagination" class="pagination-bar"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="afterSalesPage" class="page-panel hidden">
+          <div class="order-layout">
+            <section class="content-panel order-main">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">After-Sales Center</p>
+                  <h3>售后订单</h3>
+                </div>
+              </div>
+
+              <div class="metric-grid aftersale-metrics">
+                <article class="metric-card danger">
+                  <p>待审核</p>
+                  <strong>18</strong>
+                  <span class="trend">需客服判断</span>
+                </article>
+                <article class="metric-card warning">
+                  <p>处理中</p>
+                  <strong>26</strong>
+                  <span class="trend">换码与退款</span>
+                </article>
+                <article class="metric-card">
+                  <p>已完成</p>
+                  <strong>184</strong>
+                  <span class="trend up">本月累计</span>
+                </article>
+              </div>
+
+              <div class="filter-row aftersale-filter-row">
+                <label class="search-box">
+                  <span>⌕</span>
+                  <input id="afterSaleSearch" type="search" placeholder="搜索售后单号、订单号、客户、商品" />
+                </label>
+                <select id="afterSaleTypeFilter" aria-label="售后类型筛选">
+                  <option value="all">全部类型</option>
+                  <option value="门店换货">门店换货</option>
+                  <option value="换码">换码</option>
+                  <option value="退货">退货</option>
+                  <option value="退款">退款</option>
+                  <option value="其他问题">其他问题</option>
+                </select>
+                <select id="afterSaleStatusFilter" aria-label="售后状态筛选">
+                  <option value="all">全部状态</option>
+                  <option value="售后发起">售后发起</option>
+                  <option value="已受理">已受理</option>
+                  <option value="处理中">处理中</option>
+                  <option value="已拒绝">已拒绝</option>
+                  <option value="已完成">已完成</option>
+                </select>
+              </div>
+
+              <div class="table-wrap">
+                <table class="aftersale-table">
+                  <thead>
+                    <tr>
+                      <th>售后申请</th>
+                      <th>客户 / 订单</th>
+                      <th>商品与规格</th>
+                      <th>原因 / 凭证</th>
+                      <th>状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="afterSaleRows"></tbody>
+                </table>
+              </div>
+              <div id="afterSalePagination" class="pagination-bar"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="customersPage" class="page-panel hidden">
+          <div class="crm-layout">
+            <section class="content-panel crm-main">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">CRM Center</p>
+                  <h3>客户列表</h3>
+                </div>
+                <div class="panel-actions">
+                  <button id="exportCustomersBtn" class="ghost-btn compact" type="button">导出客户</button>
+                </div>
+              </div>
+
+              <div class="metric-grid crm-metrics">
+                <article class="metric-card">
+                  <p>客户总数</p>
+                  <strong>18,920</strong>
+                  <span class="trend up">本周新增 312</span>
+                </article>
+                <article class="metric-card">
+                  <p>商城客户</p>
+                  <strong>15,860</strong>
+                  <span class="trend">小程序 / H5</span>
+                </article>
+                <article class="metric-card warning">
+                  <p>咨询客户</p>
+                  <strong>2,184</strong>
+                  <span class="trend">待业务沉淀</span>
+                </article>
+                <article class="metric-card">
+                  <p>成交客户</p>
+                  <strong>3,286</strong>
+                  <span class="trend up">来自订单</span>
+                </article>
+              </div>
+
+              <div class="filter-row crm-filter-row">
+                <label class="search-box">
+                  <span>⌕</span>
+                  <input id="customerSearch" type="search" placeholder="搜索客户姓名、电话、学校、负责人" />
+                </label>
+                <select id="customerTypeFilter" aria-label="客户类型筛选">
+                  <option value="all">全部客户类型</option>
+                  <option value="商城客户">商城客户</option>
+                  <option value="咨询客户">咨询客户</option>
+                  <option value="成交客户">成交客户</option>
+                </select>
+                <select id="customerSourceFilter" aria-label="客户来源筛选">
+                  <option value="all">全部来源</option>
+                  <option value="小程序">小程序</option>
+                  <option value="H5">H5</option>
+                  <option value="学校入口">学校入口</option>
+                  <option value="定制咨询">定制咨询</option>
+                  <option value="客服转入">客服转入</option>
+                </select>
+                <select id="customerOwnerFilter" aria-label="负责人筛选"></select>
+              </div>
+
+              <div class="table-wrap">
+                <table class="crm-table">
+                  <thead>
+                    <tr>
+                      <th>客户资料</th>
+                      <th>联系方式</th>
+                      <th>来源 / 标签</th>
+                      <th>学校 / 单位</th>
+                      <th>订单 / 售后</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="customerRows"></tbody>
+                </table>
+              </div>
+              <div id="customerPagination" class="pagination-bar"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="opportunitiesPage" class="page-panel hidden">
+          <div class="crm-layout">
+            <section class="content-panel crm-main">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">CRM Center</p>
+                  <h3>商机列表</h3>
+                </div>
+                <div class="panel-actions">
+                  <button id="openOpportunityCreateBtn" class="primary-btn compact" type="button">录入商机</button>
+                  <button id="exportOpportunitiesBtn" class="ghost-btn compact" type="button">导出商机</button>
+                </div>
+              </div>
+
+              <div class="metric-grid crm-metrics">
+                <article class="metric-card danger">
+                  <p>新线索</p>
+                  <strong>9</strong>
+                  <span class="trend">今日待分配</span>
+                </article>
+                <article class="metric-card warning">
+                  <p>待联系</p>
+                  <strong>24</strong>
+                  <span class="trend">需销售跟进</span>
+                </article>
+                <article class="metric-card">
+                  <p>已报价</p>
+                  <strong>18</strong>
+                  <span class="trend">等待反馈</span>
+                </article>
+                <article class="metric-card">
+                  <p>已成交</p>
+                  <strong>36</strong>
+                  <span class="trend up">本月累计</span>
+                </article>
+              </div>
+
+              <div class="filter-row crm-filter-row">
+                <label class="search-box">
+                  <span>⌕</span>
+                  <input id="opportunitySearch" type="search" placeholder="搜索商机、客户、需求、负责人" />
+                </label>
+                <select id="opportunityTypeFilter" aria-label="需求类型筛选">
+                  <option value="all">全部需求类型</option>
+                  <option value="定制咨询">定制咨询</option>
+                  <option value="团购咨询">团购咨询</option>
+                  <option value="学校合作咨询">学校合作咨询</option>
+                </select>
+                <select id="opportunityStatusFilter" aria-label="商机状态筛选">
+                  <option value="all">全部商机状态</option>
+                  <option value="新线索">新线索</option>
+                  <option value="待联系">待联系</option>
+                  <option value="已联系">已联系</option>
+                  <option value="资料待补充">资料待补充</option>
+                  <option value="已报价">已报价</option>
+                  <option value="已成交">已成交</option>
+                  <option value="无效">无效</option>
+                </select>
+                <select id="opportunityOwnerFilter" aria-label="负责人筛选"></select>
+              </div>
+
+              <div class="status-tabs crm-tabs" role="tablist" aria-label="商机状态">
+                <button class="active" data-opportunity-tab="all" type="button">全部</button>
+                <button data-opportunity-tab="新线索" type="button">新线索</button>
+                <button data-opportunity-tab="待联系" type="button">待联系</button>
+                <button data-opportunity-tab="已联系" type="button">已联系</button>
+                <button data-opportunity-tab="资料待补充" type="button">资料待补充</button>
+                <button data-opportunity-tab="已报价" type="button">已报价</button>
+                <button data-opportunity-tab="已成交" type="button">已成交</button>
+                <button data-opportunity-tab="无效" type="button">无效</button>
+              </div>
+
+              <div class="table-wrap">
+                <table class="crm-table opportunity-table">
+                  <thead>
+                    <tr>
+                      <th>商机信息</th>
+                      <th>客户</th>
+                      <th>需求</th>
+                      <th>数量 / 预算</th>
+                      <th>交期</th>
+                      <th>状态</th>
+                      <th>负责人</th>
+                      <th>最近跟进</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="opportunityRows"></tbody>
+                </table>
+              </div>
+              <div id="opportunityPagination" class="pagination-bar"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="employeeAccountsPage" class="page-panel hidden">
+          <div class="system-layout">
+            <section class="content-panel system-main">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">System Settings</p>
+                  <h3>员工账号</h3>
+                </div>
+                <div class="panel-actions">
+                  <button id="openEmployeeCreateBtn" class="primary-btn compact" type="button">新增员工</button>
+                </div>
+              </div>
+
+              <div class="metric-grid system-metrics">
+            <article class="metric-card">
+              <p>员工账号</p>
+              <strong id="employeeTotalMetric">0</strong>
+              <span class="trend">后台可登录账号</span>
+            </article>
+            <article class="metric-card">
+              <p>启用账号</p>
+              <strong id="employeeEnabledMetric">0</strong>
+              <span class="trend up">可分配客户负责人</span>
+            </article>
+            <article class="metric-card warning">
+              <p>停用账号</p>
+              <strong id="employeeDisabledMetric">0</strong>
+              <span class="trend">不可登录后台</span>
+            </article>
+            <article class="metric-card">
+              <p>角色数</p>
+              <strong id="employeeRoleMetric">0</strong>
+              <span class="trend">按岗位授权</span>
+            </article>
+          </div>
+
+          <div class="filter-row system-filter-row">
+            <label class="search-box">
+              <span>⌕</span>
+              <input id="employeeSearch" type="search" placeholder="搜索员工姓名、账号名、角色" />
+            </label>
+            <select id="employeeRoleFilter" aria-label="员工角色筛选"></select>
+            <select id="employeeStatusFilter" aria-label="员工状态筛选">
+              <option value="all">全部状态</option>
+              <option value="启用">启用</option>
+              <option value="停用">停用</option>
+            </select>
+          </div>
+
+              <div class="table-wrap">
+                <table class="system-table">
+                  <thead>
+                    <tr>
+                      <th>账号名</th>
+                      <th>员工姓名</th>
+                      <th>角色</th>
+                      <th>状态</th>
+                      <th>最近登录</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="employeeRows"></tbody>
+                </table>
+              </div>
+              <div id="employeePagination" class="pagination-bar"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="rolePermissionsPage" class="page-panel hidden">
+          <div class="system-layout">
+            <section class="content-panel system-main">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">System Settings</p>
+                  <h3>角色权限</h3>
+                </div>
+                <div class="panel-actions">
+                  <button id="openRoleCreateBtn" class="primary-btn compact" type="button">新增角色</button>
+                </div>
+              </div>
+
+              <div class="filter-row system-filter-row">
+                <label class="search-box">
+                  <span>⌕</span>
+                  <input id="roleSearch" type="search" placeholder="搜索角色名称、页面、接口" />
+                </label>
+                <select id="roleStatusFilter" aria-label="角色状态筛选">
+                  <option value="all">全部状态</option>
+                  <option value="启用">启用</option>
+                  <option value="禁用">禁用</option>
+                </select>
+              </div>
+
+              <div class="table-wrap">
+                <table class="system-table role-table">
+                  <thead>
+                    <tr>
+                      <th>角色名称</th>
+                      <th>状态</th>
+                      <th>页面权限</th>
+                      <th>接口权限</th>
+                      <th>员工数</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="roleRows"></tbody>
+                </table>
+              </div>
+              <div id="rolePagination" class="pagination-bar"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="storeManagementPage" class="page-panel hidden">
+          <div class="system-layout">
+            <section class="content-panel system-main">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">System Settings</p>
+                  <h3>门店管理</h3>
+                </div>
+                <div class="panel-actions">
+                  <button id="openStoreCreateBtn" class="primary-btn compact" type="button">新增门店</button>
+                </div>
+              </div>
+
+              <div class="filter-row store-filter-row">
+                <label class="search-box">
+                  <span>⌕</span>
+                  <input id="storeSearch" type="search" placeholder="搜索门店名称、地址、联系电话" />
+                </label>
+              </div>
+
+              <div class="table-wrap">
+                <table class="system-table store-table">
+                  <thead>
+                    <tr>
+                      <th>门店名称</th>
+                      <th>地址</th>
+                      <th>联系电话</th>
+                      <th>营业时间</th>
+                      <th>小票机</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="storeRows"></tbody>
+                </table>
+              </div>
+              <div id="storePagination" class="pagination-bar"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="deliveryConfigurationPage" class="page-panel hidden">
+          <div class="system-layout">
+            <section class="content-panel system-main">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">System Settings</p>
+                  <h3>配送配置</h3>
+                </div>
+                <div class="panel-actions">
+                  <button id="openHivePickupCreateBtn" class="primary-btn compact" type="button">新增窝蜂自提点</button>
+                </div>
+              </div>
+
+              <div class="metric-grid pickup-metrics">
+                <article class="metric-card">
+                  <p>门店自提点</p>
+                  <strong id="storePickupMetric">0</strong>
+                  <span class="trend">来源于门店管理</span>
+                </article>
+                <article class="metric-card">
+                  <p>启用窝蜂点</p>
+                  <strong id="hivePickupEnabledMetric">0</strong>
+                  <span class="trend up">客户下单可选</span>
+                </article>
+                <article class="metric-card">
+                  <p>停用窝蜂点</p>
+                  <strong id="hivePickupDisabledMetric">0</strong>
+                  <span class="trend">不在下单端展示</span>
+                </article>
+                <article class="metric-card">
+                  <p>可选自提点</p>
+                  <strong id="checkoutPickupMetric">0</strong>
+                  <span class="trend up">门店 + 窝蜂驿站</span>
+                </article>
+              </div>
+
+              <form id="deliveryFeeForm" class="delivery-fee-section">
+                <div class="delivery-fee-heading">
+                  <strong>配送费用设置</strong>
+                  <small>门店自提固定免配送费</small>
+                </div>
+                <div class="delivery-fee-matrix">
+                  <div class="delivery-fee-header"><span>履约方式</span><span>基础配送费</span><span>满额免配送费</span></div>
+                  <div class="delivery-fee-row">
+                    <strong>窝蜂驿站自提</strong>
+                    <label aria-label="窝蜂驿站自提基础配送费"><div class="money-input"><b>MOP</b><input id="hivePickupBaseFee" type="number" min="0" step="1" value="15" /></div></label>
+                    <label aria-label="窝蜂驿站自提满额免配送费"><div class="money-input"><b>MOP</b><input id="hivePickupFreeThreshold" type="number" min="0" step="1" value="200" /></div></label>
+                  </div>
+                  <div class="delivery-fee-row">
+                    <strong>速递配送</strong>
+                    <label aria-label="速递配送基础配送费"><div class="money-input"><b>MOP</b><input id="courierBaseFee" type="number" min="0" step="1" value="15" /></div></label>
+                    <label aria-label="速递配送满额免配送费"><div class="money-input"><b>MOP</b><input id="courierFreeThreshold" type="number" min="0" step="1" value="200" /></div></label>
+                  </div>
+                </div>
+                <div class="delivery-fee-actions">
+                  <button class="primary-btn compact" type="submit">保存费用设置</button>
+                  <span id="deliveryFeeHint" class="form-hint">两种履约方式的配送费分别计算，互不联动。</span>
+                </div>
+              </form>
+
+              <div class="filter-row delivery-filter-row">
+                <label class="search-box">
+                  <span>⌕</span>
+                  <input id="hivePickupSearch" type="search" placeholder="搜索窝蜂自提点名称、地址、联系电话" />
+                </label>
+                <select id="hivePickupStatusFilter" aria-label="窝蜂自提点状态筛选">
+                  <option value="all">全部状态</option>
+                  <option value="启用">启用</option>
+                  <option value="停用">停用</option>
+                </select>
+              </div>
+
+              <div class="table-wrap">
+                <table class="system-table pickup-table">
+                  <thead>
+                    <tr>
+                      <th>窝蜂自提点</th>
+                      <th>门头图片</th>
+                      <th>地址</th>
+                      <th>联系电话</th>
+                      <th>营业时间</th>
+                      <th>状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hivePickupRows"></tbody>
+                </table>
+              </div>
+              <div id="hivePickupPagination" class="pagination-bar"></div>
+            </section>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="systemDialog" class="detail-dialog">
+      <div class="drawer-head">
+        <div>
+          <p id="systemDialogEyebrow" class="eyebrow">System Detail</p>
+          <h3 id="systemDialogTitle">系统设置详情</h3>
+        </div>
+        <button id="closeSystemDialogBtn" class="icon-btn" title="关闭" type="button">×</button>
+      </div>
+      <div id="systemDetail" class="detail-stack"></div>
+    </dialog>
+
+    <dialog id="employeeEditDialog" class="manage-dialog edit-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Employee Form</p>
+          <h3>新增员工账号</h3>
+        </div>
+        <button id="closeEmployeeDialogBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <form class="manage-form dialog-form">
+        <div class="form-grid">
+          <label>
+            <span>账号名</span>
+            <input id="employeeUsername" type="text" placeholder="例如 he.sales" />
+          </label>
+          <label>
+            <span>员工姓名</span>
+            <input id="employeeName" type="text" placeholder="例如 何销售" />
+          </label>
+        </div>
+        <label>
+          <span>角色</span>
+          <select id="employeeRole"></select>
+        </label>
+        <label>
+          <span>初始密码</span>
+          <input id="employeeInitialPassword" type="password" placeholder="由管理员创建账号时录入" />
+        </label>
+        <p id="employeeFormHint" class="form-hint">员工创建后即可使用账号名和密码登录后台。后续可在员工账号详情中重置密码。</p>
+        <div class="dialog-actions split-actions">
+          <button id="saveEmployeeBtn" class="primary-btn compact" type="button">确认新增</button>
+          <button id="cancelEmployeeBtn" class="ghost-btn" type="button">取消</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="roleEditDialog" class="role-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Role Permission</p>
+          <h3 id="roleDialogTitle">角色权限管理</h3>
+        </div>
+        <button id="closeRoleDialogBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <form class="role-form">
+        <input id="roleId" type="hidden" />
+        <div class="role-basic-row">
+          <label>
+            <span>角色名称</span>
+            <input id="roleName" type="text" />
+          </label>
+          <fieldset class="radio-line">
+            <legend>状态</legend>
+            <label><input type="radio" name="roleStatus" value="启用" /> 启用</label>
+            <label><input type="radio" name="roleStatus" value="禁用" /> 禁用</label>
+          </fieldset>
+        </div>
+        <section class="permission-section">
+          <div class="permission-title">分配权限</div>
+          <div id="permissionMatrix" class="permission-matrix"></div>
+        </section>
+        <p id="roleFormHint" class="form-hint">勾选页面后可继续勾选该页面对应接口权限。</p>
+        <div class="dialog-actions modal-actions">
+          <button id="cancelRoleBtn" class="ghost-btn compact" type="button">取消</button>
+          <button id="saveRoleBtn" class="primary-btn compact" type="button">确定</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="storeEditDialog" class="manage-dialog edit-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Store Form</p>
+          <h3 id="storeDialogTitle">新增门店</h3>
+        </div>
+        <button id="closeStoreDialogBtn" class="icon-btn" title="关闭" type="button">×</button>
+      </div>
+      <form id="storeForm" class="manage-form dialog-form">
+        <label>
+          <span>门店名称</span>
+          <input id="storeName" type="text" placeholder="请输入门店名称" />
+        </label>
+        <label>
+          <span>地址</span>
+          <textarea id="storeAddress" rows="3" placeholder="请输入门店详细地址"></textarea>
+        </label>
+        <div class="form-grid">
+          <label>
+            <span>联系电话</span>
+            <input id="storePhone" type="tel" placeholder="例如 2833 6688" />
+          </label>
+          <label>
+            <span>营业时间</span>
+            <input id="storeBusinessHours" type="text" placeholder="例如 10:00-20:00" />
+          </label>
+        </div>
+        <p id="storeFormHint" class="form-hint">请填写门店对外展示的联系信息。</p>
+        <div class="dialog-actions split-actions">
+          <button id="saveStoreBtn" class="primary-btn compact" type="submit">确认保存</button>
+          <button id="cancelStoreBtn" class="ghost-btn" type="button">取消</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="printerBindDialog" class="manage-dialog edit-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Receipt Printer</p>
+          <h3 id="printerBindDialogTitle">绑定小票机</h3>
+        </div>
+        <button id="closePrinterBindDialogBtn" class="icon-btn" title="关闭" type="button">×</button>
+      </div>
+      <form id="printerBindForm" class="manage-form dialog-form">
+        <section class="printer-store-summary">
+          <span>绑定门店</span>
+          <strong id="printerStoreName">-</strong>
+        </section>
+        <label>
+          <span>设备编号</span>
+          <input id="printerDeviceNo" type="text" placeholder="请输入小票机设备编号" autocomplete="off" />
+        </label>
+        <label>
+          <span>Key</span>
+          <input id="printerKey" type="password" placeholder="请输入设备 Key" autocomplete="new-password" />
+        </label>
+        <p id="printerBindHint" class="form-hint">每个门店仅可绑定一台小票机，绑定后用于打印订单小票。</p>
+        <div class="dialog-actions split-actions">
+          <button class="primary-btn compact" type="submit">确认绑定</button>
+          <button id="cancelPrinterBindBtn" class="ghost-btn" type="button">取消</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="hivePickupEditDialog" class="manage-dialog edit-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Hive Pickup Form</p>
+          <h3 id="hivePickupDialogTitle">新增窝蜂自提点</h3>
+        </div>
+        <button id="closeHivePickupDialogBtn" class="icon-btn" title="关闭" type="button">×</button>
+      </div>
+      <form id="hivePickupForm" class="manage-form dialog-form">
+        <label>
+          <span>自提点名称</span>
+          <input id="hivePickupName" type="text" placeholder="请输入窝蜂自提点名称" />
+        </label>
+        <label>
+          <span>地址</span>
+          <textarea id="hivePickupAddress" rows="3" placeholder="请输入自提点详细地址"></textarea>
+        </label>
+        <div class="form-grid">
+          <label>
+            <span>联系电话</span>
+            <input id="hivePickupPhone" type="tel" placeholder="请输入自提点联系电话" />
+          </label>
+          <label>
+            <span>营业时间</span>
+            <input id="hivePickupBusinessHours" type="text" placeholder="例如 10:00-20:00" />
+          </label>
+        </div>
+        <p id="hivePickupFormHint" class="form-hint">新增后默认启用，并出现在客户下单的自提点选项中。</p>
+        <div class="dialog-actions split-actions">
+          <button class="primary-btn compact" type="submit">确认保存</button>
+          <button id="cancelHivePickupBtn" class="ghost-btn" type="button">取消</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="crmDialog" class="detail-dialog">
+      <div class="drawer-head">
+        <div>
+          <p id="crmDialogEyebrow" class="eyebrow">CRM Detail</p>
+          <h3 id="crmDialogTitle">CRM 详情</h3>
+        </div>
+        <button id="closeCrmDialogBtn" class="icon-btn" title="关闭" type="button">×</button>
+      </div>
+      <div id="crmDetail" class="detail-stack"></div>
+    </dialog>
+
+    <dialog id="opportunityCreateDialog" class="manage-dialog opportunity-create-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Opportunity Form</p>
+          <h3>录入商机信息</h3>
+        </div>
+        <button id="closeOpportunityCreateBtn" class="icon-btn" title="关闭" type="button">×</button>
+      </div>
+      <form id="opportunityCreateForm" class="manage-form dialog-form">
+        <div class="form-grid">
+          <label>
+            <span>商机名称 *</span>
+            <input id="opportunityTitle" type="text" maxlength="60" placeholder="例如：秋季训练服补单" required />
+          </label>
+          <label>
+            <span>关联客户 *</span>
+            <select id="opportunityCustomer" required></select>
+          </label>
+        </div>
+        <div class="form-grid">
+          <label>
+            <span>需求类型 *</span>
+            <select id="opportunityType" required>
+              <option value="定制咨询">定制咨询</option>
+              <option value="团购咨询">团购咨询</option>
+              <option value="学校合作咨询">学校合作咨询</option>
+            </select>
+          </label>
+          <label>
+            <span>商机来源 *</span>
+            <select id="opportunitySource" required>
+              <option value="手动录入">手动录入</option>
+              <option value="客服转入">客服转入</option>
+              <option value="门店咨询">门店咨询</option>
+              <option value="电话咨询">电话咨询</option>
+              <option value="WhatsApp">WhatsApp</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          <span>需求说明 *</span>
+          <textarea id="opportunityNeed" maxlength="300" placeholder="填写商品、款式、印制或合作需求" required></textarea>
+        </label>
+        <div class="form-grid">
+          <label>
+            <span>预计数量 *</span>
+            <input id="opportunityQuantity" type="text" maxlength="30" placeholder="例如：80-120 件" required />
+          </label>
+          <label>
+            <span>预算 *</span>
+            <input id="opportunityBudget" type="text" maxlength="30" placeholder="例如：MOP 18,000 / 待确认" required />
+          </label>
+        </div>
+        <div class="form-grid">
+          <label>
+            <span>期望交期 *</span>
+            <input id="opportunityDueDate" type="date" required />
+          </label>
+          <label>
+            <span>负责人</span>
+            <select id="opportunityOwner"></select>
+          </label>
+        </div>
+        <label>
+          <span>首次跟进记录</span>
+          <textarea id="opportunityFirstFollow" maxlength="200" placeholder="可填写已沟通事项或下一步计划"></textarea>
+        </label>
+        <p id="opportunityFormHint" class="form-hint">新建商机默认进入“新线索”，保存后可在商机详情中继续跟进。</p>
+        <div class="dialog-actions split-actions">
+          <button class="primary-btn compact" type="submit">确认录入</button>
+          <button id="cancelOpportunityCreateBtn" class="ghost-btn" type="button">取消</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="orderDialog" class="detail-dialog order-detail-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Order Detail</p>
+          <h3 id="orderDialogTitle">订单详情</h3>
+        </div>
+        <button id="closeOrderDialogBtn" class="icon-btn" title="关闭" type="button">×</button>
+      </div>
+      <div id="orderDetail" class="detail-stack"></div>
+    </dialog>
+
+    <dialog id="afterSaleDialog" class="detail-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">After-Sales Review</p>
+          <h3 id="afterSaleDialogTitle">售后审核</h3>
+        </div>
+        <button id="closeAfterSaleDialogBtn" class="icon-btn" title="关闭" type="button">×</button>
+      </div>
+      <div id="afterSaleDetail" class="detail-stack"></div>
+    </dialog>
+
+    <dialog id="exchangeDialog" class="manage-dialog exchange-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">In-store Exchange</p>
+          <h3 id="exchangeDialogTitle">录入门店换货</h3>
+        </div>
+        <button id="closeExchangeDialogBtn" class="icon-btn" title="关闭" type="button">×</button>
+      </div>
+      <div class="exchange-steps" aria-label="换货录入步骤">
+        <span data-exchange-step-indicator="1" class="active"><b>1</b> 查询原订单</span>
+        <i></i>
+        <span data-exchange-step-indicator="2"><b>2</b> 扫描货品条码</span>
+        <i></i>
+        <span data-exchange-step-indicator="3"><b>3</b> 确认换货</span>
+      </div>
+
+      <section id="exchangeSearchStep" class="exchange-step-panel">
+        <div class="exchange-policy-note">
+          <strong>门店换货规则</strong>
+          <span>定制类、校服商品仅支持换货，不在此流程办理退货退款。线上售后申请仍在“售后订单”中独立处理。</span>
+        </div>
+        <div class="exchange-search-row">
+          <label class="search-box">
+            <span>⌕</span>
+            <input id="exchangeOrderSearch" type="search" placeholder="输入货品条码、手机号或收货人姓名" />
+          </label>
+          <button id="queryExchangeOrdersBtn" class="primary-btn compact" type="button">查询</button>
+        </div>
+        <p id="exchangeSearchHint" class="form-hint">可输入示例：6901001001012、6688 1226 或 梁太。</p>
+        <div id="exchangeOrderResults" class="exchange-order-results"></div>
+        <div class="dialog-actions split-actions">
+          <button id="confirmExchangeOrderBtn" class="primary-btn compact" type="button" disabled>确认换货</button>
+          <button id="cancelExchangeBtn" class="ghost-btn" type="button">取消</button>
+        </div>
+      </section>
+
+      <section id="exchangeBarcodeStep" class="exchange-step-panel hidden">
+        <div id="exchangeSelectedOrderSummary" class="confirm-summary"></div>
+        <div class="exchange-barcode-grid">
+          <label>
+            <span>退回货品条码</span>
+            <input id="exchangeReturnBarcode" inputmode="numeric" autocomplete="off" placeholder="扫描或输入客户退回货品条码" />
+            <small>必须属于所选原订单中的货品。</small>
+          </label>
+          <label>
+            <span>重新出库货品条码</span>
+            <input id="exchangeOutboundBarcode" inputmode="numeric" autocomplete="off" placeholder="扫描或输入重新出库货品条码" />
+            <small>需为同款可换货 SKU，且当前库存充足。</small>
+          </label>
+        </div>
+        <p id="exchangeBarcodeHint" class="form-hint">录入两个条码后核对库存变化。</p>
+        <div class="dialog-actions split-actions">
+          <button id="reviewExchangeBtn" class="primary-btn compact" type="button">核对换货</button>
+          <button id="backToExchangeSearchBtn" class="ghost-btn" type="button">返回选单</button>
+        </div>
+      </section>
+
+      <section id="exchangeConfirmStep" class="exchange-step-panel hidden">
+        <div id="exchangeConfirmSummary" class="exchange-confirm-summary"></div>
+        <label class="check-line exchange-confirm-check">
+          <input id="exchangeConfirmCheck" type="checkbox" />
+          已核对客户、原订单及两件实物条码，确认现场完成换货
+        </label>
+        <p id="exchangeConfirmHint" class="form-hint">最终确认后将自动更新两个 SKU 的库存，并生成已完成售后单。</p>
+        <div class="dialog-actions split-actions">
+          <button id="completeExchangeBtn" class="primary-btn compact" type="button">最后确认，完成换货</button>
+          <button id="backToExchangeBarcodeBtn" class="ghost-btn" type="button">返回修改条码</button>
+        </div>
+      </section>
+
+      <section id="exchangeSuccessStep" class="exchange-step-panel hidden">
+        <div class="exchange-success-mark">✓</div>
+        <h3>换货已完成</h3>
+        <p id="exchangeSuccessText"></p>
+        <div class="dialog-actions exchange-success-actions">
+          <button id="viewCreatedAfterSaleBtn" class="primary-btn compact" type="button">查看售后单</button>
+          <button id="finishExchangeBtn" class="ghost-btn" type="button">返回工作台</button>
+        </div>
+      </section>
+    </dialog>
+
+
+    <dialog id="restockDialog" class="manage-dialog edit-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Inventory Restock</p>
+          <h3>补库存</h3>
+        </div>
+        <button id="closeRestockDialogBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <form class="manage-form dialog-form">
+        <input id="restockProductId" type="hidden" />
+        <input id="restockSkuId" type="hidden" />
+        <div id="restockSummary" class="confirm-summary"></div>
+        <label>
+          <span>补充库存</span>
+          <input id="restockAmount" type="number" min="1" value="1" />
+        </label>
+        <p class="form-hint">最终库存 = 当前库存 + 补充库存。</p>
+        <div class="dialog-actions split-actions">
+          <button id="confirmRestockBtn" class="primary-btn compact" type="button">确认补库存</button>
+          <button id="cancelRestockBtn" class="ghost-btn" type="button">取消</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="shelveOffDialog" class="manage-dialog edit-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Shelve Off</p>
+          <h3>确认下架</h3>
+        </div>
+        <button id="closeShelveOffDialogBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <form class="manage-form dialog-form">
+        <input id="shelveOffProductId" type="hidden" />
+        <div id="shelveOffSummary" class="confirm-summary"></div>
+        <p class="form-hint">确认后该 SPU 将下架，并从当前库存预警列表中移除。</p>
+        <div class="dialog-actions split-actions">
+          <button id="confirmShelveOffBtn" class="primary-btn compact danger-btn" type="button">确认下架</button>
+          <button id="cancelShelveOffBtn" class="ghost-btn" type="button">取消</button>
+        </div>
+      </form>
+    </dialog>
+
+
+    <dialog id="categoryEditDialog" class="manage-dialog edit-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Category Form</p>
+          <h3 id="categoryDialogTitle">新增类目</h3>
+        </div>
+        <button id="closeCategoryDialogBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <form class="manage-form dialog-form">
+        <input id="categoryId" type="hidden" />
+        <label>
+          <span>父级类目</span>
+          <select id="categoryParent"></select>
+        </label>
+        <label>
+          <span>类目名称</span>
+          <input id="categoryName" type="text" placeholder="例如：T恤" />
+        </label>
+        <p class="form-hint">最多三级。商品中心分类字段只读取三级叶子类目，例如：原创产品 / 上衣 / T恤。</p>
+        <div class="dialog-actions split-actions">
+          <button id="saveCategoryBtn" class="primary-btn compact" type="button">确认新增</button>
+          <button id="cancelCategoryBtn" class="ghost-btn" type="button">取消</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="unitEditDialog" class="manage-dialog edit-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Unit Form</p>
+          <h3 id="unitDialogTitle">新增单位</h3>
+        </div>
+        <button id="closeUnitDialogBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <form class="manage-form dialog-form">
+        <input id="unitId" type="hidden" />
+        <div class="form-grid">
+          <label>
+            <span>单位类型</span>
+            <select id="unitType">
+              <option value="学校">学校</option>
+              <option value="球队">球队</option>
+              <option value="企业">企业</option>
+              <option value="社团">社团</option>
+            </select>
+          </label>
+          <label>
+            <span>单位编码</span>
+            <input id="unitCode" type="text" placeholder="如 SJS 或 TEAM-MACAU" />
+          </label>
+        </div>
+        <label>
+          <span>单位名称</span>
+          <input id="unitName" type="text" placeholder="例如：圣若瑟教区中学" />
+        </label>
+        <label>
+          <span>联系人 / 备注</span>
+          <input id="unitContact" type="text" placeholder="例如：校务处 / 球队领队" />
+        </label>
+        <section class="unit-logo-section">
+          <div class="mini-head"><strong>单位 Logo</strong></div>
+          <div class="unit-logo-editor">
+            <div id="unitLogoPreview" class="unit-logo-preview"><span>Logo</span></div>
+            <div class="unit-logo-fields">
+              <label>
+                <span>Logo 地址</span>
+                <input id="unitLogo" type="text" placeholder="可填写 Logo URL，或上传后自动生成预览" />
+              </label>
+              <label class="upload-line unit-upload-line">
+                <input id="unitLogoFile" type="file" accept="image/*" />
+                <span>上传 Logo</span>
+              </label>
+            </div>
+          </div>
+        </section>
+        <p class="form-hint">商品中心“归属单位”字段只读取这里维护的数据，可同时覆盖学校、球队等对象；Logo 用于前台商城客户端展示。</p>
+        <div class="dialog-actions split-actions">
+          <button id="saveUnitBtn" class="primary-btn compact" type="button">确认新增</button>
+          <button id="cancelUnitBtn" class="ghost-btn" type="button">取消</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="productDialog" class="spu-dialog">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">SPU Detail</p>
+          <h3 id="drawerTitle">新增 SPU</h3>
+        </div>
+        <button id="closeDrawerBtn" class="icon-btn" title="关闭" type="button">×</button>
+      </div>
+      <div class="spu-tabs" role="tablist" aria-label="SPU 商品详情">
+        <button class="active" data-spu-tab="base" type="button">基础信息</button>
+        <button data-spu-tab="media" type="button">商品图文</button>
+      </div>
+      <form class="drawer-form">
+        <section id="baseTabPanel" class="spu-tab-panel active">
+          <div class="spu-form-grid">
+            <section class="form-section">
+              <div class="mini-head"><strong>基础信息</strong></div>
+              <label>
+                <span>SPU 名称</span>
+                <input id="formName" type="text" value="圣若瑟校服短袖衬衫" />
+              </label>
+              <label>
+                <span>SPU 编码</span>
+                <input id="formSpuCode" type="text" value="SPU-SJS-SHIRT-001" />
+              </label>
+              <div class="form-grid">
+                <label>
+                  <span>三级类目</span>
+                  <select id="formCategory"></select>
+                </label>
+                <label>
+                  <span>商品状态</span>
+                  <select id="formStatus">
+                    <option>上架</option>
+                    <option>预售</option>
+                    <option>售罄</option>
+                    <option>下架</option>
+                  </select>
+                </label>
+              </div>
+              <fieldset class="unit-multi-field">
+                <legend>归属单位 <small>可多选</small></legend>
+                <div class="unit-multi-head">
+                  <span>从归属单位管理数据中选择</span>
+                  <strong id="formUnitsCount">已选 0 个</strong>
+                </div>
+                <div id="formUnits" class="unit-checkbox-grid"></div>
+                <small class="field-help">通用类商品可同时关联多个学校、球队或其他单位。</small>
+              </fieldset>
+            </section>
+
+            <section class="form-section">
+              <div class="mini-head">
+                <strong>预售设置与 SKU 设置</strong>
+                <button id="addSkuBtn" class="ghost-btn tiny" type="button">添加 SKU</button>
+              </div>
+              <section class="presale-box compact-presale">
+                <label class="check-line"><input id="formPresale" type="checkbox" /> 开启预售</label>
+                <input id="formArrivalDate" type="date" value="2026-08-15" aria-label="预计到货时间" />
+                <textarea id="formPresaleNote">预计 8 月中旬到货，按付款顺序发货。</textarea>
+              </section>
+              <section class="sku-editor">
+                <div class="sku-editor-head">
+                  <span>规格名称</span>
+                  <span>唯一货号</span>
+                  <span>价格</span>
+                  <span>库存</span>
+                  <span>预警</span>
+                  <span>可售</span>
+                </div>
+                <div id="skuEditorRows" class="sku-editor-rows"></div>
+              </section>
+            </section>
+          </div>
+        </section>
+
+        <section id="mediaTabPanel" class="spu-tab-panel">
+          <section class="form-section media-section">
+            <div class="mini-head">
+              <strong>商品主图</strong>
+              <span class="form-hint">最多 5 张，第一张默认作为客户端主图</span>
+            </div>
+            <div id="mainImageRows" class="image-upload-grid"></div>
+          </section>
+          <section class="form-section media-section">
+            <div class="mini-head"><strong>商品详情</strong></div>
+            <div class="editor-toolbar" aria-label="商品详情编辑器工具栏">
+              <button type="button">B</button>
+              <button type="button">I</button>
+              <button type="button">标题</button>
+              <button type="button">图片</button>
+              <button type="button">分割线</button>
+            </div>
+            <div id="detailEditor" class="rich-editor" contenteditable="true" role="textbox" aria-label="商品详细介绍编辑器"></div>
+          </section>
+        </section>
+      </form>
+      <div class="drawer-actions modal-actions">
+        <button id="saveProductBtn" class="primary-btn compact" type="button">保存 SPU</button>
+      </div>
+    </dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
