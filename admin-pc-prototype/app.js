@@ -460,12 +460,12 @@ let roles = [
 ];
 
 const employees = [
-  { id: "emp-admin", username: "mcadmin", name: "管理员", roleId: "role-admin", password: "mc1234", status: "启用", lastLogin: "2026-07-06 09:12" },
-  { id: "emp-sales-he", username: "he.sales", name: "何销售", roleId: "role-sales", password: "sales123", status: "启用", lastLogin: "2026-07-06 08:56" },
-  { id: "emp-service-liang", username: "liang.cs", name: "梁客服", roleId: "role-order", password: "cs123", status: "启用", lastLogin: "2026-07-05 18:34" },
-  { id: "emp-manager-chan", username: "chan.manager", name: "陈经理", roleId: "role-sales", password: "manager123", status: "启用", lastLogin: "2026-07-06 10:02" },
-  { id: "emp-warehouse-tam", username: "tam.wh", name: "谭仓管", roleId: "role-warehouse", password: "wh123", status: "启用", lastLogin: "2026-07-05 16:20" },
-  { id: "emp-product-wong", username: "wong.ops", name: "黄运营", roleId: "role-product", password: "ops123", status: "停用", lastLogin: "未登录" },
+  { id: "emp-admin", usernameHash: "a0ccc593e9fa5e37825f67c5d95b87ce4635c2e457e00fbb689b9b34c995df6e", usernameMasked: "m******n", name: "管理员", roleId: "role-admin", passwordHash: "d120174be4f79c15f66c6828c0b3ccd876f497463fbbb33b37f5838106fc6662", status: "启用", lastLogin: "2026-07-06 09:12" },
+  { id: "emp-sales-he", usernameHash: "21711679adf09bf8d1f5aacf392e15da52c63ef249865ba0f974a82693f13739", usernameMasked: "h******s", name: "何销售", roleId: "role-sales", passwordHash: "", status: "启用", lastLogin: "2026-07-06 08:56" },
+  { id: "emp-service-liang", usernameHash: "90555f44815af5867f755608406dbeda5d26f5503fcb8a9648dc98b2d26d6e35", usernameMasked: "l******s", name: "梁客服", roleId: "role-order", passwordHash: "", status: "启用", lastLogin: "2026-07-05 18:34" },
+  { id: "emp-manager-chan", usernameHash: "e65dcd0d2e2d8ad97f4f59331566f9a83b900beb199a2a0ecbe1d607c80482fc", usernameMasked: "c**********r", name: "陈经理", roleId: "role-sales", passwordHash: "", status: "启用", lastLogin: "2026-07-06 10:02" },
+  { id: "emp-warehouse-tam", usernameHash: "5dbc3e04a7e5877e3806d70f483ea9a823937063011814cb41d8e2735bcb45ba", usernameMasked: "t****h", name: "谭仓管", roleId: "role-warehouse", passwordHash: "", status: "启用", lastLogin: "2026-07-05 16:20" },
+  { id: "emp-product-wong", usernameHash: "8185ca8f929ea911a3106fa7027b8f78f32ee4b694eb91bf87d87bc033549a24", usernameMasked: "w******s", name: "黄运营", roleId: "role-product", passwordHash: "", status: "停用", lastLogin: "未登录" },
 ];
 
 const stores = [
@@ -782,24 +782,26 @@ const pagination = {
   inventoryAlerts: { page: 1, pageSize: 15 },
 };
 
-loginForm.addEventListener("submit", (event) => {
+loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const username = document.querySelector("#username").value.trim();
   const password = document.querySelector("#password").value.trim();
-  const employee = employees.find((item) => item.username === username && item.password === password);
+  const usernameHash = await hashEmployeeUsername(username);
+  const employee = employees.find((item) => item.usernameHash === usernameHash);
+  const passwordHash = employee ? await hashEmployeePassword(employee.id, password) : "";
 
-  if (employee && employee.status === "启用") {
+  if (employee && employee.passwordHash === passwordHash && employee.status === "启用") {
     loginError.textContent = "";
     employee.lastLogin = "刚刚";
     loginView.classList.add("hidden");
     adminView.classList.remove("hidden");
     document.querySelector(".admin-profile strong").textContent = employee.name;
-    document.querySelector(".admin-profile small").textContent = employee.username;
+    document.querySelector(".admin-profile small").textContent = username;
     requestAnimationFrame(drawSalesChart);
     return;
   }
 
-  if (employee?.status === "停用") {
+  if (employee?.passwordHash === passwordHash && employee.status === "停用") {
     loginError.textContent = "该员工账号已停用，请联系管理员。";
     return;
   }
@@ -902,6 +904,24 @@ function escapeHtml(value) {
   }[char]));
 }
 
+async function hashEmployeePassword(employeeId, password) {
+  return hashText(`${employeeId}:${password}`);
+}
+
+async function hashEmployeeUsername(username) {
+  return hashText(username.trim().toLowerCase());
+}
+
+async function hashText(value) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function getEmployeeUsername(employee) {
+  return employee?.username || employee?.usernameMasked || "已配置账号";
+}
+
 function getChildren(parentId) {
   return categories.filter((item) => item.parentId === parentId);
 }
@@ -956,7 +976,7 @@ function refreshReferenceOptions() {
   }
   const opportunityOwner = document.querySelector("#opportunityOwner");
   if (opportunityOwner) {
-    opportunityOwner.innerHTML = `<option value="unassigned">待分配</option>${getAssignableEmployees().map((employee) => `<option value="${employee.id}">${escapeHtml(employee.name)}（${escapeHtml(employee.username)}）</option>`).join("")}`;
+    opportunityOwner.innerHTML = `<option value="unassigned">待分配</option>${getAssignableEmployees().map((employee) => `<option value="${employee.id}">${escapeHtml(employee.name)}（${escapeHtml(getEmployeeUsername(employee))}）</option>`).join("")}`;
   }
   document.querySelector("#employeeRoleFilter").innerHTML = renderRoleOptions("全部角色");
   document.querySelector("#employeeRole").innerHTML = roles.map((role) => `<option value="${role.id}">${escapeHtml(role.name)}</option>`).join("");
@@ -990,7 +1010,7 @@ function updateProductUnitCount() {
 
 function renderOwnerOptions(label) {
   const ownerOptions = getAssignableEmployees()
-    .map((employee) => `<option value="${employee.id}">${escapeHtml(employee.name)}（${escapeHtml(employee.username)}）</option>`)
+    .map((employee) => `<option value="${employee.id}">${escapeHtml(employee.name)}（${escapeHtml(getEmployeeUsername(employee))}）</option>`)
     .join("");
   return `<option value="all">${label}</option><option value="unassigned">待分配</option>${ownerOptions}`;
 }
@@ -1016,7 +1036,7 @@ function getEmployeeName(id) {
 function getEmployeeAccountText(id) {
   if (id === "unassigned") return "待分配";
   const employee = getEmployeeById(id);
-  return employee ? `${employee.name}（${employee.username}）` : "未知员工";
+  return employee ? `${employee.name}（${getEmployeeUsername(employee)}）` : "未知员工";
 }
 
 function getRoleById(id) {
@@ -2618,7 +2638,7 @@ function getFilteredEmployees() {
   const status = document.querySelector("#employeeStatusFilter").value;
   return employees.filter((employee) => {
     const roleItem = getRoleById(employee.roleId);
-    const text = `${employee.username} ${employee.name} ${roleItem?.name || ""}`.toLowerCase();
+    const text = `${getEmployeeUsername(employee)} ${employee.name} ${roleItem?.name || ""}`.toLowerCase();
     return (!keyword || text.includes(keyword))
       && (role === "all" || employee.roleId === role)
       && (status === "all" || employee.status === status);
@@ -2631,7 +2651,7 @@ function renderEmployees() {
   const page = getPageSlice(rows, "employees");
   employeeRows.innerHTML = page.rows.map((employee) => `
     <tr>
-      <td><strong>${escapeHtml(employee.username)}</strong><small>${escapeHtml(employee.id)}</small></td>
+      <td><strong>${escapeHtml(getEmployeeUsername(employee))}</strong><small>${escapeHtml(employee.id)}</small></td>
       <td><strong>${escapeHtml(employee.name)}</strong><small>账号创建后即可登录</small></td>
       <td>${getSystemBadge(getRoleName(employee.roleId))}</td>
       <td>${getSystemBadge(employee.status)}</td>
@@ -3064,7 +3084,7 @@ function openEmployeeDetail(id) {
   systemDialogEyebrow.textContent = "Employee Account";
   systemDialogTitle.textContent = `${employee.name} 员工账号`;
   systemDetail.innerHTML = `
-    <section class="detail-block"><strong>${escapeHtml(employee.username)}</strong><small>${escapeHtml(employee.name)} · ${escapeHtml(employee.status)} · 最近登录：${escapeHtml(employee.lastLogin)}</small></section>
+    <section class="detail-block"><strong>${escapeHtml(getEmployeeUsername(employee))}</strong><small>${escapeHtml(employee.name)} · ${escapeHtml(employee.status)} · 最近登录：${escapeHtml(employee.lastLogin)}</small></section>
     <section class="detail-block"><h4>角色权限</h4><p>${escapeHtml(role?.name || "未配置角色")}</p><small>${escapeHtml(role?.description || "")}</small><div class="tag-list">${role ? getRolePageNames(role).map((page) => `<span>${escapeHtml(page)}</span>`).join("") : ""}</div></section>
     <section class="detail-block"><h4>CRM 负责人关联</h4><ul class="record-list"><li>负责客户：${customers.filter((customer) => customer.ownerId === employee.id).length} 个</li><li>负责商机：${opportunities.filter((opportunity) => opportunity.ownerId === employee.id).length} 个</li></ul></section>
     <section class="detail-block"><h4>重置密码</h4><label><span>新密码</span><input id="resetEmployeePassword" type="password" placeholder="输入新登录密码" /></label><button class="primary-btn compact" type="button" data-reset-employee-password="${employee.id}">确认重置</button><p id="resetPasswordHint" class="form-hint"></p></section>
@@ -3083,7 +3103,7 @@ function openRoleDetail(id) {
     <section class="detail-block"><strong>${escapeHtml(role.name)}</strong><small>${escapeHtml(role.status)} · ${roleEmployees.length} 个员工账号</small></section>
     <section class="detail-block"><h4>页面权限</h4><div class="tag-list">${getRolePageNames(role).map((page) => `<span>${escapeHtml(page)}</span>`).join("") || "<span>未分配页面</span>"}</div></section>
     <section class="detail-block"><h4>接口权限</h4><ul class="record-list">${getRoleApiNames(role).map((action) => `<li>${escapeHtml(action)}</li>`).join("") || "<li>未分配接口</li>"}</ul></section>
-    <section class="detail-block"><h4>关联员工</h4><ul class="record-list">${roleEmployees.map((employee) => `<li>${escapeHtml(employee.name)}（${escapeHtml(employee.username)}）</li>`).join("") || "<li>暂无员工使用该角色</li>"}</ul></section>
+    <section class="detail-block"><h4>关联员工</h4><ul class="record-list">${roleEmployees.map((employee) => `<li>${escapeHtml(employee.name)}（${escapeHtml(getEmployeeUsername(employee))}）</li>`).join("") || "<li>暂无员工使用该角色</li>"}</ul></section>
     <section class="detail-block"><button class="primary-btn compact" type="button" data-edit-role-from-detail="${role.id}">编辑角色</button></section>
   `;
   systemDetail.querySelector("[data-edit-role-from-detail]")?.addEventListener("click", (event) => {
@@ -3218,7 +3238,7 @@ function closeEmployeeDialog() {
   employeeEditDialog.close();
 }
 
-function saveEmployee() {
+async function saveEmployee() {
   const username = document.querySelector("#employeeUsername").value.trim();
   const name = document.querySelector("#employeeName").value.trim();
   const roleId = document.querySelector("#employeeRole").value;
@@ -3228,17 +3248,20 @@ function saveEmployee() {
     hint.textContent = "请完整填写账号名、员工姓名、角色和初始密码。";
     return;
   }
-  if (employees.some((employee) => employee.username === username)) {
+  const usernameHash = await hashEmployeeUsername(username);
+  if (employees.some((employee) => employee.usernameHash === usernameHash)) {
     hint.textContent = "账号名已存在，请换一个账号名。";
     document.querySelector("#employeeUsername").focus();
     return;
   }
+  const id = `emp-${Date.now()}`;
   employees.unshift({
-    id: `emp-${Date.now()}`,
+    id,
     username,
+    usernameHash,
     name,
     roleId,
-    password,
+    passwordHash: await hashEmployeePassword(id, password),
     status: "启用",
     lastLogin: "未登录",
   });
@@ -3251,7 +3274,7 @@ function saveEmployee() {
   renderOpportunities();
 }
 
-function resetEmployeePassword(id) {
+async function resetEmployeePassword(id) {
   const employee = getEmployeeById(id);
   const input = document.querySelector("#resetEmployeePassword");
   const hint = document.querySelector("#resetPasswordHint");
@@ -3260,7 +3283,7 @@ function resetEmployeePassword(id) {
     if (hint) hint.textContent = "请输入新密码。";
     return;
   }
-  employee.password = password;
+  employee.passwordHash = await hashEmployeePassword(employee.id, password);
   input.value = "";
   if (hint) hint.textContent = "密码已重置，员工下次可使用新密码登录。";
 }
