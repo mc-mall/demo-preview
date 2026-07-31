@@ -35,13 +35,6 @@ const categories = [
   { id: "presale", name: "预售专区" },
 ];
 
-const hotCategories = [
-  { name: "上衣", icon: "衣", categoryId: "cat-school-short", keyword: "" },
-  { name: "裤装", icon: "裤", categoryId: "cat-original-tshirt", keyword: "裤" },
-  { name: "装备", icon: "装", categoryId: "cat-sports-jersey", keyword: "球队" },
-  { name: "其它", icon: "其", categoryId: "presale", keyword: "" },
-];
-
 const products = [
   {
     id: "spu-sjs-shirt",
@@ -346,11 +339,6 @@ function renderHome() {
       <span>${escapeHtml(unit.type)} · ${products.filter((product) => product.unitIds.includes(unit.id)).length} 件商品</span>
     </button>
   `).join("");
-  $("#hotCategories").innerHTML = hotCategories.map((category) => `
-    <button class="hot-category-card" type="button" data-hot-category="${category.categoryId}" data-hot-keyword="${escapeHtml(category.keyword)}">
-      <span>${escapeHtml(category.icon)}</span>${escapeHtml(category.name)}
-    </button>
-  `).join("");
   $("#featuredProducts").innerHTML = products.map(renderProductCard).join("");
   $("#homeBanner [data-go]")?.addEventListener("click", (event) => navigate(event.currentTarget.dataset.go));
   bindProductClicks();
@@ -358,13 +346,6 @@ function renderHome() {
     button.addEventListener("click", () => {
       selectedUnitType = "全部";
       $("#productSearch").value = getUnit(button.dataset.unit).name;
-      navigate("categoryView");
-    });
-  });
-  document.querySelectorAll("[data-hot-category]").forEach((button) => {
-    button.addEventListener("click", () => {
-      selectedCategory = button.dataset.hotCategory;
-      $("#productSearch").value = button.dataset.hotKeyword || "";
       navigate("categoryView");
     });
   });
