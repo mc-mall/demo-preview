@@ -82,18 +82,39 @@
     </section>
 
     <section id="categoryView" class="view" data-title="商品分类" data-kicker="Products">
+      <div class="category-topbar">
+        <button class="category-brand" type="button" data-go="homeView" aria-label="返回 MC 商城首页"><b>MC</b></button>
+        <strong>商城</strong>
+        <label class="category-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+          <input id="productSearch" type="search" placeholder="搜索" aria-label="搜索商品、SKU或单位" />
+        </label>
+        <button class="category-top-cart" type="button" data-go="cartView" aria-label="查看购物车">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
+        </button>
+      </div>
       <div class="category-layout">
         <aside id="categoryTabs"></aside>
-        <div>
-          <div class="search-card compact">
-            <input id="productSearch" type="search" placeholder="搜索商品 / SKU / 单位" />
+        <div class="category-content">
+          <div class="category-hero">
+            <img src="./assets/mc-campaign-hero.jpg" alt="" />
+            <div>
+              <span>MC · SCHOOL & TEAM</span>
+              <h2>向新而行</h2>
+              <p>新学期装备系列</p>
+            </div>
           </div>
           <div id="productList" class="product-list"></div>
         </div>
       </div>
-      <button class="category-cart-button" type="button" data-go="cartView" aria-label="查看购物车">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
-      </button>
+      <div class="category-quick-dock" aria-label="分类页快捷操作">
+        <button type="button" data-go="cartView" aria-label="查看购物车">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
+        </button>
+        <button type="button" data-scroll-top aria-label="回到顶部">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16"/></svg>
+        </button>
+      </div>
     </section>
 
     <section id="detailView" class="view" data-title="商品详情" data-kicker="Product">

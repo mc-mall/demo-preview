@@ -28,7 +28,7 @@ const homeBanners = [
 ];
 
 const categories = [
-  { id: "all", name: "全部" },
+  { id: "all", name: "全部商品" },
   { id: "cat-school-short", name: "夏季校服" },
   { id: "cat-original-tshirt", name: "运动服" },
   { id: "cat-sports-jersey", name: "球队服装" },
@@ -349,7 +349,6 @@ function renderHome() {
       navigate("categoryView");
     });
   });
-  $("[data-scroll-top]")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 }
 
 function renderProductCard(product) {
@@ -403,14 +402,13 @@ function renderCategory() {
   $("#categoryTabs").innerHTML = categories.map((category) => `<button class="${selectedCategory === category.id ? "active" : ""}" type="button" data-category="${category.id}">${category.name}</button>`).join("");
   const rows = getFilteredProducts();
   $("#productList").innerHTML = rows.length ? rows.map((product) => `
-    <button class="list-product" type="button" data-product="${product.id}">
-      <img src="${product.thumb}" alt="" />
-      <div>
-        <h3>${escapeHtml(product.name)}</h3>
+    <button class="category-product-tile" type="button" data-product="${product.id}">
+      <span class="category-product-image"><img src="${product.thumb}" alt="" /></span>
+      <span class="category-product-copy">
+        <strong>${escapeHtml(product.name)}</strong>
         <small>${escapeHtml(getProductUnits(product))}</small>
-        <small>${escapeHtml(product.description)}</small>
-        <span class="price-row"><b class="price">${money(minPrice(product))}</b>${statusBadge(product.status)}</span>
-      </div>
+        <span class="category-product-meta"><b>${money(minPrice(product))}</b>${statusBadge(product.status)}</span>
+      </span>
     </button>
   `).join("") : `<div class="empty-state">没有匹配商品，换个学校或分类试试。</div>`;
   document.querySelectorAll("[data-category]").forEach((button) => button.addEventListener("click", () => {
@@ -1000,6 +998,9 @@ function bindEvents() {
     }
   });
   $("#productSearch").addEventListener("input", renderCategory);
+  document.querySelectorAll("[data-scroll-top]").forEach((button) => {
+    button.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  });
   $("#checkoutBtn").addEventListener("click", () => {
     selectedCheckoutAddressId = "";
     navigate("checkoutView");
