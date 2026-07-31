@@ -220,10 +220,15 @@ let editingAddressId = "";
 let pendingDeleteAddressId = "";
 let selectedCheckoutAddressId = "";
 let addressEditorContext = "addressView";
+let selectedProductListUnitId = units[0].id;
+let productListSourceView = "homeView";
+let unitProductSort = "综合";
+let unitProductPriceAsc = true;
 
 const viewIds = [
   "homeView",
   "schoolView",
+  "productListView",
   "categoryView",
   "detailView",
   "cartView",
@@ -310,6 +315,7 @@ function renderCurrentView() {
   renderCartBadge();
   if (activeView === "homeView") renderHome();
   if (activeView === "schoolView") renderSchools();
+  if (activeView === "productListView") renderUnitProductList();
   if (activeView === "categoryView") renderCategory();
   if (activeView === "detailView") renderDetail();
   if (activeView === "cartView") renderCart();
@@ -343,11 +349,7 @@ function renderHome() {
   $("#homeBanner [data-go]")?.addEventListener("click", (event) => navigate(event.currentTarget.dataset.go));
   bindProductClicks();
   document.querySelectorAll("[data-unit]").forEach((button) => {
-    button.addEventListener("click", () => {
-      selectedUnitType = "全部";
-      $("#productSearch").value = getUnit(button.dataset.unit).name;
-      navigate("categoryView");
-    });
+    button.addEventListener("click", () => openUnitProductList(button.dataset.unit));
   });
 }
 
@@ -383,10 +385,78 @@ function renderSchools() {
     renderSchools();
   }));
   document.querySelectorAll("[data-school-products]").forEach((button) => button.addEventListener("click", () => {
-    $("#productSearch").value = getUnit(button.dataset.schoolProducts).name;
-    selectedCategory = "all";
-    navigate("categoryView");
+    openUnitProductList(button.dataset.schoolProducts);
   }));
+}
+
+function openUnitProductList(unitId) {
+  if (!units.some((unit) => unit.id === unitId)) return;
+  selectedProductListUnitId = unitId;
+  productListSourceView = activeView;
+  unitProductSort = "综合";
+  unitProductPriceAsc = true;
+  $("#unitProductSearch").value = "";
+  navigate("productListView");
+}
+
+function getUnitProductRows() {
+  const keyword = $("#unitProductSearch").value.trim().toLowerCase();
+  const rows = products.filter((product) => {
+    if (!product.unitIds.includes(selectedProductListUnitId)) return false;
+    const searchText = `${product.name} ${product.spuCode} ${product.description} ${product.skus.map((sku) => `${sku.spec} ${sku.code}`).join(" ")}`.toLowerCase();
+    return !keyword || searchText.includes(keyword);
+  });
+  if (unitProductSort === "价格") {
+    return rows.sort((a, b) => (minPrice(a) - minPrice(b)) * (unitProductPriceAsc ? 1 : -1));
+  }
+  if (unitProductSort === "上新") return rows.reverse();
+  return rows;
+}
+
+function renderUnitProductList() {
+  const unit = getUnit(selectedProductListUnitId);
+  const rows = getUnitProductRows();
+  $("#productListTitle").textContent = unit.name;
+  $("#productListView").dataset.unitId = unit.id;
+  document.querySelectorAll("[data-unit-product-sort]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.unitProductSort === unitProductSort);
+    if (button.dataset.unitProductSort === "价格") {
+      button.innerHTML = `价格 <span>${unitProductSort === "价格" ? (unitProductPriceAsc ? "↑" : "↓") : "↕"}</span>`;
+    }
+  });
+  $("#unitProductGrid").innerHTML = rows.length ? rows.map((product) => `
+    <article class="unit-product-card">
+      <button class="unit-product-main" type="button" data-product="${product.id}">
+        <span class="unit-product-image"><img src="${product.thumb}" alt="" /></span>
+        <span class="unit-product-name">${escapeHtml(product.name)}</span>
+        <small>${escapeHtml(product.description)}</small>
+      </button>
+      <span class="unit-product-offer">${product.status === "预售" ? "预售商品" : product.status === "售罄" ? "暂时售罄" : "本店优惠"}</span>
+      <span class="unit-product-footer">
+        <b>${money(minPrice(product))}</b>
+        <button type="button" data-unit-list-add-cart="${product.id}" aria-label="将${escapeHtml(product.name)}加入购物车">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
+        </button>
+      </span>
+    </article>
+  `).join("") : `
+    <div class="unit-product-empty">
+      <strong>暂无匹配商品</strong>
+      <span>${escapeHtml(unit.name)}当前没有符合条件的商品。</span>
+    </div>
+  `;
+  bindProductClicks();
+  document.querySelectorAll("[data-unit-list-add-cart]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const product = getProduct(button.dataset.unitListAddCart);
+      const sku = product.skus.find((item) => item.saleable && item.stock > 0);
+      if (!sku || product.status === "售罄") {
+        showToast("当前商品暂不可购买");
+        return;
+      }
+      addToCart(product.id, sku.id, 1);
+    });
+  });
 }
 
 function getFilteredProducts() {
@@ -998,6 +1068,19 @@ function bindEvents() {
     }
   });
   $("#productSearch").addEventListener("input", renderCategory);
+  $("#unitProductSearch").addEventListener("input", renderUnitProductList);
+  $("#productListBackBtn").addEventListener("click", () => navigate(productListSourceView || "schoolView"));
+  document.querySelectorAll("[data-unit-product-sort]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextSort = button.dataset.unitProductSort;
+      if (nextSort === "价格" && unitProductSort === "价格") unitProductPriceAsc = !unitProductPriceAsc;
+      else {
+        unitProductSort = nextSort;
+        if (nextSort === "价格") unitProductPriceAsc = true;
+      }
+      renderUnitProductList();
+    });
+  });
   document.querySelectorAll("[data-scroll-top]").forEach((button) => {
     button.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
   });

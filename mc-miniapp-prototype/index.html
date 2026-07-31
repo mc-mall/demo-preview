@@ -81,6 +81,43 @@
       <div id="schoolList" class="school-list"></div>
     </section>
 
+    <section id="productListView" class="view" data-title="学校商品" data-kicker="Products">
+      <div class="product-list-topbar">
+        <div class="product-list-nav">
+          <button id="productListBackBtn" type="button" aria-label="返回">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
+          </button>
+          <button type="button" data-go="homeView" aria-label="返回首页">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9H7v-6h10v6"/></svg>
+          </button>
+        </div>
+        <h2 id="productListTitle">学校商品</h2>
+        <span aria-hidden="true"></span>
+      </div>
+
+      <label class="product-list-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+        <input id="unitProductSearch" type="search" placeholder="搜索当前学校商品" />
+      </label>
+
+      <div class="product-list-sort" aria-label="商品排序">
+        <button class="active" type="button" data-unit-product-sort="综合">综合</button>
+        <button type="button" data-unit-product-sort="价格">价格 <span>↕</span></button>
+        <button type="button" data-unit-product-sort="上新">上新</button>
+      </div>
+
+      <div id="unitProductGrid" class="unit-product-grid"></div>
+
+      <div class="product-list-quick-dock" aria-label="商品列表快捷操作">
+        <button type="button" data-go="cartView" aria-label="查看购物车">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
+        </button>
+        <button type="button" data-scroll-top aria-label="回到顶部">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16"/></svg>
+        </button>
+      </div>
+    </section>
+
     <section id="categoryView" class="view" data-title="商品分类" data-kicker="Products">
       <div class="category-topbar">
         <button class="category-brand" type="button" data-go="homeView" aria-label="返回 MC 商城首页"><b>MC</b></button>
