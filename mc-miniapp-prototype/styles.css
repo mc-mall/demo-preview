@@ -2144,6 +2144,96 @@ body {
   }
 }
 
+/* 商品详情字体层级：保持现有结构与间距 */
+#detailView .detail-card > .price-row {
+  color: #96999d;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+#detailView .detail-card h2 {
+  color: #2c2f33;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0;
+}
+
+#detailView .original-price {
+  color: #a4a7ab;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+#detailView .sale-price {
+  color: #f02e35;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+#detailView .sale-price small {
+  color: #f02e35;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+#detailView .service-tags span {
+  color: #7f8388;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+#detailView .option-title,
+#detailView .product-info-card h3 {
+  color: #8b8e92;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+#detailView .sku-option strong {
+  color: #34373b;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+#detailView .quantity-row > span,
+#detailView .summary-line > span {
+  color: #8b8e92;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+#detailView .quantity-row > strong,
+#detailView .summary-line > strong {
+  color: #34373b;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+#detailView .product-detail-grid {
+  font-size: 13px;
+}
+
+#detailView .product-detail-grid span {
+  color: #989b9f;
+  font-weight: 400;
+}
+
+#detailView .product-detail-grid strong {
+  color: #3c3f43;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
 /* 学校商品列表页 */
 .phone-shell:has(#productListView.active) .app-header,
 .phone-shell:has(#productListView.active) .tabbar {
