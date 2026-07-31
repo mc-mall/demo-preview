@@ -18,28 +18,21 @@ const units = [
 
 const homeBanners = [
   {
-    kicker: "澳门本地校服 · 球衣 · 团体服",
-    title: "新学期校服补购专区",
-    description: "按学校入口快速查找商品，满 MOP200 配送费全免。",
-    cta: "立即选购",
+    kicker: "MC · SCHOOL & TEAM 2026",
+    title: "穿上热爱，\n并肩向前",
+    description: "校服、球队服与团体装备，一站式焕新。",
+    cta: "探索新学期系列",
     target: "schoolView",
-    image: "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360"><rect width="720" height="360" fill="#1769A8"/><path d="M0 265C96 229 164 258 247 211c102-58 172-126 310-82 65 21 110 16 163-18v249H0z" fill="#ffffff" opacity=".17"/><path d="M92 70h130l36 66H58zM83 136h185v132H83zM390 62h134l48 78H350zM369 140h226v138H369z" fill="#ffffff" opacity=".28"/><circle cx="593" cy="70" r="44" fill="#ffb84d" opacity=".78"/><text x="102" y="238" font-family="Arial, sans-serif" font-size="28" font-weight="800" fill="#ffffff">MC Mall</text></svg>`),
+    image: "./assets/mc-campaign-hero.jpg",
   },
 ];
 
 const categories = [
-  { id: "all", name: "全部" },
+  { id: "all", name: "全部商品" },
   { id: "cat-school-short", name: "夏季校服" },
   { id: "cat-original-tshirt", name: "运动服" },
   { id: "cat-sports-jersey", name: "球队服装" },
   { id: "presale", name: "预售专区" },
-];
-
-const hotCategories = [
-  { name: "上衣", icon: "衣", categoryId: "cat-school-short", keyword: "" },
-  { name: "裤装", icon: "裤", categoryId: "cat-original-tshirt", keyword: "裤" },
-  { name: "装备", icon: "装", categoryId: "cat-sports-jersey", keyword: "球队" },
-  { name: "其它", icon: "其", categoryId: "presale", keyword: "" },
 ];
 
 const products = [
@@ -227,10 +220,15 @@ let editingAddressId = "";
 let pendingDeleteAddressId = "";
 let selectedCheckoutAddressId = "";
 let addressEditorContext = "addressView";
+let selectedProductListUnitId = units[0].id;
+let productListSourceView = "homeView";
+let unitProductSort = "综合";
+let unitProductPriceAsc = true;
 
 const viewIds = [
   "homeView",
   "schoolView",
+  "productListView",
   "categoryView",
   "detailView",
   "cartView",
@@ -317,6 +315,7 @@ function renderCurrentView() {
   renderCartBadge();
   if (activeView === "homeView") renderHome();
   if (activeView === "schoolView") renderSchools();
+  if (activeView === "productListView") renderUnitProductList();
   if (activeView === "categoryView") renderCategory();
   if (activeView === "detailView") renderDetail();
   if (activeView === "cartView") renderCart();
@@ -330,11 +329,11 @@ function renderCurrentView() {
 
 function renderHome() {
   const banner = homeBanners[0];
-  $("#homeBanner").style.backgroundImage = `linear-gradient(180deg, rgba(10, 48, 80, 0.08), rgba(8, 37, 61, 0.76)), url("${banner.image}")`;
+  $("#homeBanner").style.backgroundImage = `linear-gradient(180deg, rgba(6, 9, 12, 0.08) 32%, rgba(6, 9, 12, 0.88) 100%), url("${banner.image}")`;
   $("#homeBanner").innerHTML = `
     <div>
       <span>${escapeHtml(banner.kicker)}</span>
-      <h2>${escapeHtml(banner.title)}</h2>
+      <h2>${escapeHtml(banner.title).replace(/\n/g, "<br>")}</h2>
       <p>${escapeHtml(banner.description)}</p>
       <button class="primary-action" type="button" data-go="${banner.target}">${escapeHtml(banner.cta)}</button>
     </div>
@@ -346,27 +345,11 @@ function renderHome() {
       <span>${escapeHtml(unit.type)} · ${products.filter((product) => product.unitIds.includes(unit.id)).length} 件商品</span>
     </button>
   `).join("");
-  $("#hotCategories").innerHTML = hotCategories.map((category) => `
-    <button class="hot-category-card" type="button" data-hot-category="${category.categoryId}" data-hot-keyword="${escapeHtml(category.keyword)}">
-      <span>${escapeHtml(category.icon)}</span>${escapeHtml(category.name)}
-    </button>
-  `).join("");
   $("#featuredProducts").innerHTML = products.map(renderProductCard).join("");
   $("#homeBanner [data-go]")?.addEventListener("click", (event) => navigate(event.currentTarget.dataset.go));
   bindProductClicks();
   document.querySelectorAll("[data-unit]").forEach((button) => {
-    button.addEventListener("click", () => {
-      selectedUnitType = "全部";
-      $("#productSearch").value = getUnit(button.dataset.unit).name;
-      navigate("categoryView");
-    });
-  });
-  document.querySelectorAll("[data-hot-category]").forEach((button) => {
-    button.addEventListener("click", () => {
-      selectedCategory = button.dataset.hotCategory;
-      $("#productSearch").value = button.dataset.hotKeyword || "";
-      navigate("categoryView");
-    });
+    button.addEventListener("click", () => openUnitProductList(button.dataset.unit));
   });
 }
 
@@ -402,10 +385,78 @@ function renderSchools() {
     renderSchools();
   }));
   document.querySelectorAll("[data-school-products]").forEach((button) => button.addEventListener("click", () => {
-    $("#productSearch").value = getUnit(button.dataset.schoolProducts).name;
-    selectedCategory = "all";
-    navigate("categoryView");
+    openUnitProductList(button.dataset.schoolProducts);
   }));
+}
+
+function openUnitProductList(unitId) {
+  if (!units.some((unit) => unit.id === unitId)) return;
+  selectedProductListUnitId = unitId;
+  productListSourceView = activeView;
+  unitProductSort = "综合";
+  unitProductPriceAsc = true;
+  $("#unitProductSearch").value = "";
+  navigate("productListView");
+}
+
+function getUnitProductRows() {
+  const keyword = $("#unitProductSearch").value.trim().toLowerCase();
+  const rows = products.filter((product) => {
+    if (!product.unitIds.includes(selectedProductListUnitId)) return false;
+    const searchText = `${product.name} ${product.spuCode} ${product.description} ${product.skus.map((sku) => `${sku.spec} ${sku.code}`).join(" ")}`.toLowerCase();
+    return !keyword || searchText.includes(keyword);
+  });
+  if (unitProductSort === "价格") {
+    return rows.sort((a, b) => (minPrice(a) - minPrice(b)) * (unitProductPriceAsc ? 1 : -1));
+  }
+  if (unitProductSort === "上新") return rows.reverse();
+  return rows;
+}
+
+function renderUnitProductList() {
+  const unit = getUnit(selectedProductListUnitId);
+  const rows = getUnitProductRows();
+  $("#productListTitle").textContent = unit.name;
+  $("#productListView").dataset.unitId = unit.id;
+  document.querySelectorAll("[data-unit-product-sort]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.unitProductSort === unitProductSort);
+    if (button.dataset.unitProductSort === "价格") {
+      button.innerHTML = `价格 <span>${unitProductSort === "价格" ? (unitProductPriceAsc ? "↑" : "↓") : "↕"}</span>`;
+    }
+  });
+  $("#unitProductGrid").innerHTML = rows.length ? rows.map((product) => `
+    <article class="unit-product-card">
+      <button class="unit-product-main" type="button" data-product="${product.id}">
+        <span class="unit-product-image"><img src="${product.thumb}" alt="" /></span>
+        <span class="unit-product-name">${escapeHtml(product.name)}</span>
+        <small>${escapeHtml(product.description)}</small>
+      </button>
+      <span class="unit-product-offer">${product.status === "预售" ? "预售商品" : product.status === "售罄" ? "暂时售罄" : "本店优惠"}</span>
+      <span class="unit-product-footer">
+        <b>${money(minPrice(product))}</b>
+        <button type="button" data-unit-list-add-cart="${product.id}" aria-label="将${escapeHtml(product.name)}加入购物车">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
+        </button>
+      </span>
+    </article>
+  `).join("") : `
+    <div class="unit-product-empty">
+      <strong>暂无匹配商品</strong>
+      <span>${escapeHtml(unit.name)}当前没有符合条件的商品。</span>
+    </div>
+  `;
+  bindProductClicks();
+  document.querySelectorAll("[data-unit-list-add-cart]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const product = getProduct(button.dataset.unitListAddCart);
+      const sku = product.skus.find((item) => item.saleable && item.stock > 0);
+      if (!sku || product.status === "售罄") {
+        showToast("当前商品暂不可购买");
+        return;
+      }
+      addToCart(product.id, sku.id, 1);
+    });
+  });
 }
 
 function getFilteredProducts() {
@@ -421,14 +472,13 @@ function renderCategory() {
   $("#categoryTabs").innerHTML = categories.map((category) => `<button class="${selectedCategory === category.id ? "active" : ""}" type="button" data-category="${category.id}">${category.name}</button>`).join("");
   const rows = getFilteredProducts();
   $("#productList").innerHTML = rows.length ? rows.map((product) => `
-    <button class="list-product" type="button" data-product="${product.id}">
-      <img src="${product.thumb}" alt="" />
-      <div>
-        <h3>${escapeHtml(product.name)}</h3>
+    <button class="category-product-tile" type="button" data-product="${product.id}">
+      <span class="category-product-image"><img src="${product.thumb}" alt="" /></span>
+      <span class="category-product-copy">
+        <strong>${escapeHtml(product.name)}</strong>
         <small>${escapeHtml(getProductUnits(product))}</small>
-        <small>${escapeHtml(product.description)}</small>
-        <span class="price-row"><b class="price">${money(minPrice(product))}</b>${statusBadge(product.status)}</span>
-      </div>
+        <span class="category-product-meta"><b>${money(minPrice(product))}</b>${statusBadge(product.status)}</span>
+      </span>
     </button>
   `).join("") : `<div class="empty-state">没有匹配商品，换个学校或分类试试。</div>`;
   document.querySelectorAll("[data-category]").forEach((button) => button.addEventListener("click", () => {
@@ -490,6 +540,15 @@ function renderDetail() {
       </div>
     </article>
     <div class="detail-actions">
+      <button class="detail-icon-action" type="button" data-detail-service aria-label="联系客服">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15v-3a7 7 0 0 1 14 0v3M5 15H3v-4h2M19 15h2v-4h-2M19 15v1a4 4 0 0 1-4 4h-2"/></svg>
+        <span>客服</span>
+      </button>
+      <button class="detail-icon-action" type="button" data-detail-cart aria-label="查看购物车">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
+        <span>购物车</span>
+        ${cart.reduce((sum, item) => sum + item.qty, 0) ? `<i>${cart.reduce((sum, item) => sum + item.qty, 0)}</i>` : ""}
+      </button>
       <button class="primary-action" type="button" data-add-cart>加入购物车</button>
       <button class="primary-action" type="button" data-buy-now>立即购买</button>
     </div>
@@ -502,6 +561,8 @@ function renderDetail() {
     selectedQty = Math.max(1, selectedQty + Number(button.dataset.qty));
     renderDetail();
   }));
+  $("[data-detail-service]").addEventListener("click", () => showToast("客服已收到您的咨询意向"));
+  $("[data-detail-cart]").addEventListener("click", () => navigate("cartView"));
   $("[data-add-cart]").addEventListener("click", () => addToCart(product.id, sku.id, selectedQty));
   $("[data-buy-now]").addEventListener("click", () => {
     addToCart(product.id, sku.id, selectedQty, false);
@@ -527,6 +588,11 @@ function renderCartBadge() {
   const count = cart.reduce((sum, item) => sum + item.qty, 0);
   $("#cartBadge").textContent = count;
   $("#cartBadge").classList.toggle("hidden", count === 0);
+  const detailCartButton = $("[data-detail-cart]");
+  if (detailCartButton) {
+    detailCartButton.querySelector("i")?.remove();
+    if (count) detailCartButton.insertAdjacentHTML("beforeend", `<i>${count}</i>`);
+  }
 }
 
 function cartRows() {
@@ -780,25 +846,90 @@ function renderOrderDetail() {
 }
 
 function renderProfile() {
+  const paidOrders = orders.filter((order) => order.paymentStatus === "已支付");
+  const memberPoints = loggedIn ? Math.floor(paidOrders.reduce((sum, order) => sum + order.amount, 0)) : 0;
+  const pendingPaymentCount = orders.filter((order) => order.paymentStatus === "待支付").length;
+  const pendingShipmentCount = orders.filter((order) => ["待发货", "待拣货"].includes(order.fulfillmentStatus)).length;
+  const pendingPickupCount = orders.filter((order) => order.fulfillmentStatus === "待自提").length;
   $("#profilePanel").innerHTML = `
-    <div class="profile-card">
-      <div class="profile-row">
-        <div><strong>${loggedIn ? "陈小姐" : "未登录会员"}</strong><small>${loggedIn ? "6688 1024 · 小程序 / H5 共用账号" : "登录后同步购物车、订单与售后"}</small></div>
-        <button class="small-action" type="button" data-profile-login>${loggedIn ? "已登录" : "登录"}</button>
+    <section class="member-center">
+      <div class="member-hero">
+        <div class="member-hero-top">
+          <button class="member-menu-button" type="button" aria-label="会员菜单">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
+          </button>
+          <span>MC MEMBER</span>
+        </div>
+        <div class="member-identity">
+          <div class="member-avatar">${loggedIn ? "陈" : "MC"}</div>
+          <div>
+            <strong>${loggedIn ? "陈小姐" : "欢迎来到 MC"}</strong>
+            <small>${loggedIn ? "6688 1024 · 小程序 / H5 共用账号" : "登录后同步订单、积分与售后"}</small>
+          </div>
+          <button type="button" data-profile-login>${loggedIn ? "会员码" : "登录 / 注册"}</button>
+        </div>
+        <div class="member-stats">
+          <button type="button" data-member-action="points"><b>${memberPoints}</b><span>积分</span></button>
+          <button type="button" data-go="addressView"><b>${addresses.length}</b><span>地址</span></button>
+        </div>
       </div>
-      <div class="profile-row"><span>我的订单</span><strong>${orders.length}</strong></div>
-      <div class="profile-row"><span>售后申请</span><strong>${afterSales.length}</strong></div>
-      <div class="profile-row"><span>咨询线索</span><strong>${leads.length}</strong></div>
-      <div class="profile-row"><span>会员积分</span><strong>预留</strong></div>
-      <button class="profile-nav-row" type="button" data-go="addressView">
-        <span><strong>收货地址</strong><small>管理个人配送地址</small></span>
-        <b>${addresses.length} 个 ›</b>
-      </button>
-      <button class="primary-action block" type="button" data-go="customView">定制 / 团购咨询</button>
-      <button class="ghost-action" type="button" data-contact-service>WhatsApp / 电话客服</button>
-    </div>
+
+      <section class="member-panel member-order-panel">
+        <div class="member-panel-head">
+          <h3>我的订单</h3>
+          <button type="button" data-profile-order-tab="全部">全部订单 ›</button>
+        </div>
+        <div class="member-order-grid">
+          <button type="button" data-profile-order-tab="待支付">
+            <span class="member-order-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16v12H4zM7 7V5h10v2M7 12h5"/></svg>${pendingPaymentCount ? `<i>${pendingPaymentCount}</i>` : ""}</span><b>待付款</b>
+          </button>
+          <button type="button" data-profile-order-tab="待发货">
+            <span class="member-order-icon"><svg viewBox="0 0 24 24"><path d="m4 8 8-4 8 4-8 4zM4 8v8l8 4 8-4V8M12 12v8"/></svg>${pendingShipmentCount ? `<i>${pendingShipmentCount}</i>` : ""}</span><b>待发货</b>
+          </button>
+          <button type="button" data-profile-order-tab="待自提">
+            <span class="member-order-icon"><svg viewBox="0 0 24 24"><path d="M3 7h12v10H3zM15 10h3l3 3v4h-6zM7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM17 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>${pendingPickupCount ? `<i>${pendingPickupCount}</i>` : ""}</span><b>待自提</b>
+          </button>
+          <button type="button" data-profile-order-tab="售后">
+            <span class="member-order-icon"><svg viewBox="0 0 24 24"><path d="M5 5h14v11H8l-3 3zM9 10h6"/></svg>${afterSales.length ? `<i>${afterSales.length}</i>` : ""}</span><b>退款/售后</b>
+          </button>
+        </div>
+      </section>
+
+      <section class="member-service-grid">
+        <button type="button" data-member-action="points"><span>积分权益</span><small>${memberPoints} 积分可用</small><b>◎</b></button>
+        <button type="button" data-go="customView"><span>定制咨询</span><small>团体与学校合作</small><b>◇</b></button>
+        <button type="button" data-member-action="store"><span>门店服务</span><small>澳门门店与自提</small><b>⌂</b></button>
+        <button type="button" data-contact-service><span>联系客服</span><small>WhatsApp / 电话</small><b>◌</b></button>
+      </section>
+
+      <section class="member-menu-list">
+        <button type="button" data-go="cartView"><span>购物车</span><b>›</b></button>
+        <button type="button" data-go="addressView"><span>收货地址</span><b>${addresses.length} 个 ›</b></button>
+        <button type="button" data-go="customView"><span>定制 / 团购咨询</span><b>›</b></button>
+        <button type="button" data-member-action="security"><span>账号与安全</span><b>›</b></button>
+      </section>
+    </section>
   `;
-  $("[data-profile-login]").addEventListener("click", () => $("#loginDialog").showModal());
+  $("[data-profile-login]").addEventListener("click", () => {
+    if (loggedIn) $("#memberCodeDialog").showModal();
+    else $("#loginDialog").showModal();
+  });
+  document.querySelectorAll("[data-profile-order-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedOrderTab = button.dataset.profileOrderTab;
+      navigate("ordersView");
+    });
+  });
+  document.querySelectorAll("[data-member-action]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const messages = {
+        points: `当前可用积分 ${memberPoints}`,
+        store: "澳設黑沙環门市支持到店自提",
+        security: "账号与安全功能已预留",
+      };
+      showToast(messages[button.dataset.memberAction] || "功能已预留");
+    });
+  });
   $("[data-contact-service]").addEventListener("click", () => showToast("已记录客服联系行为线索"));
   bindGoButtons();
 }
@@ -996,6 +1127,7 @@ function bindEvents() {
     updateLoginState();
     $("#loginDialog").close();
     showToast("微信一键登录成功");
+    if (activeView === "profileView") renderProfile();
   });
   $("#phoneLoginBtn").addEventListener("click", () => {
     if ($("#loginCode").value.trim() !== "123456") {
@@ -1006,6 +1138,7 @@ function bindEvents() {
     updateLoginState();
     $("#loginDialog").close();
     showToast("手机号登录成功");
+    if (activeView === "profileView") renderProfile();
   });
   $("[data-search-trigger]").addEventListener("click", () => {
     $("#productSearch").value = $("#homeSearch").value;
@@ -1018,6 +1151,22 @@ function bindEvents() {
     }
   });
   $("#productSearch").addEventListener("input", renderCategory);
+  $("#unitProductSearch").addEventListener("input", renderUnitProductList);
+  $("#productListBackBtn").addEventListener("click", () => navigate(productListSourceView || "schoolView"));
+  document.querySelectorAll("[data-unit-product-sort]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextSort = button.dataset.unitProductSort;
+      if (nextSort === "价格" && unitProductSort === "价格") unitProductPriceAsc = !unitProductPriceAsc;
+      else {
+        unitProductSort = nextSort;
+        if (nextSort === "价格") unitProductPriceAsc = true;
+      }
+      renderUnitProductList();
+    });
+  });
+  document.querySelectorAll("[data-scroll-top]").forEach((button) => {
+    button.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  });
   $("#checkoutBtn").addEventListener("click", () => {
     selectedCheckoutAddressId = "";
     navigate("checkoutView");
