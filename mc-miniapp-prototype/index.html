@@ -298,6 +298,28 @@
     </form>
   </dialog>
 
+  <dialog id="memberCodeDialog" class="sheet-dialog member-code-dialog">
+    <form method="dialog">
+      <button class="close-btn" value="cancel" aria-label="关闭">×</button>
+      <h3>MC 会员码</h3>
+      <p>向门店工作人员出示会员码。当前二维码仅用于原型演示，不具备真实核销能力。</p>
+      <div class="member-code-card">
+        <svg viewBox="0 0 140 140" role="img" aria-label="演示会员二维码">
+          <rect width="140" height="140" fill="#fff"/>
+          <g fill="#111">
+            <path d="M10 10h38v38H10zM16 16v26h26V16zM22 22h14v14H22z" fill-rule="evenodd"/>
+            <path d="M92 10h38v38H92zM98 16v26h26V16zM104 22h14v14h-14z" fill-rule="evenodd"/>
+            <path d="M10 92h38v38H10zM16 98v26h26V98zM22 104h14v14H22z" fill-rule="evenodd"/>
+            <path d="M58 10h8v8h-8zM74 10h8v16h-8zM58 26h16v8H58zM82 34h8v16h-8zM54 42h16v8H54zM58 58h8v8h-8zM74 54h16v8H74zM98 58h8v16h-8zM114 54h16v8h-16zM122 66h8v16h-8zM10 58h16v8H10zM34 54h8v16h-8zM18 74h24v8H18zM50 70h8v20h-8zM62 74h20v8H62zM86 66h8v24h-8zM98 82h16v8H98zM118 90h12v8h-12zM54 98h16v8H54zM74 90h8v16h-8zM86 106h20v8H86zM58 114h8v16h-8zM74 118h16v8H74zM98 122h8v8h-8zM114 106h16v16h-8v8h-8z"/>
+          </g>
+        </svg>
+        <strong>陈小姐</strong>
+        <span>演示会员编号 MC-6688-1024</span>
+      </div>
+      <button class="primary-action block" value="cancel">关闭会员码</button>
+    </form>
+  </dialog>
+
   <dialog id="addressDialog" class="sheet-dialog">
     <form method="dialog">
       <button class="close-btn" value="cancel" aria-label="关闭">×</button>

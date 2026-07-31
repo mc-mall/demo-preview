@@ -864,20 +864,14 @@ function renderProfile() {
           <div class="member-avatar">${loggedIn ? "陈" : "MC"}</div>
           <div>
             <strong>${loggedIn ? "陈小姐" : "欢迎来到 MC"}</strong>
-            <small>${loggedIn ? "6688 1024 · MC 银卡会员" : "登录后同步订单、积分与售后"}</small>
+            <small>${loggedIn ? "6688 1024 · 小程序 / H5 共用账号" : "登录后同步订单、积分与售后"}</small>
           </div>
           <button type="button" data-profile-login>${loggedIn ? "会员码" : "登录 / 注册"}</button>
         </div>
         <div class="member-stats">
           <button type="button" data-member-action="points"><b>${memberPoints}</b><span>积分</span></button>
-          <button type="button" data-member-action="coupon"><b>${loggedIn ? 1 : 0}</b><span>优惠券</span></button>
-          <button type="button" data-member-action="balance"><b>0.00</b><span>余额</span></button>
           <button type="button" data-go="addressView"><b>${addresses.length}</b><span>地址</span></button>
         </div>
-        <button class="member-level-card" type="button" data-member-action="level">
-          <span><b>MC 银卡会员</b><small>累计消费解锁专属权益</small></span>
-          <strong>查看权益 ›</strong>
-        </button>
       </div>
 
       <section class="member-panel member-order-panel">
@@ -908,15 +902,6 @@ function renderProfile() {
         <button type="button" data-contact-service><span>联系客服</span><small>WhatsApp / 电话</small><b>◌</b></button>
       </section>
 
-      <section class="member-panel member-activity-panel">
-        <div class="member-panel-head"><h3>我的 MC 数据</h3><button type="button" data-member-action="activity">查看 ›</button></div>
-        <div>
-          <span><b>${orders.length}</b><small>订单</small></span>
-          <span><b>${afterSales.length}</b><small>售后</small></span>
-          <span><b>${leads.length}</b><small>咨询</small></span>
-        </div>
-      </section>
-
       <section class="member-menu-list">
         <button type="button" data-go="cartView"><span>购物车</span><b>›</b></button>
         <button type="button" data-go="addressView"><span>收货地址</span><b>${addresses.length} 个 ›</b></button>
@@ -926,7 +911,7 @@ function renderProfile() {
     </section>
   `;
   $("[data-profile-login]").addEventListener("click", () => {
-    if (loggedIn) showToast("会员码功能已预留");
+    if (loggedIn) $("#memberCodeDialog").showModal();
     else $("#loginDialog").showModal();
   });
   document.querySelectorAll("[data-profile-order-tab]").forEach((button) => {
@@ -939,11 +924,7 @@ function renderProfile() {
     button.addEventListener("click", () => {
       const messages = {
         points: `当前可用积分 ${memberPoints}`,
-        coupon: `${loggedIn ? 1 : 0} 张优惠券可用`,
-        balance: "会员余额功能已预留",
-        level: "继续消费可解锁更多会员权益",
         store: "澳設黑沙環门市支持到店自提",
-        activity: "会员数据已与当前原型订单同步",
         security: "账号与安全功能已预留",
       };
       showToast(messages[button.dataset.memberAction] || "功能已预留");

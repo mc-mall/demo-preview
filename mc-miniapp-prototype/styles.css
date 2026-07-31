@@ -2613,7 +2613,7 @@ body {
 
 .member-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   margin-top: 22px;
 }
 
@@ -2634,42 +2634,6 @@ body {
 .member-stats span {
   color: rgba(255,255,255,0.66);
   font-size: 11px;
-}
-
-.member-level-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  min-height: 70px;
-  margin-top: 18px;
-  border: 0;
-  padding: 13px 15px;
-  color: #3f4144;
-  background: linear-gradient(120deg, #f2f2f0, #cfcfcd 54%, #f4f4f2);
-  text-align: left;
-}
-
-.member-level-card span,
-.member-level-card b,
-.member-level-card small {
-  display: block;
-}
-
-.member-level-card b {
-  font-size: 15px;
-  font-weight: 650;
-}
-
-.member-level-card small {
-  margin-top: 5px;
-  color: #85878a;
-  font-size: 10px;
-}
-
-.member-level-card > strong {
-  font-size: 11px;
-  font-weight: 500;
 }
 
 .member-panel,
@@ -2802,32 +2766,6 @@ body {
   font-weight: 400;
 }
 
-.member-activity-panel > div:last-child {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin-top: 14px;
-  padding: 16px 0;
-  background: rgba(255,255,255,0.07);
-}
-
-.member-activity-panel > div:last-child span,
-.member-activity-panel > div:last-child b,
-.member-activity-panel > div:last-child small {
-  display: block;
-  text-align: center;
-}
-
-.member-activity-panel > div:last-child b {
-  font-size: 20px;
-  font-weight: 500;
-}
-
-.member-activity-panel > div:last-child small {
-  margin-top: 5px;
-  color: rgba(255,255,255,0.52);
-  font-size: 10px;
-}
-
 .member-menu-list {
   display: grid;
 }
@@ -2869,6 +2807,45 @@ body {
 
 .phone-shell:has(#profileView.active) .tabbar button.active {
   color: #fff;
+}
+
+.member-code-dialog form {
+  text-align: center;
+}
+
+.member-code-dialog h3,
+.member-code-dialog p {
+  text-align: left;
+}
+
+.member-code-card {
+  display: grid;
+  justify-items: center;
+  margin: 18px 0;
+  padding: 20px 16px;
+  border: 1px solid var(--line);
+  background: #f7f7f5;
+}
+
+.member-code-card svg {
+  width: 190px;
+  max-width: 72vw;
+  height: auto;
+  padding: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(9, 12, 14, 0.08);
+}
+
+.member-code-card strong {
+  margin-top: 14px;
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.member-code-card span {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11px;
 }
 
 /* 商品详情底部操作栏 */
