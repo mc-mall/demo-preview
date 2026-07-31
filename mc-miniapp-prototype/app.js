@@ -846,25 +846,109 @@ function renderOrderDetail() {
 }
 
 function renderProfile() {
+  const paidOrders = orders.filter((order) => order.paymentStatus === "已支付");
+  const memberPoints = loggedIn ? Math.floor(paidOrders.reduce((sum, order) => sum + order.amount, 0)) : 0;
+  const pendingPaymentCount = orders.filter((order) => order.paymentStatus === "待支付").length;
+  const pendingShipmentCount = orders.filter((order) => ["待发货", "待拣货"].includes(order.fulfillmentStatus)).length;
+  const pendingPickupCount = orders.filter((order) => order.fulfillmentStatus === "待自提").length;
   $("#profilePanel").innerHTML = `
-    <div class="profile-card">
-      <div class="profile-row">
-        <div><strong>${loggedIn ? "陈小姐" : "未登录会员"}</strong><small>${loggedIn ? "6688 1024 · 小程序 / H5 共用账号" : "登录后同步购物车、订单与售后"}</small></div>
-        <button class="small-action" type="button" data-profile-login>${loggedIn ? "已登录" : "登录"}</button>
+    <section class="member-center">
+      <div class="member-hero">
+        <div class="member-hero-top">
+          <button class="member-menu-button" type="button" aria-label="会员菜单">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
+          </button>
+          <span>MC MEMBER</span>
+        </div>
+        <div class="member-identity">
+          <div class="member-avatar">${loggedIn ? "陈" : "MC"}</div>
+          <div>
+            <strong>${loggedIn ? "陈小姐" : "欢迎来到 MC"}</strong>
+            <small>${loggedIn ? "6688 1024 · MC 银卡会员" : "登录后同步订单、积分与售后"}</small>
+          </div>
+          <button type="button" data-profile-login>${loggedIn ? "会员码" : "登录 / 注册"}</button>
+        </div>
+        <div class="member-stats">
+          <button type="button" data-member-action="points"><b>${memberPoints}</b><span>积分</span></button>
+          <button type="button" data-member-action="coupon"><b>${loggedIn ? 1 : 0}</b><span>优惠券</span></button>
+          <button type="button" data-member-action="balance"><b>0.00</b><span>余额</span></button>
+          <button type="button" data-go="addressView"><b>${addresses.length}</b><span>地址</span></button>
+        </div>
+        <button class="member-level-card" type="button" data-member-action="level">
+          <span><b>MC 银卡会员</b><small>累计消费解锁专属权益</small></span>
+          <strong>查看权益 ›</strong>
+        </button>
       </div>
-      <div class="profile-row"><span>我的订单</span><strong>${orders.length}</strong></div>
-      <div class="profile-row"><span>售后申请</span><strong>${afterSales.length}</strong></div>
-      <div class="profile-row"><span>咨询线索</span><strong>${leads.length}</strong></div>
-      <div class="profile-row"><span>会员积分</span><strong>预留</strong></div>
-      <button class="profile-nav-row" type="button" data-go="addressView">
-        <span><strong>收货地址</strong><small>管理个人配送地址</small></span>
-        <b>${addresses.length} 个 ›</b>
-      </button>
-      <button class="primary-action block" type="button" data-go="customView">定制 / 团购咨询</button>
-      <button class="ghost-action" type="button" data-contact-service>WhatsApp / 电话客服</button>
-    </div>
+
+      <section class="member-panel member-order-panel">
+        <div class="member-panel-head">
+          <h3>我的订单</h3>
+          <button type="button" data-profile-order-tab="全部">全部订单 ›</button>
+        </div>
+        <div class="member-order-grid">
+          <button type="button" data-profile-order-tab="待支付">
+            <span class="member-order-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16v12H4zM7 7V5h10v2M7 12h5"/></svg>${pendingPaymentCount ? `<i>${pendingPaymentCount}</i>` : ""}</span><b>待付款</b>
+          </button>
+          <button type="button" data-profile-order-tab="待发货">
+            <span class="member-order-icon"><svg viewBox="0 0 24 24"><path d="m4 8 8-4 8 4-8 4zM4 8v8l8 4 8-4V8M12 12v8"/></svg>${pendingShipmentCount ? `<i>${pendingShipmentCount}</i>` : ""}</span><b>待发货</b>
+          </button>
+          <button type="button" data-profile-order-tab="待自提">
+            <span class="member-order-icon"><svg viewBox="0 0 24 24"><path d="M3 7h12v10H3zM15 10h3l3 3v4h-6zM7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM17 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>${pendingPickupCount ? `<i>${pendingPickupCount}</i>` : ""}</span><b>待自提</b>
+          </button>
+          <button type="button" data-profile-order-tab="售后">
+            <span class="member-order-icon"><svg viewBox="0 0 24 24"><path d="M5 5h14v11H8l-3 3zM9 10h6"/></svg>${afterSales.length ? `<i>${afterSales.length}</i>` : ""}</span><b>退款/售后</b>
+          </button>
+        </div>
+      </section>
+
+      <section class="member-service-grid">
+        <button type="button" data-member-action="points"><span>积分权益</span><small>${memberPoints} 积分可用</small><b>◎</b></button>
+        <button type="button" data-go="customView"><span>定制咨询</span><small>团体与学校合作</small><b>◇</b></button>
+        <button type="button" data-member-action="store"><span>门店服务</span><small>澳门门店与自提</small><b>⌂</b></button>
+        <button type="button" data-contact-service><span>联系客服</span><small>WhatsApp / 电话</small><b>◌</b></button>
+      </section>
+
+      <section class="member-panel member-activity-panel">
+        <div class="member-panel-head"><h3>我的 MC 数据</h3><button type="button" data-member-action="activity">查看 ›</button></div>
+        <div>
+          <span><b>${orders.length}</b><small>订单</small></span>
+          <span><b>${afterSales.length}</b><small>售后</small></span>
+          <span><b>${leads.length}</b><small>咨询</small></span>
+        </div>
+      </section>
+
+      <section class="member-menu-list">
+        <button type="button" data-go="cartView"><span>购物车</span><b>›</b></button>
+        <button type="button" data-go="addressView"><span>收货地址</span><b>${addresses.length} 个 ›</b></button>
+        <button type="button" data-go="customView"><span>定制 / 团购咨询</span><b>›</b></button>
+        <button type="button" data-member-action="security"><span>账号与安全</span><b>›</b></button>
+      </section>
+    </section>
   `;
-  $("[data-profile-login]").addEventListener("click", () => $("#loginDialog").showModal());
+  $("[data-profile-login]").addEventListener("click", () => {
+    if (loggedIn) showToast("会员码功能已预留");
+    else $("#loginDialog").showModal();
+  });
+  document.querySelectorAll("[data-profile-order-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedOrderTab = button.dataset.profileOrderTab;
+      navigate("ordersView");
+    });
+  });
+  document.querySelectorAll("[data-member-action]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const messages = {
+        points: `当前可用积分 ${memberPoints}`,
+        coupon: `${loggedIn ? 1 : 0} 张优惠券可用`,
+        balance: "会员余额功能已预留",
+        level: "继续消费可解锁更多会员权益",
+        store: "澳設黑沙環门市支持到店自提",
+        activity: "会员数据已与当前原型订单同步",
+        security: "账号与安全功能已预留",
+      };
+      showToast(messages[button.dataset.memberAction] || "功能已预留");
+    });
+  });
   $("[data-contact-service]").addEventListener("click", () => showToast("已记录客服联系行为线索"));
   bindGoButtons();
 }
@@ -1062,6 +1146,7 @@ function bindEvents() {
     updateLoginState();
     $("#loginDialog").close();
     showToast("微信一键登录成功");
+    if (activeView === "profileView") renderProfile();
   });
   $("#phoneLoginBtn").addEventListener("click", () => {
     if ($("#loginCode").value.trim() !== "123456") {
@@ -1072,6 +1157,7 @@ function bindEvents() {
     updateLoginState();
     $("#loginDialog").close();
     showToast("手机号登录成功");
+    if (activeView === "profileView") renderProfile();
   });
   $("[data-search-trigger]").addEventListener("click", () => {
     $("#productSearch").value = $("#homeSearch").value;
