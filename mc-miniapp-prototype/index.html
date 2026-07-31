@@ -18,8 +18,19 @@
     </header>
 
     <section id="homeView" class="view active" data-title="MC 澳设商城" data-kicker="MC Mall">
+      <div class="home-topbar">
+        <button class="home-wordmark" type="button" data-go="homeView" aria-label="MC 澳设商城首页">
+          <strong>MC</strong>
+          <span>MACAU CLOTHING</span>
+        </button>
+        <button class="home-member-btn" type="button" data-go="profileView" aria-label="进入会员中心">
+          <span>会员中心</span>
+          <b>⌁</b>
+        </button>
+      </div>
+
       <div class="notice-ticker" aria-label="优惠活动">
-        <span>优惠活动，敬请注意！！满MOP200 配送费全免</span>
+        <span>新学期限定 · 满 MOP 200 澳门本地配送费全免</span>
       </div>
 
       <div id="homeBanner" class="home-banner"></div>
@@ -61,6 +72,15 @@
         </div>
         <div id="featuredProducts" class="product-grid"></div>
       </section>
+
+      <div class="home-quick-dock" aria-label="快捷操作">
+        <button type="button" data-go="cartView" aria-label="查看购物车">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
+        </button>
+        <button type="button" data-scroll-top aria-label="回到顶部">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16"/></svg>
+        </button>
+      </div>
     </section>
 
     <section id="schoolView" class="view" data-title="学校入口" data-kicker="School">
@@ -205,11 +225,11 @@
     </section>
 
     <nav class="tabbar" aria-label="底部导航">
-      <button class="active" type="button" data-tab="homeView"><span>⌂</span>首页</button>
-      <button type="button" data-tab="categoryView"><span>□</span>分类</button>
-      <button type="button" data-tab="cartView"><span>◌</span>购物车<i id="cartBadge">0</i></button>
-      <button type="button" data-tab="ordersView"><span>≡</span>订单</button>
-      <button type="button" data-tab="profileView"><span>◇</span>我的</button>
+      <button class="active" type="button" data-tab="homeView"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9H7v-6h10v6"/></svg></span>首页</button>
+      <button type="button" data-tab="categoryView"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg></span>分类</button>
+      <button type="button" data-tab="cartView"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg></span>购物车<i id="cartBadge">0</i></button>
+      <button type="button" data-tab="ordersView"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18l-3-2-4 2-4-2-3 2zM9 8h6M9 12h6"/></svg></span>订单</button>
+      <button type="button" data-tab="profileView"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0"/></svg></span>我的</button>
     </nav>
   </main>
 

@@ -18,12 +18,12 @@ const units = [
 
 const homeBanners = [
   {
-    kicker: "澳门本地校服 · 球衣 · 团体服",
-    title: "新学期校服补购专区",
-    description: "按学校入口快速查找商品，满 MOP200 配送费全免。",
-    cta: "立即选购",
+    kicker: "MC · SCHOOL & TEAM 2026",
+    title: "穿上热爱，\n并肩向前",
+    description: "校服、球队服与团体装备，一站式焕新。",
+    cta: "探索新学期系列",
     target: "schoolView",
-    image: "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360"><rect width="720" height="360" fill="#1769A8"/><path d="M0 265C96 229 164 258 247 211c102-58 172-126 310-82 65 21 110 16 163-18v249H0z" fill="#ffffff" opacity=".17"/><path d="M92 70h130l36 66H58zM83 136h185v132H83zM390 62h134l48 78H350zM369 140h226v138H369z" fill="#ffffff" opacity=".28"/><circle cx="593" cy="70" r="44" fill="#ffb84d" opacity=".78"/><text x="102" y="238" font-family="Arial, sans-serif" font-size="28" font-weight="800" fill="#ffffff">MC Mall</text></svg>`),
+    image: "./assets/mc-campaign-hero.jpg",
   },
 ];
 
@@ -330,11 +330,11 @@ function renderCurrentView() {
 
 function renderHome() {
   const banner = homeBanners[0];
-  $("#homeBanner").style.backgroundImage = `linear-gradient(180deg, rgba(10, 48, 80, 0.08), rgba(8, 37, 61, 0.76)), url("${banner.image}")`;
+  $("#homeBanner").style.backgroundImage = `linear-gradient(180deg, rgba(6, 9, 12, 0.08) 32%, rgba(6, 9, 12, 0.88) 100%), url("${banner.image}")`;
   $("#homeBanner").innerHTML = `
     <div>
       <span>${escapeHtml(banner.kicker)}</span>
-      <h2>${escapeHtml(banner.title)}</h2>
+      <h2>${escapeHtml(banner.title).replace(/\n/g, "<br>")}</h2>
       <p>${escapeHtml(banner.description)}</p>
       <button class="primary-action" type="button" data-go="${banner.target}">${escapeHtml(banner.cta)}</button>
     </div>
@@ -368,6 +368,7 @@ function renderHome() {
       navigate("categoryView");
     });
   });
+  $("[data-scroll-top]")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 }
 
 function renderProductCard(product) {
