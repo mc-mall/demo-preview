@@ -540,6 +540,15 @@ function renderDetail() {
       </div>
     </article>
     <div class="detail-actions">
+      <button class="detail-icon-action" type="button" data-detail-service aria-label="联系客服">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15v-3a7 7 0 0 1 14 0v3M5 15H3v-4h2M19 15h2v-4h-2M19 15v1a4 4 0 0 1-4 4h-2"/></svg>
+        <span>客服</span>
+      </button>
+      <button class="detail-icon-action" type="button" data-detail-cart aria-label="查看购物车">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
+        <span>购物车</span>
+        ${cart.reduce((sum, item) => sum + item.qty, 0) ? `<i>${cart.reduce((sum, item) => sum + item.qty, 0)}</i>` : ""}
+      </button>
       <button class="primary-action" type="button" data-add-cart>加入购物车</button>
       <button class="primary-action" type="button" data-buy-now>立即购买</button>
     </div>
@@ -552,6 +561,8 @@ function renderDetail() {
     selectedQty = Math.max(1, selectedQty + Number(button.dataset.qty));
     renderDetail();
   }));
+  $("[data-detail-service]").addEventListener("click", () => showToast("客服已收到您的咨询意向"));
+  $("[data-detail-cart]").addEventListener("click", () => navigate("cartView"));
   $("[data-add-cart]").addEventListener("click", () => addToCart(product.id, sku.id, selectedQty));
   $("[data-buy-now]").addEventListener("click", () => {
     addToCart(product.id, sku.id, selectedQty, false);
@@ -577,6 +588,11 @@ function renderCartBadge() {
   const count = cart.reduce((sum, item) => sum + item.qty, 0);
   $("#cartBadge").textContent = count;
   $("#cartBadge").classList.toggle("hidden", count === 0);
+  const detailCartButton = $("[data-detail-cart]");
+  if (detailCartButton) {
+    detailCartButton.querySelector("i")?.remove();
+    if (count) detailCartButton.insertAdjacentHTML("beforeend", `<i>${count}</i>`);
+  }
 }
 
 function cartRows() {
