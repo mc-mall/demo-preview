@@ -63,13 +63,13 @@
 
       .demo-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 18px;
       }
 
       .demo-card {
         display: flex;
-        min-height: 220px;
+        min-height: 240px;
         flex-direction: column;
         padding: 26px;
         border: 1px solid rgba(148, 163, 184, 0.3);
@@ -136,22 +136,29 @@
       <header>
         <p class="eyebrow">MC Mall Prototype</p>
         <h1>Demo 原型预览</h1>
-        <p>选择需要体验的业务端。两个原型均为静态演示页面，数据仅用于产品流程展示。</p>
+        <p>選擇需要體驗的業務端。三個原型均為靜態演示頁面，資料僅用於產品流程展示。</p>
       </header>
 
       <section class="demo-grid" aria-label="Demo 列表">
+        <a class="demo-card" href="./group-admin-prototype/">
+          <span class="badge">SaaS Platform</span>
+          <h2>集團營運後台</h2>
+          <p>門店租戶、集團分類、學校與團體單位、支付配置、集團會員、CRM 與平台權限原型。</p>
+          <span class="open">進入集團後台 Demo →</span>
+        </a>
+
         <a class="demo-card" href="./admin-pc-prototype/">
           <span class="badge">Desktop</span>
-          <h2>PC 管理后台</h2>
-          <p>商品、订单、售后、库存、门店及权限等后台业务流程原型。</p>
-          <span class="open">进入后台 Demo →</span>
+          <h2>門店管理後台</h2>
+          <p>商品、訂單、售後、虛擬可售數量、履約及門店權限等業務流程原型。</p>
+          <span class="open">進入門店後台 Demo →</span>
         </a>
 
         <a class="demo-card" href="./mc-miniapp-prototype/">
           <span class="badge">Mobile H5</span>
-          <h2>商城客户端</h2>
-          <p>首页浏览、商品详情、购物车、结算、订单和个人中心原型。</p>
-          <span class="open">进入 H5 Demo →</span>
+          <h2>商城客戶端</h2>
+          <p>首頁瀏覽、商品詳情、購物車、結算、訂單和個人中心原型。</p>
+          <span class="open">進入 H5 Demo →</span>
         </a>
       </section>
 

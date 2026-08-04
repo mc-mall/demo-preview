@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MC Mall 集團營運後台原型</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main id="loginView" class="login-view">
+      <section class="login-shell">
+        <div class="login-intro">
+          <div class="login-brand-row"><span class="brand-mark">MC</span><div><p class="eyebrow">MC MALL SAAS PLATFORM</p><strong>集團營運後台</strong></div></div>
+          <h1>統一配置每一家門店，<br />看清每一套經營帳。</h1>
+          <p>面向集團營運人員的 SaaS 平台工作區，集中管理門店租戶、商品分類、學校與團體單位、支付配置、集團會員與 CRM。</p>
+          <ul><li>一店一租戶、一店一帳套</li><li>跨店查看，門店業務獨立處理</li><li>敏感配置全程留痕</li></ul>
+        </div>
+        <form id="loginForm" class="login-card" novalidate>
+          <div class="login-card-head"><span class="login-symbol">MC</span><div><p class="eyebrow">GROUP OPERATION</p><h2>登入集團後台</h2></div></div>
+          <p class="login-lead">請輸入集團營運帳號和密碼。</p>
+          <label for="loginUsername">帳號</label>
+          <input id="loginUsername" name="username" type="text" autocomplete="username" placeholder="請輸入帳號" required />
+          <label for="loginPassword">密碼</label>
+          <div class="password-field"><input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="請輸入密碼" required /><button id="togglePassword" type="button" aria-label="顯示密碼">顯示</button></div>
+          <p id="loginError" class="login-error" role="alert" aria-live="polite"></p>
+          <button class="primary-button login-submit" type="submit">登入後台</button>
+          <p class="login-security">此為靜態原型登入；正式環境需接入服務端身份驗證與二次驗證。</p>
+        </form>
+      </section>
+      <footer class="login-footer">MC Mall SaaS Platform · Group Operation Console</footer>
+    </main>
+
+    <main id="adminView" class="admin-shell hidden">
+      <aside class="sidebar">
+        <div class="side-brand">
+          <span class="brand-mark">MC</span>
+          <div><strong>MC Mall</strong><small>SaaS 集團營運後台</small></div>
+        </div>
+        <nav class="side-nav" aria-label="集團營運後台導航">
+          <div class="nav-group">
+            <button class="nav-label" type="button" aria-expanded="true"><span>▦</span>租戶與配置<b>⌄</b></button>
+            <div class="nav-children">
+              <button class="nav-item sub-item active" data-page="stores">門店管理</button>
+              <button class="nav-item sub-item" data-page="storeAdmins">門店管理員</button>
+              <button class="nav-item sub-item" data-page="categories">集團商品分類</button>
+              <button class="nav-item sub-item" data-page="units">學校與團體單位</button>
+              <button class="nav-item sub-item" data-page="payments">支付配置</button>
+            </div>
+          </div>
+          <div class="nav-group">
+            <button class="nav-label" type="button" aria-expanded="true"><span>◎</span>集團客戶營運<b>⌄</b></button>
+            <div class="nav-children">
+              <button class="nav-item sub-item" data-page="customers">客戶與會員</button>
+              <button class="nav-item sub-item" data-page="crm">CRM 與商機</button>
+            </div>
+          </div>
+          <div class="nav-group collapsed">
+            <button class="nav-label" type="button" aria-expanded="false"><span>⚙</span>平台管理<b>⌄</b></button>
+            <div class="nav-children">
+              <button class="nav-item sub-item" data-page="accounts">集團帳號</button>
+              <button class="nav-item sub-item" data-page="roles">角色權限</button>
+            </div>
+          </div>
+        </nav>
+        <div class="tenant-rule"><strong>平台邊界</strong><p>一店一租戶、一店一帳套。集團後台只查看與配置，不處理門店日常訂單。</p></div>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div><p class="eyebrow">GROUP OPERATION</p><h1 id="pageTitle">門店管理</h1></div>
+          <div class="top-actions">
+            <button class="icon-button" type="button" aria-label="異常提醒"><span class="alert-dot"></span>♢</button>
+            <div class="profile-avatar">MC</div>
+            <div class="profile-copy"><strong>集團最高管理員</strong><small>全平台資料範圍</small></div>
+            <button id="logoutButton" class="secondary-button top-logout" type="button">退出</button>
+          </div>
+        </header>
+
+        <section id="storesPage" class="page-panel">
+          <section class="content-panel">
+            <div class="panel-head"><div><p class="eyebrow">STORE TENANTS</p><h2>門店租戶管理</h2><small>每家門店建立獨立交易帳套，停用後保留歷史交易與對帳資料。</small></div><button class="primary-button" id="openStoreCreate">新增門店</button></div>
+            <div class="filter-row"><label class="search-field"><span>⌕</span><input id="storeSearch" type="search" placeholder="搜尋門店名稱或租戶編號" /></label><select id="storeCurrency"><option value="all">全部本位幣</option><option>MOP</option><option>HKD</option></select><button class="secondary-button" id="resetStoreFilters">重設</button></div>
+            <div class="table-wrap"><table><thead><tr><th>門店</th><th>租戶編號</th><th>門店類型</th><th>本位幣 / 時區</th><th>支付渠道</th><th>操作</th></tr></thead><tbody id="storeRows"></tbody></table></div>
+            <div class="pagination"><span id="storeCount">共 8 間門店</span><div><button disabled>上一頁</button><b>1</b><button disabled>下一頁</button><select aria-label="每頁數量"><option>15 條 / 頁</option></select></div></div>
+          </section>
+        </section>
+
+        <section id="storeAdminsPage" class="page-panel hidden">
+          <section class="content-panel">
+            <div class="panel-head"><div><p class="eyebrow">STORE ADMINISTRATORS</p><h2>門店管理員</h2><small>由集團後台建立帳號及初始密碼，再編輯綁定門店；管理員與門店為多對多關係。</small></div><button class="primary-button" id="openStoreAdminCreate">新增管理員</button></div>
+            <div class="info-banner unit-boundary"><span>i</span><p><strong>帳號與門店授權分開維護</strong><small>一個管理員可綁定多間門店，同一門店也可由多個管理員共同管理；綁定不合併門店帳套。</small></p></div>
+            <div class="filter-row"><label class="search-field"><span>⌕</span><input id="storeAdminSearch" type="search" placeholder="搜尋帳號、姓名或已綁定門店" /></label><select id="storeAdminStatus"><option value="all">全部帳號狀態</option><option>啟用</option><option>停用</option></select><select id="storeAdminBinding"><option value="all">全部綁定狀態</option><option value="bound">已綁定門店</option><option value="unbound">未綁定門店</option></select><button class="secondary-button" id="resetStoreAdminFilters">重設</button></div>
+            <div class="table-wrap"><table><thead><tr><th>管理員帳號</th><th>姓名</th><th>聯絡方式</th><th>已綁定門店</th><th>最近登入</th><th>帳號狀態</th><th>操作</th></tr></thead><tbody id="storeAdminRows"></tbody></table></div>
+            <div class="pagination"><span id="storeAdminCount">共 0 個管理員</span><div><button disabled>上一頁</button><b>1</b><button disabled>下一頁</button><select aria-label="每頁數量"><option>15 條 / 頁</option></select></div></div>
+          </section>
+        </section>
+
+        <section id="categoriesPage" class="page-panel hidden">
+          <section class="content-panel">
+            <div class="panel-head"><div><p class="eyebrow">GROUP CATEGORIES</p><h2>集團商品分類</h2><small>平台公共配置；門店只能選擇已啟用的三級葉子分類。</small></div><button class="primary-button" id="openCategoryCreate">新增分類</button></div>
+            <div class="category-toolbar"><div class="info-banner"><span>i</span><p><strong>統一分類，商品仍屬門店</strong><small>分類名稱、排序與展示素材由集團維護，不共享門店商品資料，也不控制門店售價。</small></p></div><label class="search-field small"><span>⌕</span><input id="categorySearch" type="search" placeholder="搜尋分類" /></label></div>
+            <div class="table-wrap"><table class="category-table"><thead><tr><th>分類名稱</th><th>商城排序</th><th>狀態</th><th>操作</th></tr></thead><tbody id="categoryRows"></tbody></table></div>
+          </section>
+        </section>
+
+        <section id="unitsPage" class="page-panel hidden">
+          <section class="content-panel">
+            <div class="panel-head"><div><p class="eyebrow">GROUP ORGANIZATIONS</p><h2>學校與團體單位</h2><small>由集團統一建立和維護；門店商品只能選擇已啟用的單位，不可自行新增或修改。</small></div><button class="primary-button" id="openUnitCreate">新增單位</button></div>
+            <div class="info-banner unit-boundary"><span>i</span><p><strong>統一單位資料，商品仍屬門店</strong><small>學校、球隊、企業與社團資料供商城導覽及商品歸屬使用，不改變商品、價格和訂單的門店帳套邊界。</small></p></div>
+            <div class="filter-row"><label class="search-field"><span>⌕</span><input id="unitSearch" type="search" placeholder="搜尋單位名稱、編號或聯絡人" /></label><select id="unitTypeFilter"><option value="all">全部單位類型</option><option>學校</option><option>球隊</option><option>企業</option><option>社團</option></select><select id="unitStatusFilter"><option value="all">全部狀態</option><option>啟用</option><option>停用</option></select><button class="secondary-button" id="resetUnitFilters">重設</button></div>
+            <div class="status-tabs"><button class="active" data-unit-tab="all">全部 <b id="unitAllCount">0</b></button><button data-unit-tab="學校">學校 <b id="unitSchoolCount">0</b></button><button data-unit-tab="團體">團體單位 <b id="unitGroupCount">0</b></button><button data-unit-tab="停用">停用 <b id="unitDisabledCount">0</b></button></div>
+            <div class="table-wrap"><table><thead><tr><th>單位</th><th>單位編號</th><th>類型</th><th>聯絡窗口</th><th>狀態</th><th>操作</th></tr></thead><tbody id="unitRows"></tbody></table></div>
+            <div class="pagination"><span id="unitCount">共 0 個單位</span><div><button disabled>上一頁</button><b>1</b><button disabled>下一頁</button><select aria-label="每頁數量"><option>15 條 / 頁</option></select></div></div>
+          </section>
+        </section>
+
+        <section id="paymentsPage" class="page-panel hidden">
+          <div class="subpage-tabs"><button class="active" data-payment-view="channels">渠道與商戶號</button><button data-payment-view="bindings">門店渠道綁定</button><button data-payment-view="reconciliation">交易與對帳</button></div>
+          <section class="content-panel">
+            <div class="panel-head"><div><p class="eyebrow">PAYMENT CONFIGURATION</p><h2 id="paymentPanelTitle">支付渠道與商戶號</h2><small id="paymentPanelNote">密鑰、證書與回調配置僅支付配置管理員可維護，列表一律脫敏。</small></div><button class="primary-button" id="paymentPrimaryAction">新增商戶號</button></div>
+            <div id="paymentContent"></div>
+          </section>
+        </section>
+
+        <section id="customersPage" class="page-panel hidden">
+          <section class="content-panel">
+            <div class="panel-head"><div><p class="eyebrow">GROUP MEMBERS</p><h2>客戶與會員</h2><small>統一集團身份、會員與積分帳；門店只在履約所需範圍查看客戶資料。</small></div><button class="secondary-button" id="exportCustomers">匯出已授權資料</button></div>
+            <div class="filter-row"><label class="search-field"><span>⌕</span><input id="customerSearch" type="search" placeholder="搜尋會員編號、姓名或手機尾號" /></label><select><option>全部會員狀態</option><option>有效</option><option>凍結</option></select><select><option>全部來源門店</option><option>澳門總店</option><option>氹仔旗艦店</option></select></div>
+            <div class="table-wrap"><table><thead><tr><th>會員</th><th>聯絡方式</th><th>來源</th><th>跨店訂單</th><th>累計消費</th><th>積分餘額</th><th>狀態</th><th>操作</th></tr></thead><tbody id="customerRows"></tbody></table></div>
+          </section>
+        </section>
+
+        <section id="crmPage" class="page-panel hidden">
+          <section class="content-panel">
+            <div class="panel-head"><div><p class="eyebrow">GROUP CRM</p><h2>CRM 與商機</h2><small>門店諮詢保留來源門店，客戶檔案與商機統一歸集團管理。</small></div><button class="primary-button" id="openOpportunityCreate">新增商機</button></div>
+            <div class="crm-summary"><article><span>新線索</span><strong>24</strong><small>待首次跟進 9</small></article><article><span>跟進中</span><strong>18</strong><small>本週需跟進 7</small></article><article><span>方案洽談</span><strong>8</strong><small>預計金額 MOP 286K</small></article><article><span>本月成交</span><strong>6</strong><small class="positive">轉化率 21.4%</small></article></div>
+            <div class="filter-row"><label class="search-field"><span>⌕</span><input type="search" placeholder="搜尋商機、客戶或來源門店" /></label><select><option>全部商機類型</option><option>定制諮詢</option><option>團購諮詢</option><option>學校合作</option></select><select><option>全部負責人</option><option>陳嘉雯</option><option>李俊傑</option></select></div>
+            <div class="table-wrap"><table><thead><tr><th>商機</th><th>客戶 / 機構</th><th>類型</th><th>來源門店</th><th>負責人</th><th>預計金額</th><th>階段</th><th>下次跟進</th><th>操作</th></tr></thead><tbody id="opportunityRows"></tbody></table></div>
+          </section>
+        </section>
+
+        <section id="accountsPage" class="page-panel hidden"></section>
+        <section id="rolesPage" class="page-panel hidden"></section>
+      </section>
+    </main>
+
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-card"><header><div><p class="eyebrow" id="modalEyebrow">PLATFORM CONFIG</p><h2 id="modalTitle">詳情</h2></div><button class="close-button" id="closeModal" aria-label="關閉">×</button></header><div id="modalBody" class="modal-body"></div><footer id="modalFooter"></footer></div>
+    </div>
+    <div id="toast" class="toast hidden" role="status"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>

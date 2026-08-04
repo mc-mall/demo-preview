@@ -22,7 +22,7 @@ let categories = [
   { id: "cat-sports-jersey", parentId: "cat-sports-team", name: "比赛球衣" },
 ];
 
-let units = [
+const units = [
   { id: "unit-sjs", type: "学校", code: "SJS", name: "圣若瑟教区中学", contact: "校务处", logo: makeThumb("#e6f4ff", "#1769A8", "SJS") },
   { id: "unit-pui-ching", type: "学校", code: "PUICHING", name: "培正中学", contact: "采购负责人", logo: makeThumb("#fff7e6", "#d46b08", "培正") },
   { id: "unit-ho-kong", type: "学校", code: "HOKONG", name: "濠江中学", contact: "校服组", logo: makeThumb("#f6ffed", "#1769A8", "濠江") },
@@ -373,7 +373,6 @@ const permissionCatalog = [
     pages: [
       { id: "products", name: "商品列表", apis: [{ id: "product_query", name: "查询" }, { id: "product_detail", name: "查看详情" }, { id: "product_create", name: "新建" }, { id: "product_update", name: "修改" }, { id: "product_export", name: "导出" }] },
       { id: "categories", name: "类目管理", apis: [{ id: "category_query", name: "查询" }, { id: "category_create", name: "新建" }, { id: "category_update", name: "修改" }, { id: "category_delete", name: "删除" }] },
-      { id: "units", name: "归属单位", apis: [{ id: "unit_query", name: "查询" }, { id: "unit_create", name: "新建" }, { id: "unit_update", name: "修改" }, { id: "unit_delete", name: "删除" }] },
       { id: "inventoryAlerts", name: "库存预警", apis: [{ id: "inventory_query", name: "查询" }, { id: "inventory_restock", name: "补库存" }, { id: "inventory_offsale", name: "下架" }] },
     ],
   },
@@ -407,7 +406,7 @@ const allPermissionPageIds = permissionCatalog.flatMap((group) => group.pages.ma
 const allPermissionApiIds = permissionCatalog.flatMap((group) => group.pages.flatMap((page) => page.apis.map((api) => api.id)));
 const permissionPresets = {
   all: { pages: allPermissionPageIds, apis: allPermissionApiIds },
-  product: { pages: ["dashboard", "products", "categories", "units", "inventoryAlerts"], apis: ["dashboard_view", "product_query", "product_detail", "product_create", "product_update", "product_export", "category_query", "category_create", "category_update", "unit_query", "unit_create", "unit_update", "inventory_query", "inventory_restock", "inventory_offsale"] },
+  product: { pages: ["dashboard", "products", "categories", "inventoryAlerts"], apis: ["dashboard_view", "product_query", "product_detail", "product_create", "product_update", "product_export", "category_query", "category_create", "category_update", "inventory_query", "inventory_restock", "inventory_offsale"] },
   order: { pages: ["dashboard", "orders", "presaleOrders", "afterSales", "customers", "deliveryConfiguration"], apis: ["dashboard_view", "dashboard_exchange_create", "order_query", "order_detail", "order_ship", "order_export", "presale_query", "presale_detail", "presale_fulfill", "presale_export", "aftersale_query", "aftersale_audit", "aftersale_record", "customer_query", "customer_detail", "customer_points", "customer_update", "delivery_query"] },
   warehouse: { pages: ["dashboard", "orders", "presaleOrders", "afterSales", "inventoryAlerts", "storeManagement", "deliveryConfiguration"], apis: ["dashboard_view", "dashboard_exchange_create", "order_query", "order_detail", "order_ship", "presale_query", "presale_detail", "presale_fulfill", "aftersale_query", "inventory_query", "inventory_restock", "store_query", "store_bind_printer", "delivery_query"] },
   sales: { pages: ["dashboard", "customers", "opportunities"], apis: ["dashboard_view", "customer_query", "customer_detail", "customer_points", "customer_update", "customer_export", "opportunity_query", "opportunity_detail", "opportunity_create", "opportunity_follow", "opportunity_export"] },
@@ -426,7 +425,7 @@ let roles = [
     id: "role-product",
     name: "商品运营",
     status: "启用",
-    description: "负责商品、类目、归属单位和库存预警维护。",
+    description: "负责商品、类目选择和库存预警维护；学校／团体单位由集团统一配置。",
     permissions: permissionPresets.product,
   },
   {
@@ -694,7 +693,6 @@ const pageTitle = document.querySelector("#pageTitle");
 const dashboardPage = document.querySelector("#dashboardPage");
 const productsPage = document.querySelector("#productsPage");
 const categoriesPage = document.querySelector("#categoriesPage");
-const unitsPage = document.querySelector("#unitsPage");
 const inventoryAlertsPage = document.querySelector("#inventoryAlertsPage");
 const ordersPage = document.querySelector("#ordersPage");
 const presaleOrdersPage = document.querySelector("#presaleOrdersPage");
@@ -745,7 +743,6 @@ const productDialog = document.querySelector("#productDialog");
 const drawerTitle = document.querySelector("#drawerTitle");
 const chartTooltip = document.querySelector("#chartTooltip");
 const categoryEditDialog = document.querySelector("#categoryEditDialog");
-const unitEditDialog = document.querySelector("#unitEditDialog");
 const restockDialog = document.querySelector("#restockDialog");
 const shelveOffDialog = document.querySelector("#shelveOffDialog");
 const spuTabButtons = document.querySelectorAll("[data-spu-tab]");
@@ -769,7 +766,6 @@ let bindingPrinterStoreId = null;
 let editingHivePickupId = null;
 const pagination = {
   products: { page: 1, pageSize: 15 },
-  units: { page: 1, pageSize: 15 },
   orders: { page: 1, pageSize: 15 },
   presaleOrders: { page: 1, pageSize: 15 },
   afterSales: { page: 1, pageSize: 15 },
@@ -841,7 +837,6 @@ document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
       dashboard: "工作台",
       products: "商品中心 / 商品列表",
       categories: "商品中心 / 类目管理",
-      units: "商品中心 / 归属单位管理",
       inventoryAlerts: "商品中心 / 库存预警",
       orders: "订单中心 / 现货订单",
       presaleOrders: "订单中心 / 预售订单",
@@ -857,7 +852,6 @@ document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
     dashboardPage.classList.toggle("hidden", page !== "dashboard");
     productsPage.classList.toggle("hidden", page !== "products");
     categoriesPage.classList.toggle("hidden", page !== "categories");
-    unitsPage.classList.toggle("hidden", page !== "units");
     inventoryAlertsPage.classList.toggle("hidden", page !== "inventoryAlerts");
     ordersPage.classList.toggle("hidden", page !== "orders");
     presaleOrdersPage.classList.toggle("hidden", page !== "presaleOrders");
@@ -871,7 +865,6 @@ document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
 
     if (page === "dashboard") requestAnimationFrame(drawSalesChart);
     if (page === "categories") renderCategoryManager();
-    if (page === "units") renderUnitManager();
     if (page === "inventoryAlerts") renderInventoryAlerts();
     if (page === "orders") renderOrders();
     if (page === "presaleOrders") renderPresaleOrders();
@@ -965,7 +958,7 @@ function refreshReferenceOptions() {
   document.querySelector("#formCategory").innerHTML = leafOptions;
 
   const unitOptions = units.map((unit) => `<option value="${unit.id}">${escapeHtml(unit.name)}（${unit.type}）</option>`).join("");
-  unitFilter.innerHTML = `<option value="all">全部归属单位</option>${unitOptions}`;
+  unitFilter.innerHTML = `<option value="all">全部学校／团体单位</option>${unitOptions}`;
   document.querySelector("#orderUnitFilter").innerHTML = `<option value="all">全部学校 / 单位</option>${unitOptions}`;
   document.querySelector("#presaleOrderUnitFilter").innerHTML = `<option value="all">全部学校 / 单位</option>${unitOptions}`;
   document.querySelector("#customerOwnerFilter").innerHTML = renderOwnerOptions("全部负责人");
@@ -995,7 +988,7 @@ function renderProductUnitChoices(selectedIds = []) {
         <small>${escapeHtml(unit.type)} · ${escapeHtml(unit.code)}</small>
       </span>
     </label>
-  `).join("") || `<div class="unit-choice-empty">暂无可选单位，请先到“归属单位”新增数据。</div>`;
+  `).join("") || `<div class="unit-choice-empty">暂无可选单位，请联系集团管理员维护学校／团体单位。</div>`;
   container.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
     checkbox.addEventListener("change", updateProductUnitCount);
   });
@@ -1062,7 +1055,6 @@ function getPageSlice(rows, key) {
 function renderPagination(key, total, totalPages) {
   const paginationTargets = {
     products: "productPagination",
-    units: "unitPagination",
     orders: "orderPagination",
     presaleOrders: "presaleOrderPagination",
     afterSales: "afterSalePagination",
@@ -1107,7 +1099,6 @@ function renderPagination(key, total, totalPages) {
 function renderPagedList(key) {
   const renderers = {
     products: renderProducts,
-    units: renderUnitManager,
     orders: renderOrders,
     presaleOrders: renderPresaleOrders,
     afterSales: renderAfterSales,
@@ -1489,12 +1480,6 @@ document.querySelector("#openCategoryCreateBtn").addEventListener("click", openC
 document.querySelector("#closeCategoryDialogBtn").addEventListener("click", closeCategoryDialog);
 document.querySelector("#cancelCategoryBtn").addEventListener("click", closeCategoryDialog);
 document.querySelector("#saveCategoryBtn").addEventListener("click", saveCategory);
-document.querySelector("#openUnitCreateBtn").addEventListener("click", openCreateUnitDialog);
-document.querySelector("#closeUnitDialogBtn").addEventListener("click", closeUnitDialog);
-document.querySelector("#cancelUnitBtn").addEventListener("click", closeUnitDialog);
-document.querySelector("#saveUnitBtn").addEventListener("click", saveUnit);
-document.querySelector("#unitLogoFile").addEventListener("change", handleUnitLogoUpload);
-document.querySelector("#unitLogo").addEventListener("input", () => updateUnitLogoPreview(document.querySelector("#unitLogo").value.trim()));
 document.querySelector("#closeRestockDialogBtn").addEventListener("click", closeRestockDialog);
 document.querySelector("#cancelRestockBtn").addEventListener("click", closeRestockDialog);
 document.querySelector("#confirmRestockBtn").addEventListener("click", confirmRestock);
@@ -1758,111 +1743,6 @@ function refreshCategoryDrivenViews() {
 function renderUnitLogo(unit) {
   if (unit.logo) return `<img class="unit-logo" src="${escapeHtml(unit.logo)}" alt="${escapeHtml(unit.name)} Logo" />`;
   return `<span class="unit-logo generated-thumb">${escapeHtml(unit.name.slice(0, 2))}</span>`;
-}
-
-function renderUnitManager() {
-  const list = document.querySelector("#unitList");
-  const page = getPageSlice(units, "units");
-  list.innerHTML = page.rows.map((unit) => `
-    <div class="manage-item unit-manage-item">
-      ${renderUnitLogo(unit)}
-      <div class="unit-info">
-        <strong>${escapeHtml(unit.name)}</strong>
-        <small>${escapeHtml(unit.type)} · ${escapeHtml(unit.code)} · ${escapeHtml(unit.contact)}</small>
-      </div>
-      <div class="row-actions">
-        <button class="text-btn" type="button" data-edit-unit="${unit.id}">编辑</button>
-        <button class="text-btn danger-text" type="button" data-delete-unit="${unit.id}">删除</button>
-      </div>
-    </div>
-  `).join("");
-  renderPagination("units", page.total, page.totalPages);
-  list.querySelectorAll("[data-edit-unit]").forEach((button) => button.addEventListener("click", () => editUnit(button.dataset.editUnit)));
-  list.querySelectorAll("[data-delete-unit]").forEach((button) => button.addEventListener("click", () => deleteUnit(button.dataset.deleteUnit)));
-}
-
-function openCreateUnitDialog() {
-  resetUnitForm();
-  document.querySelector("#unitDialogTitle").textContent = "新增单位";
-  document.querySelector("#saveUnitBtn").textContent = "确认新增";
-  unitEditDialog.showModal();
-}
-
-function editUnit(id) {
-  const unit = units.find((item) => item.id === id);
-  if (!unit) return;
-  document.querySelector("#unitId").value = unit.id;
-  document.querySelector("#unitType").value = unit.type;
-  document.querySelector("#unitCode").value = unit.code;
-  document.querySelector("#unitName").value = unit.name;
-  document.querySelector("#unitContact").value = unit.contact;
-  document.querySelector("#unitLogo").value = unit.logo || "";
-  updateUnitLogoPreview(unit.logo || "");
-  document.querySelector("#unitDialogTitle").textContent = "编辑单位";
-  document.querySelector("#saveUnitBtn").textContent = "确认保存";
-  unitEditDialog.showModal();
-}
-
-function closeUnitDialog() {
-  unitEditDialog.close();
-}
-
-function saveUnit() {
-  const id = document.querySelector("#unitId").value || `unit-${Date.now()}`;
-  const unit = {
-    id,
-    type: document.querySelector("#unitType").value,
-    code: document.querySelector("#unitCode").value.trim(),
-    name: document.querySelector("#unitName").value.trim(),
-    contact: document.querySelector("#unitContact").value.trim(),
-    logo: document.querySelector("#unitLogo").value.trim(),
-  };
-  if (!unit.name || !unit.code) return;
-  units = units.some((item) => item.id === id)
-    ? units.map((item) => item.id === id ? unit : item)
-    : units.concat(unit);
-  resetUnitForm();
-  closeUnitDialog();
-  refreshUnitDrivenViews();
-}
-
-function deleteUnit(id) {
-  units = units.filter((unit) => unit.id !== id);
-  products = products.map((product) => ({ ...product, unitIds: product.unitIds.filter((unitId) => unitId !== id) }));
-  refreshUnitDrivenViews();
-}
-
-function resetUnitForm() {
-  document.querySelector("#unitId").value = "";
-  document.querySelector("#unitType").value = "学校";
-  document.querySelector("#unitCode").value = "";
-  document.querySelector("#unitName").value = "";
-  document.querySelector("#unitContact").value = "";
-  document.querySelector("#unitLogo").value = "";
-  document.querySelector("#unitLogoFile").value = "";
-  updateUnitLogoPreview("");
-}
-
-function updateUnitLogoPreview(src) {
-  const preview = document.querySelector("#unitLogoPreview");
-  preview.innerHTML = src ? `<img src="${escapeHtml(src)}" alt="单位 Logo 预览" />` : `<span>Logo</span>`;
-}
-
-function handleUnitLogoUpload(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.addEventListener("load", () => {
-    document.querySelector("#unitLogo").value = reader.result;
-    updateUnitLogoPreview(reader.result);
-  });
-  reader.readAsDataURL(file);
-}
-
-function refreshUnitDrivenViews() {
-  refreshReferenceOptions();
-  renderUnitManager();
-  renderProducts();
 }
 
 
