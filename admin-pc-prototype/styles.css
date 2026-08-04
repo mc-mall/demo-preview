@@ -2341,8 +2341,7 @@ img.product-thumb {
 }
 
 
-.category-list,
-.unit-page-list {
+.category-list {
   max-height: none;
   padding-right: 0;
 }
@@ -2473,17 +2472,7 @@ img.product-thumb {
 }
 
 
-.unit-manage-item {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
-}
-
-.unit-info {
-  min-width: 0;
-}
-
-.unit-logo,
-.unit-logo-preview {
+.unit-logo {
   width: 42px;
   height: 42px;
   display: grid;
@@ -2498,41 +2487,9 @@ img.product-thumb {
   overflow: hidden;
 }
 
-.unit-logo-preview {
-  width: 72px;
-  height: 72px;
-  flex: 0 0 72px;
-}
-
 .unit-logo img,
-.unit-logo-preview img,
 img.unit-logo {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.unit-logo-section {
-  display: grid;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fafafa;
-}
-
-.unit-logo-editor {
-  display: flex;
-  gap: 12px;
-  align-items: start;
-}
-
-.unit-logo-fields {
-  flex: 1;
-  display: grid;
-  gap: 8px;
-}
-
-.unit-upload-line {
-  max-width: 128px;
 }
