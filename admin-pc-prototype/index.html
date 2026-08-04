@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MC 商城 PC 管理后台原型</title>
+    <title>MC 门店收银管理系统原型</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -12,14 +12,14 @@
         <div class="login-brand">
           <span class="brand-mark">MC</span>
           <div>
-            <p class="eyebrow">MC Uniform Custom Hub</p>
-            <h1>商城管理后台</h1>
+            <p class="eyebrow">MC Store POS</p>
+            <h1>门店收银管理系统</h1>
           </div>
         </div>
         <form id="loginForm" class="login-card">
           <div class="form-head">
-            <h2>后台登录</h2>
-            <p>请输入员工账号和密码。</p>
+            <h2>系统登录</h2>
+            <p>请输入门店员工账号和密码。</p>
           </div>
           <label>
             <span>账号</span>
@@ -30,7 +30,7 @@
             <input id="password" type="password" placeholder="请输入登录密码" autocomplete="current-password" required />
           </label>
           <p id="loginError" class="login-error" aria-live="polite"></p>
-          <button class="primary-btn" type="submit">登录后台</button>
+          <button class="primary-btn" type="submit">登录系统</button>
         </form>
       </section>
     </main>
@@ -40,11 +40,11 @@
         <div class="side-brand">
           <span class="brand-mark">MC</span>
           <div>
-            <strong>MC 商城</strong>
-            <small>一期运营后台</small>
+            <strong>MC 门店</strong>
+            <small>收银管理系统</small>
           </div>
         </div>
-        <nav class="side-nav" aria-label="后台导航">
+        <nav class="side-nav" aria-label="门店收银管理系统导航">
           <button class="nav-item active" data-page="dashboard">
             <span>⌂</span>
             工作台
@@ -53,9 +53,6 @@
             <button class="nav-label" type="button" aria-expanded="false"><span>□</span>商品中心<b>⌄</b></button>
             <button class="nav-item sub-item" data-page="products">
               商品列表
-            </button>
-            <button class="nav-item sub-item" data-page="categories">
-              类目管理
             </button>
             <button class="nav-item sub-item" data-page="inventoryAlerts">
               库存预警
@@ -90,9 +87,6 @@
             <button class="nav-item sub-item" data-page="rolePermissions">
               角色权限
             </button>
-            <button class="nav-item sub-item" data-page="storeManagement">
-              门店管理
-            </button>
             <button class="nav-item sub-item" data-page="deliveryConfiguration">
               配送配置
             </button>
@@ -103,7 +97,7 @@
       <section class="workspace">
         <header class="topbar">
           <div>
-            <p class="eyebrow">PC Admin Prototype</p>
+            <p class="eyebrow">Store POS Prototype</p>
             <h2 id="pageTitle">工作台</h2>
           </div>
           <div class="top-actions">
@@ -111,7 +105,7 @@
             <div class="admin-profile">
               <span>MC</span>
               <div>
-                <strong>后台员工</strong>
+                <strong>门店员工</strong>
                 <small>员工账号</small>
               </div>
             </div>
@@ -278,21 +272,6 @@
               </table>
             </div>
             <div id="inventoryAlertPagination" class="pagination-bar"></div>
-          </section>
-        </section>
-
-        <section id="categoriesPage" class="page-panel hidden">
-          <section class="content-panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Category CRUD</p>
-                <h3>三级类目</h3>
-              </div>
-              <div class="panel-actions">
-                <button id="openCategoryCreateBtn" class="primary-btn compact" type="button">新增类目</button>
-              </div>
-            </div>
-            <div class="manage-list category-list" id="categoryTree"></div>
           </section>
         </section>
 
@@ -786,7 +765,7 @@
             <article class="metric-card">
               <p>员工账号</p>
               <strong id="employeeTotalMetric">0</strong>
-              <span class="trend">后台可登录账号</span>
+              <span class="trend">门店系统登录账号</span>
             </article>
             <article class="metric-card">
               <p>启用账号</p>
@@ -796,7 +775,7 @@
             <article class="metric-card warning">
               <p>停用账号</p>
               <strong id="employeeDisabledMetric">0</strong>
-              <span class="trend">不可登录后台</span>
+              <span class="trend">不可登录门店系统</span>
             </article>
             <article class="metric-card">
               <p>角色数</p>
@@ -883,46 +862,6 @@
           </div>
         </section>
 
-        <section id="storeManagementPage" class="page-panel hidden">
-          <div class="system-layout">
-            <section class="content-panel system-main">
-              <div class="panel-head">
-                <div>
-                  <p class="eyebrow">System Settings</p>
-                  <h3>门店管理</h3>
-                </div>
-                <div class="panel-actions">
-                  <button id="openStoreCreateBtn" class="primary-btn compact" type="button">新增门店</button>
-                </div>
-              </div>
-
-              <div class="filter-row store-filter-row">
-                <label class="search-box">
-                  <span>⌕</span>
-                  <input id="storeSearch" type="search" placeholder="搜索门店名称、地址、联系电话" />
-                </label>
-              </div>
-
-              <div class="table-wrap">
-                <table class="system-table store-table">
-                  <thead>
-                    <tr>
-                      <th>门店名称</th>
-                      <th>地址</th>
-                      <th>联系电话</th>
-                      <th>营业时间</th>
-                      <th>小票机</th>
-                      <th>操作</th>
-                    </tr>
-                  </thead>
-                  <tbody id="storeRows"></tbody>
-                </table>
-              </div>
-              <div id="storePagination" class="pagination-bar"></div>
-            </section>
-          </div>
-        </section>
-
         <section id="deliveryConfigurationPage" class="page-panel hidden">
           <div class="system-layout">
             <section class="content-panel system-main">
@@ -940,7 +879,7 @@
                 <article class="metric-card">
                   <p>门店自提点</p>
                   <strong id="storePickupMetric">0</strong>
-                  <span class="trend">来源于门店管理</span>
+                  <span class="trend">集团统一下发</span>
                 </article>
                 <article class="metric-card">
                   <p>启用窝蜂点</p>
@@ -1056,7 +995,7 @@
           <span>初始密码</span>
           <input id="employeeInitialPassword" type="password" placeholder="由管理员创建账号时录入" />
         </label>
-        <p id="employeeFormHint" class="form-hint">员工创建后即可使用账号名和密码登录后台。后续可在员工账号详情中重置密码。</p>
+        <p id="employeeFormHint" class="form-hint">员工创建后即可使用账号名和密码登录门店系统。后续可在员工账号详情中重置密码。</p>
         <div class="dialog-actions split-actions">
           <button id="saveEmployeeBtn" class="primary-btn compact" type="button">确认新增</button>
           <button id="cancelEmployeeBtn" class="ghost-btn" type="button">取消</button>
@@ -1093,70 +1032,6 @@
         <div class="dialog-actions modal-actions">
           <button id="cancelRoleBtn" class="ghost-btn compact" type="button">取消</button>
           <button id="saveRoleBtn" class="primary-btn compact" type="button">确定</button>
-        </div>
-      </form>
-    </dialog>
-
-    <dialog id="storeEditDialog" class="manage-dialog edit-dialog">
-      <div class="drawer-head">
-        <div>
-          <p class="eyebrow">Store Form</p>
-          <h3 id="storeDialogTitle">新增门店</h3>
-        </div>
-        <button id="closeStoreDialogBtn" class="icon-btn" title="关闭" type="button">×</button>
-      </div>
-      <form id="storeForm" class="manage-form dialog-form">
-        <label>
-          <span>门店名称</span>
-          <input id="storeName" type="text" placeholder="请输入门店名称" />
-        </label>
-        <label>
-          <span>地址</span>
-          <textarea id="storeAddress" rows="3" placeholder="请输入门店详细地址"></textarea>
-        </label>
-        <div class="form-grid">
-          <label>
-            <span>联系电话</span>
-            <input id="storePhone" type="tel" placeholder="例如 2833 6688" />
-          </label>
-          <label>
-            <span>营业时间</span>
-            <input id="storeBusinessHours" type="text" placeholder="例如 10:00-20:00" />
-          </label>
-        </div>
-        <p id="storeFormHint" class="form-hint">请填写门店对外展示的联系信息。</p>
-        <div class="dialog-actions split-actions">
-          <button id="saveStoreBtn" class="primary-btn compact" type="submit">确认保存</button>
-          <button id="cancelStoreBtn" class="ghost-btn" type="button">取消</button>
-        </div>
-      </form>
-    </dialog>
-
-    <dialog id="printerBindDialog" class="manage-dialog edit-dialog">
-      <div class="drawer-head">
-        <div>
-          <p class="eyebrow">Receipt Printer</p>
-          <h3 id="printerBindDialogTitle">绑定小票机</h3>
-        </div>
-        <button id="closePrinterBindDialogBtn" class="icon-btn" title="关闭" type="button">×</button>
-      </div>
-      <form id="printerBindForm" class="manage-form dialog-form">
-        <section class="printer-store-summary">
-          <span>绑定门店</span>
-          <strong id="printerStoreName">-</strong>
-        </section>
-        <label>
-          <span>设备编号</span>
-          <input id="printerDeviceNo" type="text" placeholder="请输入小票机设备编号" autocomplete="off" />
-        </label>
-        <label>
-          <span>Key</span>
-          <input id="printerKey" type="password" placeholder="请输入设备 Key" autocomplete="new-password" />
-        </label>
-        <p id="printerBindHint" class="form-hint">每个门店仅可绑定一台小票机，绑定后用于打印订单小票。</p>
-        <div class="dialog-actions split-actions">
-          <button class="primary-btn compact" type="submit">确认绑定</button>
-          <button id="cancelPrinterBindBtn" class="ghost-btn" type="button">取消</button>
         </div>
       </form>
     </dialog>
@@ -1430,32 +1305,6 @@
     </dialog>
 
 
-    <dialog id="categoryEditDialog" class="manage-dialog edit-dialog">
-      <div class="drawer-head">
-        <div>
-          <p class="eyebrow">Category Form</p>
-          <h3 id="categoryDialogTitle">新增类目</h3>
-        </div>
-        <button id="closeCategoryDialogBtn" class="icon-btn" type="button">×</button>
-      </div>
-      <form class="manage-form dialog-form">
-        <input id="categoryId" type="hidden" />
-        <label>
-          <span>父级类目</span>
-          <select id="categoryParent"></select>
-        </label>
-        <label>
-          <span>类目名称</span>
-          <input id="categoryName" type="text" placeholder="例如：T恤" />
-        </label>
-        <p class="form-hint">最多三级。商品中心分类字段只读取三级叶子类目，例如：原创产品 / 上衣 / T恤。</p>
-        <div class="dialog-actions split-actions">
-          <button id="saveCategoryBtn" class="primary-btn compact" type="button">确认新增</button>
-          <button id="cancelCategoryBtn" class="ghost-btn" type="button">取消</button>
-        </div>
-      </form>
-    </dialog>
-
     <dialog id="productDialog" class="spu-dialog">
       <div class="drawer-head">
         <div>
@@ -1483,7 +1332,7 @@
               </label>
               <div class="form-grid">
                 <label>
-                  <span>三级类目</span>
+                  <span>三级类目（集团配置）</span>
                   <select id="formCategory"></select>
                 </label>
                 <label>

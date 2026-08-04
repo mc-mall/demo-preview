@@ -866,10 +866,6 @@ td small {
   grid-template-columns: minmax(320px, 1fr) 180px;
 }
 
-.store-filter-row {
-  grid-template-columns: minmax(320px, 1fr);
-}
-
 .delivery-filter-row {
   grid-template-columns: minmax(320px, 1fr) 160px;
 }
@@ -888,10 +884,6 @@ td small {
 
 .role-table {
   min-width: 1180px;
-}
-
-.store-table {
-  min-width: 920px;
 }
 
 .pickup-table {
@@ -1041,24 +1033,10 @@ td small {
   white-space: nowrap;
 }
 
-.store-address {
+.pickup-address {
   display: block;
   max-width: 420px;
   line-height: 1.6;
-}
-
-.printer-store-summary {
-  display: grid;
-  gap: 4px;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #f8fafc;
-}
-
-.printer-store-summary span {
-  color: var(--muted);
-  font-size: 12px;
 }
 
 .role-dialog {
@@ -1507,42 +1485,6 @@ td small {
   background: rgba(15, 23, 42, 0.32);
 }
 
-.manage-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  gap: 16px;
-}
-
-.manage-list {
-  max-height: 470px;
-  overflow: auto;
-  display: grid;
-  gap: 8px;
-  padding-right: 4px;
-}
-
-.manage-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
-  margin-left: calc(var(--level, 0) * 18px);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fafafa;
-}
-
-.manage-item strong,
-.manage-item small {
-  display: block;
-}
-
-.manage-item small {
-  margin-top: 4px;
-  color: var(--muted);
-}
-
 .manage-form {
   display: grid;
   align-content: start;
@@ -1775,17 +1717,8 @@ img.product-thumb {
   object-fit: cover;
 }
 
-.page-manage-layout {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.page-manage-layout .manage-list {
-  max-height: calc(100vh - 230px);
-}
-
 @media (max-width: 1280px) {
-  .spu-form-grid,
-  .page-manage-layout {
+  .spu-form-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2340,34 +2273,6 @@ img.product-thumb {
   background: rgba(15, 23, 42, 0.36);
 }
 
-
-.category-list {
-  max-height: none;
-  padding-right: 0;
-}
-
-.manage-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.toggle-btn {
-  min-width: 48px;
-  min-height: 28px;
-  border: 1px solid #d7e6f5;
-  border-radius: 5px;
-  background: #f5fbff;
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.toggle-spacer {
-  width: 48px;
-  flex: 0 0 48px;
-}
 
 .edit-dialog {
   width: 520px;
