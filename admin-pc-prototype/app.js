@@ -9,7 +9,7 @@ const sales = [
   21950, 23600, 24100, 23200, 25500, 26850, 24900, 27600, 28950, 30400,
 ];
 
-let categories = [
+const categories = [
   { id: "cat-original", parentId: null, name: "原创产品" },
   { id: "cat-original-top", parentId: "cat-original", name: "上衣" },
   { id: "cat-original-tshirt", parentId: "cat-original-top", name: "T恤" },
@@ -372,7 +372,6 @@ const permissionCatalog = [
     group: "商品中心",
     pages: [
       { id: "products", name: "商品列表", apis: [{ id: "product_query", name: "查询" }, { id: "product_detail", name: "查看详情" }, { id: "product_create", name: "新建" }, { id: "product_update", name: "修改" }, { id: "product_export", name: "导出" }] },
-      { id: "categories", name: "类目管理", apis: [{ id: "category_query", name: "查询" }, { id: "category_create", name: "新建" }, { id: "category_update", name: "修改" }, { id: "category_delete", name: "删除" }] },
       { id: "inventoryAlerts", name: "库存预警", apis: [{ id: "inventory_query", name: "查询" }, { id: "inventory_restock", name: "补库存" }, { id: "inventory_offsale", name: "下架" }] },
     ],
   },
@@ -396,7 +395,6 @@ const permissionCatalog = [
     pages: [
       { id: "employeeAccounts", name: "员工账号", apis: [{ id: "employee_query", name: "查询" }, { id: "employee_create", name: "新建" }, { id: "employee_update", name: "修改" }, { id: "employee_reset_password", name: "重置密码" }, { id: "employee_toggle", name: "启停账号" }] },
       { id: "rolePermissions", name: "角色权限", apis: [{ id: "role_query", name: "查询" }, { id: "role_create", name: "新建" }, { id: "role_update", name: "修改" }, { id: "role_assign", name: "分配权限" }] },
-      { id: "storeManagement", name: "门店管理", apis: [{ id: "store_query", name: "查询" }, { id: "store_create", name: "新建" }, { id: "store_update", name: "修改" }, { id: "store_bind_printer", name: "绑定小票机" }] },
       { id: "deliveryConfiguration", name: "配送配置", apis: [{ id: "delivery_query", name: "查询" }, { id: "delivery_fee_update", name: "修改配送费" }, { id: "hive_pickup_create", name: "新增窝蜂点" }, { id: "hive_pickup_update", name: "修改窝蜂点" }, { id: "hive_pickup_image", name: "上传门头图片" }, { id: "hive_pickup_toggle", name: "启停窝蜂点" }] },
     ],
   },
@@ -406,9 +404,9 @@ const allPermissionPageIds = permissionCatalog.flatMap((group) => group.pages.ma
 const allPermissionApiIds = permissionCatalog.flatMap((group) => group.pages.flatMap((page) => page.apis.map((api) => api.id)));
 const permissionPresets = {
   all: { pages: allPermissionPageIds, apis: allPermissionApiIds },
-  product: { pages: ["dashboard", "products", "categories", "inventoryAlerts"], apis: ["dashboard_view", "product_query", "product_detail", "product_create", "product_update", "product_export", "category_query", "category_create", "category_update", "inventory_query", "inventory_restock", "inventory_offsale"] },
+  product: { pages: ["dashboard", "products", "inventoryAlerts"], apis: ["dashboard_view", "product_query", "product_detail", "product_create", "product_update", "product_export", "inventory_query", "inventory_restock", "inventory_offsale"] },
   order: { pages: ["dashboard", "orders", "presaleOrders", "afterSales", "customers", "deliveryConfiguration"], apis: ["dashboard_view", "dashboard_exchange_create", "order_query", "order_detail", "order_ship", "order_export", "presale_query", "presale_detail", "presale_fulfill", "presale_export", "aftersale_query", "aftersale_audit", "aftersale_record", "customer_query", "customer_detail", "customer_points", "customer_update", "delivery_query"] },
-  warehouse: { pages: ["dashboard", "orders", "presaleOrders", "afterSales", "inventoryAlerts", "storeManagement", "deliveryConfiguration"], apis: ["dashboard_view", "dashboard_exchange_create", "order_query", "order_detail", "order_ship", "presale_query", "presale_detail", "presale_fulfill", "aftersale_query", "inventory_query", "inventory_restock", "store_query", "store_bind_printer", "delivery_query"] },
+  warehouse: { pages: ["dashboard", "orders", "presaleOrders", "afterSales", "inventoryAlerts", "deliveryConfiguration"], apis: ["dashboard_view", "dashboard_exchange_create", "order_query", "order_detail", "order_ship", "presale_query", "presale_detail", "presale_fulfill", "aftersale_query", "inventory_query", "inventory_restock", "delivery_query"] },
   sales: { pages: ["dashboard", "customers", "opportunities"], apis: ["dashboard_view", "customer_query", "customer_detail", "customer_points", "customer_update", "customer_export", "opportunity_query", "opportunity_detail", "opportunity_create", "opportunity_follow", "opportunity_export"] },
   viewer: { pages: ["dashboard", "products", "orders", "presaleOrders", "customers", "opportunities"], apis: ["dashboard_view", "product_query", "product_detail", "order_query", "order_detail", "presale_query", "presale_detail", "customer_query", "customer_detail", "customer_points", "opportunity_query", "opportunity_detail"] },
 };
@@ -425,7 +423,7 @@ let roles = [
     id: "role-product",
     name: "商品运营",
     status: "启用",
-    description: "负责商品、类目选择和库存预警维护；学校／团体单位由集团统一配置。",
+    description: "负责门店商品和库存预警维护；商品类目及学校／团体单位由集团统一配置。",
     permissions: permissionPresets.product,
   },
   {
@@ -468,9 +466,9 @@ const employees = [
 ];
 
 const stores = [
-  { id: "store-nam-van", name: "MC 南湾门店", address: "澳门南湾大马路 599 号地下 A 铺", phone: "2833 6688", businessHours: "周一至周日 10:00-20:00", printer: { deviceNo: "PRINTER-MC-001", key: "mc-printer-key-001" } },
-  { id: "store-taipa", name: "MC 氹仔门店", address: "澳门氹仔成都街 125 号地下", phone: "2882 1024", businessHours: "周一至周日 10:30-20:30", printer: null },
-  { id: "store-fai-chi-kei", name: "MC 筷子基门店", address: "澳门筷子基北街 88 号地下 B 铺", phone: "2826 9018", businessHours: "周一至周六 09:30-19:30；周日 10:00-18:00", printer: null },
+  { id: "store-nam-van", name: "MC 南湾门店", address: "澳门南湾大马路 599 号地下 A 铺", phone: "2833 6688", businessHours: "周一至周日 10:00-20:00" },
+  { id: "store-taipa", name: "MC 氹仔门店", address: "澳门氹仔成都街 125 号地下", phone: "2882 1024", businessHours: "周一至周日 10:30-20:30" },
+  { id: "store-fai-chi-kei", name: "MC 筷子基门店", address: "澳门筷子基北街 88 号地下 B 铺", phone: "2826 9018", businessHours: "周一至周六 09:30-19:30；周日 10:00-18:00" },
 ];
 
 const hivePickupPoints = [
@@ -692,7 +690,6 @@ const navGroups = document.querySelectorAll("[data-nav-group]");
 const pageTitle = document.querySelector("#pageTitle");
 const dashboardPage = document.querySelector("#dashboardPage");
 const productsPage = document.querySelector("#productsPage");
-const categoriesPage = document.querySelector("#categoriesPage");
 const inventoryAlertsPage = document.querySelector("#inventoryAlertsPage");
 const ordersPage = document.querySelector("#ordersPage");
 const presaleOrdersPage = document.querySelector("#presaleOrdersPage");
@@ -724,11 +721,9 @@ const opportunityCreateDialog = document.querySelector("#opportunityCreateDialog
 const opportunityCreateForm = document.querySelector("#opportunityCreateForm");
 const employeeAccountsPage = document.querySelector("#employeeAccountsPage");
 const rolePermissionsPage = document.querySelector("#rolePermissionsPage");
-const storeManagementPage = document.querySelector("#storeManagementPage");
 const deliveryConfigurationPage = document.querySelector("#deliveryConfigurationPage");
 const employeeRows = document.querySelector("#employeeRows");
 const roleRows = document.querySelector("#roleRows");
-const storeRows = document.querySelector("#storeRows");
 const hivePickupRows = document.querySelector("#hivePickupRows");
 const systemDialog = document.querySelector("#systemDialog");
 const systemDialogTitle = document.querySelector("#systemDialogTitle");
@@ -736,13 +731,10 @@ const systemDialogEyebrow = document.querySelector("#systemDialogEyebrow");
 const systemDetail = document.querySelector("#systemDetail");
 const employeeEditDialog = document.querySelector("#employeeEditDialog");
 const roleEditDialog = document.querySelector("#roleEditDialog");
-const storeEditDialog = document.querySelector("#storeEditDialog");
-const printerBindDialog = document.querySelector("#printerBindDialog");
 const hivePickupEditDialog = document.querySelector("#hivePickupEditDialog");
 const productDialog = document.querySelector("#productDialog");
 const drawerTitle = document.querySelector("#drawerTitle");
 const chartTooltip = document.querySelector("#chartTooltip");
-const categoryEditDialog = document.querySelector("#categoryEditDialog");
 const restockDialog = document.querySelector("#restockDialog");
 const shelveOffDialog = document.querySelector("#shelveOffDialog");
 const spuTabButtons = document.querySelectorAll("[data-spu-tab]");
@@ -750,7 +742,6 @@ const spuTabButtons = document.querySelectorAll("[data-spu-tab]");
 let selectedTabStatus = "all";
 let latestChartPoints = [];
 let editingProductId = null;
-let expandedCategoryIds = new Set();
 let selectedOrderTab = "all";
 let selectedPresaleOrderTab = "all";
 let selectedOrderId = orders[0]?.id || null;
@@ -761,8 +752,6 @@ let pendingExchange = null;
 let createdExchangeAfterSaleId = null;
 let selectedOpportunityTab = "all";
 let editingRoleId = null;
-let editingStoreId = null;
-let bindingPrinterStoreId = null;
 let editingHivePickupId = null;
 const pagination = {
   products: { page: 1, pageSize: 15 },
@@ -773,7 +762,6 @@ const pagination = {
   opportunities: { page: 1, pageSize: 15 },
   employees: { page: 1, pageSize: 15 },
   roles: { page: 1, pageSize: 15 },
-  stores: { page: 1, pageSize: 15 },
   hivePickupPoints: { page: 1, pageSize: 15 },
   inventoryAlerts: { page: 1, pageSize: 15 },
 };
@@ -836,7 +824,6 @@ document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
     const titles = {
       dashboard: "工作台",
       products: "商品中心 / 商品列表",
-      categories: "商品中心 / 类目管理",
       inventoryAlerts: "商品中心 / 库存预警",
       orders: "订单中心 / 现货订单",
       presaleOrders: "订单中心 / 预售订单",
@@ -845,13 +832,11 @@ document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
       opportunities: "CRM 中心 / 商机列表",
       employeeAccounts: "系统设置 / 员工账号",
       rolePermissions: "系统设置 / 角色权限",
-      storeManagement: "系统设置 / 门店管理",
       deliveryConfiguration: "系统设置 / 配送配置",
     };
     pageTitle.textContent = titles[page] || "工作台";
     dashboardPage.classList.toggle("hidden", page !== "dashboard");
     productsPage.classList.toggle("hidden", page !== "products");
-    categoriesPage.classList.toggle("hidden", page !== "categories");
     inventoryAlertsPage.classList.toggle("hidden", page !== "inventoryAlerts");
     ordersPage.classList.toggle("hidden", page !== "orders");
     presaleOrdersPage.classList.toggle("hidden", page !== "presaleOrders");
@@ -860,11 +845,9 @@ document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
     opportunitiesPage.classList.toggle("hidden", page !== "opportunities");
     employeeAccountsPage.classList.toggle("hidden", page !== "employeeAccounts");
     rolePermissionsPage.classList.toggle("hidden", page !== "rolePermissions");
-    storeManagementPage.classList.toggle("hidden", page !== "storeManagement");
     deliveryConfigurationPage.classList.toggle("hidden", page !== "deliveryConfiguration");
 
     if (page === "dashboard") requestAnimationFrame(drawSalesChart);
-    if (page === "categories") renderCategoryManager();
     if (page === "inventoryAlerts") renderInventoryAlerts();
     if (page === "orders") renderOrders();
     if (page === "presaleOrders") renderPresaleOrders();
@@ -873,7 +856,6 @@ document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
     if (page === "opportunities") renderOpportunities();
     if (page === "employeeAccounts") renderEmployees();
     if (page === "rolePermissions") renderRoles();
-    if (page === "storeManagement") renderStores();
     if (page === "deliveryConfiguration") renderHivePickupPoints();
   });
 });
@@ -915,16 +897,6 @@ function getEmployeeUsername(employee) {
   return employee?.username || employee?.usernameMasked || "已配置账号";
 }
 
-function getChildren(parentId) {
-  return categories.filter((item) => item.parentId === parentId);
-}
-
-function getCategoryLevel(id) {
-  const item = categories.find((category) => category.id === id);
-  if (!item) return 0;
-  return item.parentId ? getCategoryLevel(item.parentId) + 1 : 1;
-}
-
 function getCategoryPath(id) {
   const path = [];
   let current = categories.find((category) => category.id === id);
@@ -955,7 +927,7 @@ function getProductMinPrice(product) {
 function refreshReferenceOptions() {
   const leafOptions = getLeafCategories().map((category) => `<option value="${category.id}">${escapeHtml(getCategoryPath(category.id))}</option>`).join("");
   categoryFilter.innerHTML = `<option value="all">全部类目</option>${leafOptions}`;
-  document.querySelector("#formCategory").innerHTML = leafOptions;
+  document.querySelector("#formCategory").innerHTML = leafOptions || `<option value="">暂无集团下发类目</option>`;
 
   const unitOptions = units.map((unit) => `<option value="${unit.id}">${escapeHtml(unit.name)}（${unit.type}）</option>`).join("");
   unitFilter.innerHTML = `<option value="all">全部学校／团体单位</option>${unitOptions}`;
@@ -1062,7 +1034,6 @@ function renderPagination(key, total, totalPages) {
     opportunities: "opportunityPagination",
     employees: "employeePagination",
     roles: "rolePagination",
-    stores: "storePagination",
     hivePickupPoints: "hivePickupPagination",
     inventoryAlerts: "inventoryAlertPagination",
   };
@@ -1106,7 +1077,6 @@ function renderPagedList(key) {
     opportunities: renderOpportunities,
     employees: renderEmployees,
     roles: renderRoles,
-    stores: renderStores,
     hivePickupPoints: renderHivePickupPoints,
     inventoryAlerts: renderInventoryAlerts,
   };
@@ -1476,10 +1446,6 @@ document.querySelector("#saveProductBtn").addEventListener("click", saveProductF
 document.querySelector("#addSkuBtn").addEventListener("click", () => addSkuEditorRow());
 spuTabButtons.forEach((button) => button.addEventListener("click", () => switchSpuTab(button.dataset.spuTab)));
 document.querySelector("#mainImageRows").addEventListener("change", handleMainImageUpload);
-document.querySelector("#openCategoryCreateBtn").addEventListener("click", openCreateCategoryDialog);
-document.querySelector("#closeCategoryDialogBtn").addEventListener("click", closeCategoryDialog);
-document.querySelector("#cancelCategoryBtn").addEventListener("click", closeCategoryDialog);
-document.querySelector("#saveCategoryBtn").addEventListener("click", saveCategory);
 document.querySelector("#closeRestockDialogBtn").addEventListener("click", closeRestockDialog);
 document.querySelector("#cancelRestockBtn").addEventListener("click", closeRestockDialog);
 document.querySelector("#confirmRestockBtn").addEventListener("click", confirmRestock);
@@ -1622,122 +1588,6 @@ function saveProductFromDrawer() {
 
 function closeDrawer() {
   productDialog.close();
-}
-
-function renderCategoryManager() {
-  const tree = document.querySelector("#categoryTree");
-  tree.innerHTML = renderCategoryBranch(null);
-  refreshCategoryParentOptions();
-  tree.querySelectorAll("[data-toggle-category]").forEach((button) => button.addEventListener("click", () => toggleCategory(button.dataset.toggleCategory)));
-  tree.querySelectorAll("[data-edit-category]").forEach((button) => button.addEventListener("click", () => editCategory(button.dataset.editCategory)));
-  tree.querySelectorAll("[data-delete-category]").forEach((button) => button.addEventListener("click", () => deleteCategory(button.dataset.deleteCategory)));
-}
-
-function refreshCategoryParentOptions() {
-  const parentOptions = [`<option value="">作为一级类目</option>`]
-    .concat(categories.filter((category) => getCategoryLevel(category.id) < 3).map((category) => `<option value="${category.id}">${escapeHtml(getCategoryPath(category.id))}</option>`));
-  document.querySelector("#categoryParent").innerHTML = parentOptions.join("");
-}
-
-function renderCategoryBranch(parentId, level = 0) {
-  return getChildren(parentId).map((category) => {
-    const children = getChildren(category.id);
-    const expanded = expandedCategoryIds.has(category.id);
-    const canToggle = level === 0 && children.length > 0;
-    return `
-      <div class="manage-item category-item" style="--level:${level}">
-        <div class="manage-title">
-          ${canToggle ? `<button class="toggle-btn" type="button" data-toggle-category="${category.id}">${expanded ? "折叠" : "展开"}</button>` : `<span class="toggle-spacer"></span>`}
-          <div>
-            <strong>${escapeHtml(category.name)}</strong>
-            <small>${escapeHtml(getCategoryPath(category.id))}${children.length ? ` · ${children.length} 个子类目` : ""}</small>
-          </div>
-        </div>
-        <div class="row-actions">
-          <button class="text-btn" type="button" data-edit-category="${category.id}">编辑</button>
-          <button class="text-btn danger-text" type="button" data-delete-category="${category.id}">删除</button>
-        </div>
-      </div>
-      ${level === 0 && !expanded ? "" : renderCategoryBranch(category.id, level + 1)}
-    `;
-  }).join("");
-}
-
-function toggleCategory(id) {
-  if (expandedCategoryIds.has(id)) expandedCategoryIds.delete(id);
-  else expandedCategoryIds.add(id);
-  renderCategoryManager();
-}
-
-function openCreateCategoryDialog() {
-  resetCategoryForm();
-  document.querySelector("#categoryDialogTitle").textContent = "新增类目";
-  document.querySelector("#saveCategoryBtn").textContent = "确认新增";
-  refreshCategoryParentOptions();
-  categoryEditDialog.showModal();
-}
-
-function editCategory(id) {
-  const category = categories.find((item) => item.id === id);
-  if (!category) return;
-  refreshCategoryParentOptions();
-  document.querySelector("#categoryId").value = category.id;
-  document.querySelector("#categoryParent").value = category.parentId || "";
-  document.querySelector("#categoryName").value = category.name;
-  document.querySelector("#categoryDialogTitle").textContent = "编辑类目";
-  document.querySelector("#saveCategoryBtn").textContent = "确认保存";
-  categoryEditDialog.showModal();
-}
-
-function closeCategoryDialog() {
-  categoryEditDialog.close();
-}
-
-function saveCategory() {
-  const id = document.querySelector("#categoryId").value || `cat-${Date.now()}`;
-  const parentId = document.querySelector("#categoryParent").value || null;
-  const name = document.querySelector("#categoryName").value.trim();
-  if (!name) return;
-
-  const next = { id, parentId, name };
-  categories = categories.some((item) => item.id === id)
-    ? categories.map((item) => item.id === id ? next : item)
-    : categories.concat(next);
-
-  if (!parentId) expandedCategoryIds.add(id);
-  else expandedCategoryIds.add(parentId);
-  resetCategoryForm();
-  closeCategoryDialog();
-  refreshCategoryDrivenViews();
-}
-
-function deleteCategory(id) {
-  const descendantIds = new Set([id]);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    categories.forEach((category) => {
-      if (category.parentId && descendantIds.has(category.parentId) && !descendantIds.has(category.id)) {
-        descendantIds.add(category.id);
-        changed = true;
-      }
-    });
-  }
-  categories = categories.filter((category) => !descendantIds.has(category.id));
-  products = products.filter((product) => !descendantIds.has(product.categoryId));
-  refreshCategoryDrivenViews();
-}
-
-function resetCategoryForm() {
-  document.querySelector("#categoryId").value = "";
-  document.querySelector("#categoryParent").value = "";
-  document.querySelector("#categoryName").value = "";
-}
-
-function refreshCategoryDrivenViews() {
-  refreshReferenceOptions();
-  renderCategoryManager();
-  renderProducts();
 }
 
 function renderUnitLogo(unit) {
@@ -2596,139 +2446,6 @@ function renderRoles() {
   });
 }
 
-function getFilteredStores() {
-  const keyword = document.querySelector("#storeSearch").value.trim().toLowerCase();
-  return stores.filter((store) => {
-    const text = `${store.name} ${store.address} ${store.phone} ${store.businessHours} ${store.printer?.deviceNo || ""}`.toLowerCase();
-    return !keyword || text.includes(keyword);
-  });
-}
-
-function renderStores() {
-  const rows = getFilteredStores();
-  const page = getPageSlice(rows, "stores");
-  storeRows.innerHTML = page.rows.map((store) => `
-    <tr>
-      <td><strong>${escapeHtml(store.name)}</strong><small>${escapeHtml(store.id)}</small></td>
-      <td><span class="store-address">${escapeHtml(store.address)}</span></td>
-      <td><strong>${escapeHtml(store.phone)}</strong></td>
-      <td><small>${escapeHtml(store.businessHours)}</small></td>
-      <td>${store.printer ? `${getSystemBadge("已绑定")}<small>${escapeHtml(store.printer.deviceNo)}</small>` : `${getSystemBadge("未绑定")}<small>暂不可打印订单小票</small>`}</td>
-      <td>
-        <div class="row-actions">
-          <button class="text-btn" type="button" data-store-edit="${store.id}">编辑</button>
-          <button class="text-btn" type="button" data-printer-bind="${store.id}">${store.printer ? "重新绑定" : "绑定"}</button>
-        </div>
-      </td>
-    </tr>
-  `).join("") || `<tr><td colspan="6"><small>未找到匹配门店。</small></td></tr>`;
-  renderPagination("stores", page.total, page.totalPages);
-
-  document.querySelectorAll("[data-store-edit]").forEach((button) => {
-    button.addEventListener("click", () => openStoreDialog(button.dataset.storeEdit));
-  });
-  document.querySelectorAll("[data-printer-bind]").forEach((button) => {
-    button.addEventListener("click", () => openPrinterBindDialog(button.dataset.printerBind));
-  });
-}
-
-function getStoreById(id) {
-  return stores.find((store) => store.id === id);
-}
-
-function openStoreDialog(storeId = null) {
-  editingStoreId = storeId;
-  const store = getStoreById(storeId);
-  document.querySelector("#storeDialogTitle").textContent = store ? "编辑门店" : "新增门店";
-  document.querySelector("#storeName").value = store?.name || "";
-  document.querySelector("#storeAddress").value = store?.address || "";
-  document.querySelector("#storePhone").value = store?.phone || "";
-  document.querySelector("#storeBusinessHours").value = store?.businessHours || "";
-  document.querySelector("#storeFormHint").textContent = "请填写门店对外展示的联系信息。";
-  storeEditDialog.showModal();
-  document.querySelector("#storeName").focus();
-}
-
-function closeStoreDialog() {
-  storeEditDialog.close();
-  editingStoreId = null;
-}
-
-function saveStore(event) {
-  event.preventDefault();
-  const name = document.querySelector("#storeName").value.trim();
-  const address = document.querySelector("#storeAddress").value.trim();
-  const phone = document.querySelector("#storePhone").value.trim();
-  const businessHours = document.querySelector("#storeBusinessHours").value.trim();
-  const hint = document.querySelector("#storeFormHint");
-  if (!name || !address || !phone || !businessHours) {
-    hint.textContent = "请完整填写门店名称、地址、联系电话和营业时间。";
-    return;
-  }
-  const duplicate = stores.some((store) => store.name === name && store.id !== editingStoreId);
-  if (duplicate) {
-    hint.textContent = "门店名称已存在，请检查后再保存。";
-    document.querySelector("#storeName").focus();
-    return;
-  }
-  const nextStore = {
-    id: editingStoreId || `store-${Date.now()}`,
-    name,
-    address,
-    phone,
-    businessHours,
-    printer: getStoreById(editingStoreId)?.printer || null,
-  };
-  if (editingStoreId) {
-    const index = stores.findIndex((store) => store.id === editingStoreId);
-    if (index >= 0) stores[index] = nextStore;
-  } else {
-    stores.unshift(nextStore);
-  }
-  closeStoreDialog();
-  resetPagination("stores");
-  renderStores();
-}
-
-function openPrinterBindDialog(storeId) {
-  const store = getStoreById(storeId);
-  if (!store) return;
-  bindingPrinterStoreId = storeId;
-  document.querySelector("#printerBindDialogTitle").textContent = store.printer ? "重新绑定小票机" : "绑定小票机";
-  document.querySelector("#printerStoreName").textContent = store.name;
-  document.querySelector("#printerDeviceNo").value = store.printer?.deviceNo || "";
-  document.querySelector("#printerKey").value = "";
-  document.querySelector("#printerBindHint").textContent = "每个门店仅可绑定一台小票机，绑定后用于打印订单小票。";
-  printerBindDialog.showModal();
-  document.querySelector("#printerDeviceNo").focus();
-}
-
-function closePrinterBindDialog() {
-  printerBindDialog.close();
-  bindingPrinterStoreId = null;
-}
-
-function bindPrinter(event) {
-  event.preventDefault();
-  const store = getStoreById(bindingPrinterStoreId);
-  const deviceNo = document.querySelector("#printerDeviceNo").value.trim();
-  const key = document.querySelector("#printerKey").value.trim();
-  const hint = document.querySelector("#printerBindHint");
-  if (!store || !deviceNo || !key) {
-    hint.textContent = "请完整填写设备编号和 Key。";
-    return;
-  }
-  const occupiedStore = stores.find((item) => item.id !== store.id && item.printer?.deviceNo === deviceNo);
-  if (occupiedStore) {
-    hint.textContent = `该设备已绑定至 ${occupiedStore.name}，请更换设备编号。`;
-    document.querySelector("#printerDeviceNo").focus();
-    return;
-  }
-  store.printer = { deviceNo, key };
-  closePrinterBindDialog();
-  renderStores();
-}
-
 function getCheckoutPickupPoints() {
   const storePoints = stores.map((store) => ({
     id: store.id,
@@ -2778,7 +2495,7 @@ function renderHivePickupPoints() {
           <small data-hive-image-hint="${point.id}">${escapeHtml(point.imageName || "客户端展示门头")}</small>
         </div>
       </td>
-      <td><span class="store-address">${escapeHtml(point.address)}</span></td>
+      <td><span class="pickup-address">${escapeHtml(point.address)}</span></td>
       <td><strong>${escapeHtml(point.phone)}</strong></td>
       <td><small>${escapeHtml(point.businessHours)}</small></td>
       <td>${getSystemBadge(point.status)}</td>
@@ -3193,7 +2910,6 @@ document.querySelectorAll("[data-order-tab]").forEach((button) => {
 ["#opportunitySearch", "#opportunityTypeFilter", "#opportunityStatusFilter", "#opportunityOwnerFilter"].forEach((selector) => document.querySelector(selector)?.addEventListener("input", () => { resetPagination("opportunities"); renderOpportunities(); }));
 ["#employeeSearch", "#employeeRoleFilter", "#employeeStatusFilter"].forEach((selector) => document.querySelector(selector)?.addEventListener("input", () => { resetPagination("employees"); renderEmployees(); }));
 ["#roleSearch", "#roleStatusFilter"].forEach((selector) => document.querySelector(selector)?.addEventListener("input", () => { resetPagination("roles"); renderRoles(); }));
-document.querySelector("#storeSearch")?.addEventListener("input", () => { resetPagination("stores"); renderStores(); });
 ["#hivePickupSearch", "#hivePickupStatusFilter"].forEach((selector) => document.querySelector(selector)?.addEventListener("input", () => { resetPagination("hivePickupPoints"); renderHivePickupPoints(); }));
 document.querySelectorAll("[data-opportunity-tab]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -3235,13 +2951,6 @@ document.querySelector("#openRoleCreateBtn")?.addEventListener("click", () => op
 document.querySelector("#closeRoleDialogBtn")?.addEventListener("click", closeRoleDialog);
 document.querySelector("#cancelRoleBtn")?.addEventListener("click", closeRoleDialog);
 document.querySelector("#saveRoleBtn")?.addEventListener("click", saveRole);
-document.querySelector("#openStoreCreateBtn")?.addEventListener("click", () => openStoreDialog());
-document.querySelector("#closeStoreDialogBtn")?.addEventListener("click", closeStoreDialog);
-document.querySelector("#cancelStoreBtn")?.addEventListener("click", closeStoreDialog);
-document.querySelector("#storeForm")?.addEventListener("submit", saveStore);
-document.querySelector("#closePrinterBindDialogBtn")?.addEventListener("click", closePrinterBindDialog);
-document.querySelector("#cancelPrinterBindBtn")?.addEventListener("click", closePrinterBindDialog);
-document.querySelector("#printerBindForm")?.addEventListener("submit", bindPrinter);
 document.querySelector("#openHivePickupCreateBtn")?.addEventListener("click", () => openHivePickupDialog());
 document.querySelector("#closeHivePickupDialogBtn")?.addEventListener("click", closeHivePickupDialog);
 document.querySelector("#cancelHivePickupBtn")?.addEventListener("click", closeHivePickupDialog);
@@ -3423,6 +3132,5 @@ renderCustomers();
 renderOpportunities();
 renderEmployees();
 renderRoles();
-renderStores();
 renderHivePickupPoints();
 renderDeliveryFeeConfig();
