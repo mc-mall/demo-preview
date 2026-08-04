@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MC 商城 PC 管理后台原型</title>
+    <title>MC 门店收银管理系统原型</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -12,14 +12,14 @@
         <div class="login-brand">
           <span class="brand-mark">MC</span>
           <div>
-            <p class="eyebrow">MC Uniform Custom Hub</p>
-            <h1>商城管理后台</h1>
+            <p class="eyebrow">MC Store POS</p>
+            <h1>门店收银管理系统</h1>
           </div>
         </div>
         <form id="loginForm" class="login-card">
           <div class="form-head">
-            <h2>后台登录</h2>
-            <p>请输入员工账号和密码。</p>
+            <h2>系统登录</h2>
+            <p>请输入门店员工账号和密码。</p>
           </div>
           <label>
             <span>账号</span>
@@ -30,7 +30,7 @@
             <input id="password" type="password" placeholder="请输入登录密码" autocomplete="current-password" required />
           </label>
           <p id="loginError" class="login-error" aria-live="polite"></p>
-          <button class="primary-btn" type="submit">登录后台</button>
+          <button class="primary-btn" type="submit">登录系统</button>
         </form>
       </section>
     </main>
@@ -40,11 +40,11 @@
         <div class="side-brand">
           <span class="brand-mark">MC</span>
           <div>
-            <strong>MC 商城</strong>
-            <small>一期运营后台</small>
+            <strong>MC 门店</strong>
+            <small>收银管理系统</small>
           </div>
         </div>
-        <nav class="side-nav" aria-label="后台导航">
+        <nav class="side-nav" aria-label="门店收银管理系统导航">
           <button class="nav-item active" data-page="dashboard">
             <span>⌂</span>
             工作台
@@ -103,7 +103,7 @@
       <section class="workspace">
         <header class="topbar">
           <div>
-            <p class="eyebrow">PC Admin Prototype</p>
+            <p class="eyebrow">Store POS Prototype</p>
             <h2 id="pageTitle">工作台</h2>
           </div>
           <div class="top-actions">
@@ -111,7 +111,7 @@
             <div class="admin-profile">
               <span>MC</span>
               <div>
-                <strong>后台员工</strong>
+                <strong>门店员工</strong>
                 <small>员工账号</small>
               </div>
             </div>
@@ -786,7 +786,7 @@
             <article class="metric-card">
               <p>员工账号</p>
               <strong id="employeeTotalMetric">0</strong>
-              <span class="trend">后台可登录账号</span>
+              <span class="trend">门店系统登录账号</span>
             </article>
             <article class="metric-card">
               <p>启用账号</p>
@@ -796,7 +796,7 @@
             <article class="metric-card warning">
               <p>停用账号</p>
               <strong id="employeeDisabledMetric">0</strong>
-              <span class="trend">不可登录后台</span>
+              <span class="trend">不可登录门店系统</span>
             </article>
             <article class="metric-card">
               <p>角色数</p>
@@ -1056,7 +1056,7 @@
           <span>初始密码</span>
           <input id="employeeInitialPassword" type="password" placeholder="由管理员创建账号时录入" />
         </label>
-        <p id="employeeFormHint" class="form-hint">员工创建后即可使用账号名和密码登录后台。后续可在员工账号详情中重置密码。</p>
+        <p id="employeeFormHint" class="form-hint">员工创建后即可使用账号名和密码登录门店系统。后续可在员工账号详情中重置密码。</p>
         <div class="dialog-actions split-actions">
           <button id="saveEmployeeBtn" class="primary-btn compact" type="button">确认新增</button>
           <button id="cancelEmployeeBtn" class="ghost-btn" type="button">取消</button>

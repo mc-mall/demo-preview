@@ -3110,7 +3110,7 @@ function openCreateEmployeeDialog() {
   document.querySelector("#employeeName").value = "";
   document.querySelector("#employeeInitialPassword").value = "";
   document.querySelector("#employeeRole").value = roles[0]?.id || "";
-  document.querySelector("#employeeFormHint").textContent = "员工创建后即可使用账号名和密码登录后台。后续可在员工账号详情中重置密码。";
+  document.querySelector("#employeeFormHint").textContent = "员工创建后即可使用账号名和密码登录门店系统。后续可在员工账号详情中重置密码。";
   employeeEditDialog.showModal();
 }
 
