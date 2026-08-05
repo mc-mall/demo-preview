@@ -19,7 +19,7 @@
         <form id="loginForm" class="login-card">
           <div class="form-head">
             <h2>系统登录</h2>
-            <p>请输入门店员工账号和密码。</p>
+            <p>请输入员工账号、密码并选择登录门店。</p>
           </div>
           <label>
             <span>账号</span>
@@ -28,6 +28,10 @@
           <label>
             <span>密码</span>
             <input id="password" type="password" placeholder="请输入登录密码" autocomplete="current-password" required />
+          </label>
+          <label>
+            <span>登录门店</span>
+            <select id="loginStore" aria-label="登录门店" required></select>
           </label>
           <p id="loginError" class="login-error" aria-live="polite"></p>
           <button class="primary-btn" type="submit">登录系统</button>
@@ -102,6 +106,11 @@
           </div>
           <div class="top-actions">
             <button class="icon-btn" title="通知" type="button">●</button>
+            <label class="store-switcher">
+              <span>当前门店</span>
+              <select id="activeStoreSelect" aria-label="切换门店"></select>
+              <small id="storeSwitchHint" aria-live="polite"></small>
+            </label>
             <div class="admin-profile">
               <span>MC</span>
               <div>
@@ -787,7 +796,7 @@
           <div class="filter-row system-filter-row">
             <label class="search-box">
               <span>⌕</span>
-              <input id="employeeSearch" type="search" placeholder="搜索员工姓名、账号名、角色" />
+              <input id="employeeSearch" type="search" placeholder="搜索员工姓名、账号名、角色、门店" />
             </label>
             <select id="employeeRoleFilter" aria-label="员工角色筛选"></select>
             <select id="employeeStatusFilter" aria-label="员工状态筛选">
@@ -798,12 +807,13 @@
           </div>
 
               <div class="table-wrap">
-                <table class="system-table">
+                <table class="system-table employee-table">
                   <thead>
                     <tr>
                       <th>账号名</th>
                       <th>员工姓名</th>
                       <th>角色</th>
+                      <th>可登录门店</th>
                       <th>状态</th>
                       <th>最近登录</th>
                       <th>操作</th>
@@ -991,11 +1001,16 @@
           <span>角色</span>
           <select id="employeeRole"></select>
         </label>
+        <fieldset class="store-access-field">
+          <legend>可登录门店 <small>可多选</small></legend>
+          <div id="employeeStoreChoices" class="store-access-grid"></div>
+          <small class="field-help">账号登录时只能选择已授权门店，登录后可在右上角切换。</small>
+        </fieldset>
         <label>
           <span>初始密码</span>
           <input id="employeeInitialPassword" type="password" placeholder="由管理员创建账号时录入" />
         </label>
-        <p id="employeeFormHint" class="form-hint">员工创建后即可使用账号名和密码登录门店系统。后续可在员工账号详情中重置密码。</p>
+        <p id="employeeFormHint" class="form-hint">请为账号分配至少一家可登录门店；登录后可在已授权门店之间切换。</p>
         <div class="dialog-actions split-actions">
           <button id="saveEmployeeBtn" class="primary-btn compact" type="button">确认新增</button>
           <button id="cancelEmployeeBtn" class="ghost-btn" type="button">取消</button>

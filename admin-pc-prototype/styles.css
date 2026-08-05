@@ -302,6 +302,36 @@ textarea:focus {
   gap: 12px;
 }
 
+.store-switcher {
+  display: grid;
+  grid-template-columns: auto 190px;
+  gap: 2px 8px;
+  align-items: center;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.store-switcher > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.store-switcher select {
+  height: 32px;
+  padding: 0 9px;
+}
+
+.store-switcher small {
+  grid-column: 1 / -1;
+  min-height: 14px;
+  color: var(--primary);
+  font-size: 11px;
+  text-align: right;
+}
+
 .admin-profile {
   display: flex;
   align-items: center;
@@ -883,6 +913,10 @@ td small {
 }
 
 .role-table {
+  min-width: 1180px;
+}
+
+.employee-table {
   min-width: 1180px;
 }
 
@@ -1688,6 +1722,63 @@ td small {
 .unit-choice-empty {
   padding: 16px 10px;
   text-align: center;
+}
+
+.store-access-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.store-access-field legend {
+  margin-bottom: 8px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.store-access-field legend small {
+  margin-left: 6px;
+  color: var(--primary);
+}
+
+.store-access-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.store-access-grid.has-error {
+  border-color: #d9363e;
+  box-shadow: 0 0 0 2px rgba(217, 54, 62, 0.1);
+}
+
+.store-access-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: white;
+  cursor: pointer;
+}
+
+.store-access-option:has(input:checked) {
+  border-color: #cfe2f3;
+  background: #f4f9fd;
+}
+
+.store-access-option input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
 }
 
 .compact-presale {
