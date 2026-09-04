@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title">
+  <title id="title">校园 POLO 套装背面展示</title>
+  <rect width="800" height="800" fill="#F5F6F8"/>
+  <circle cx="400" cy="390" r="280" fill="#ECFAF9"/>
+  <g transform="translate(132 72)">
+    <path fill="#FFFFFF" stroke="#E5E7EB" stroke-width="8" d="m30 129 105-58 133 64 133-64 105 58-51 128-57-25v373H138V232l-57 25-51-128Z"/>
+    <path fill="#0047AB" d="M135 71c35 94 231 94 266 0l34 19c-54 140-280 140-334 0l34-19Z"/>
+    <path fill="#2F7BEA" opacity=".22" d="M138 232h260v42H138z"/>
+    <path fill="#0D2344" d="M192 605h152v72H192z"/>
+  </g>
+</svg>

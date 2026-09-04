@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title">
+  <title id="title">MC 校园双肩书包</title>
+  <rect width="800" height="800" fill="#F5F6F8"/>
+  <ellipse cx="400" cy="670" rx="240" ry="30" fill="#E5E7EB"/>
+  <path fill="none" stroke="#2F7BEA" stroke-width="38" d="M305 222v-46c0-90 190-90 190 0v46"/>
+  <path fill="#0D2344" d="M208 263c0-66 54-120 120-120h144c66 0 120 54 120 120v379H208V263Z"/>
+  <path fill="#2F7BEA" d="M208 276h384v86H208z"/>
+  <path fill="#EEF5FF" d="M258 393h284v194H258z"/>
+  <path fill="#0047AB" d="m400 432-48 23v39c0 33 17 57 48 74 31-17 48-41 48-74v-39l-48-23Zm-7 91-27-27 14-15 13 13 30-34 16 14-46 49Z"/>
+  <path fill="#16181D" d="M170 309h38v300h-38zm422 0h38v300h-38z"/>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title">
+  <title id="title">校园配件组合</title>
+  <rect width="800" height="800" fill="#F5F6F8"/>
+  <ellipse cx="400" cy="682" rx="260" ry="28" fill="#E5E7EB"/>
+  <g transform="translate(108 122)">
+    <path fill="#0D2344" d="M84 144h278l26 438H58l26-438Z"/>
+    <path fill="none" stroke="#2F7BEA" stroke-width="28" d="M148 148V98c0-62 150-62 150 0v50"/>
+    <path fill="#0047AB" d="M58 144h330v62H58z"/>
+    <path fill="#25B88A" d="m223 274-52 25v43c0 35 19 61 52 79 33-18 52-44 52-79v-43l-52-25Zm-8 100-32-32 16-17 16 16 36-40 18 16-54 57Z"/>
+    <g transform="translate(396 94)">
+      <path fill="#FF8A34" d="M0 74c64-98 178-98 242 0l-32 48H32L0 74Z"/>
+      <path fill="#FFF4E8" d="M32 122h178v38H32z"/>
+      <path fill="#0047AB" d="M90 30h62l20 50H70l20-50Z"/>
+    </g>
+  </g>
+</svg>

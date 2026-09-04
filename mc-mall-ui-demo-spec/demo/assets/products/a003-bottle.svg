@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title">
+  <title id="title">MC 运动水杯</title>
+  <rect width="800" height="800" fill="#F5F6F8"/>
+  <ellipse cx="400" cy="660" rx="160" ry="30" fill="#E5E7EB"/>
+  <path fill="#3AC5C3" d="M350 120h100v80H350z"/>
+  <path fill="#2F7BEA" d="M305 186h190l38 86-28 348c-3 35-31 62-66 62h-78c-35 0-63-27-66-62l-28-348 38-86Z"/>
+  <path fill="#0047AB" d="M295 263h210l-27 345c-2 20-18 35-38 35h-80c-20 0-36-15-38-35l-27-345Z"/>
+  <path fill="#FFFFFF" d="M344 382h112v116H344z" opacity=".12"/>
+  <path fill="#FFFFFF" d="m400 395-39 19v32c0 26 14 45 39 59 25-14 39-33 39-59v-32l-39-19Z"/>
+  <path fill="#3AC5C3" d="m393 468-18-18 10-10 8 8 22-25 11 10-33 35Z"/>
+  <path fill="none" stroke="#0D2344" stroke-width="24" d="M490 225c105 20 108 174 18 218"/>
+</svg>

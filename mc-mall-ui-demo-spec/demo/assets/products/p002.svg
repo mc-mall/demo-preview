@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title">
+  <title id="title">校园运动外套与长裤套装</title>
+  <rect width="800" height="800" fill="#F5F6F8"/>
+  <ellipse cx="400" cy="704" rx="260" ry="28" fill="#E5E7EB"/>
+  <g transform="translate(54 86)">
+    <path fill="#FFFFFF" stroke="#E5E7EB" stroke-width="8" d="m65 103 126-56 82 45 82-45 126 56-72 197-69-25v337H206V275l-69 25-72-197Z"/>
+    <path fill="#0D2344" d="m191 47 82 45 82-45 35 16c-15 82-58 123-117 123S171 145 156 63l35-16Z"/>
+    <path fill="#2F7BEA" d="M264 92h18v520h-18zM206 248h134v30H206z"/>
+    <path fill="#3AC5C3" d="m65 103 52-23 76 205-56 15-72-197Zm290-56 126 56-72 197-56-15L429 80l-74-33Z" opacity=".5"/>
+  </g>
+  <g transform="translate(564 350)">
+    <path fill="#0D2344" d="M0 0h166l-16 316H94L83 126 72 316H16L0 0Z"/>
+    <path fill="#2F7BEA" d="M78 16h10v290H78z"/>
+  </g>
+</svg>

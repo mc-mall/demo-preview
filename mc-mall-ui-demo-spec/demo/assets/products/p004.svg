@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title">
+  <title id="title">藏青校园礼服西装套装</title>
+  <rect width="800" height="800" fill="#F5F6F8"/>
+  <ellipse cx="400" cy="705" rx="250" ry="28" fill="#E5E7EB"/>
+  <g transform="translate(80 58)">
+    <path fill="#0D2344" d="m84 115 126-66 110 56 110-56 126 66-71 188-65-26v356H220V277l-65 26-71-188Z"/>
+    <path fill="#FFFFFF" d="m210 49 110 56L430 49l-35 194-75-138-75 138-35-194Z"/>
+    <path fill="#0047AB" d="m245 243 75-138 75 138-75-48-75 48Z"/>
+    <circle cx="350" cy="290" r="7" fill="#FFFFFF"/><circle cx="350" cy="358" r="7" fill="#FFFFFF"/>
+    <path fill="#FF8A34" d="M250 318h42v9h-42z"/>
+  </g>
+  <g transform="translate(532 360)">
+    <path fill="#16181D" d="M0 0h178l-18 306H101L89 118 77 306H18L0 0Z"/>
+  </g>
+</svg>

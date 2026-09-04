@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title">
+  <title id="title">可调节黑色皮带</title>
+  <rect width="800" height="800" fill="#F5F6F8"/>
+  <ellipse cx="400" cy="622" rx="278" ry="35" fill="#E5E7EB"/>
+  <path fill="#16181D" d="M110 335h500c49 0 90 40 90 90s-41 90-90 90H164v-58h446c18 0 32-14 32-32s-14-32-32-32H110v-58Z"/>
+  <path fill="#667085" d="M85 308h163v234H85z"/>
+  <path fill="#F5F6F8" d="M126 349h80v152h-80z"/>
+  <path fill="#16181D" d="M165 385h176v80H165z"/>
+  <circle cx="555" cy="425" r="9" fill="#98A2B3"/><circle cx="592" cy="425" r="9" fill="#98A2B3"/>
+</svg>

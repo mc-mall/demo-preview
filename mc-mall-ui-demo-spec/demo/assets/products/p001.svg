@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title">
+  <title id="title">白色校园 POLO 衫与藏青短裤</title>
+  <rect width="800" height="800" fill="#F5F6F8"/>
+  <ellipse cx="400" cy="700" rx="250" ry="30" fill="#E5E7EB"/>
+  <g transform="translate(76 78)">
+    <path fill="#FFFFFF" stroke="#E5E7EB" stroke-width="8" d="m42 132 112-62 108 58 108-58 112 62-54 126-62-27v335H158V231l-62 27-54-126Z"/>
+    <path fill="#0047AB" d="M154 70c29 82 79 88 108 58 29 30 79 24 108-58l35 19c-46 128-240 128-286 0l35-19Z"/>
+    <path fill="#0047AB" d="M158 231h208v34H158zM42 132l51-29 61 138-58 17-54-126Zm328-29 51 29-54 126-58-17 61-138Z" opacity=".86"/>
+    <path fill="#0047AB" d="m262 282-42 20v35c0 28 15 49 42 64 27-15 42-36 42-64v-35l-42-20Zm-7 82-22-21 12-13 10 10 24-27 13 12-37 39Z"/>
+  </g>
+  <g transform="translate(514 350)">
+    <path fill="#0D2344" d="M0 0h185l-18 302H105L92 117 80 302H18L0 0Z"/>
+    <path fill="#2F7BEA" opacity=".35" d="M88 20h9v272h-9z"/>
+  </g>
+</svg>

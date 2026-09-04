@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 400" role="img" aria-labelledby="title">
+  <title id="title">两位学生穿着 MC 校园服迎接新学期</title>
+  <rect width="960" height="400" fill="#EEF5FF"/>
+  <path fill="#FFFFFF" opacity=".72" d="M0 208h960v192H0z"/>
+  <g fill="#FFFFFF" opacity=".76">
+    <path d="M72 52c18-33 73-27 80 10 33-13 65 9 64 39H35c-2-25 14-44 37-49Z"/>
+    <path d="M470 34c15-27 60-23 67 7 28-11 55 8 54 33H439c-2-21 11-37 31-40Z"/>
+  </g>
+  <g opacity=".36">
+    <path fill="#3AC5C3" d="M0 273 178 210l178 63v127H0V273Z"/>
+    <path fill="#2F7BEA" d="M150 272 332 196l182 76v128H150V272Z"/>
+    <path fill="#FFFFFF" d="M190 287h284v113H190z"/>
+    <g fill="#0047AB"><path d="M220 310h36v40h-36zM280 310h36v40h-36zM340 310h36v40h-36zM400 310h36v40h-36z"/></g>
+  </g>
+  <path fill="#25B88A" opacity=".24" d="M0 335c156-45 285-40 415 12 172 68 339 55 545-9v62H0v-65Z"/>
+  <g transform="translate(565 34)">
+    <g transform="translate(0 12)">
+      <ellipse cx="95" cy="60" rx="40" ry="46" fill="#FFF4E8"/>
+      <path fill="#16181D" d="M52 63c0-52 82-69 91-10-21-21-50-25-76-8l-15 18Z"/>
+      <path fill="#2F7BEA" d="m34 142 61-43 63 43-18 152H52L34 142Z"/>
+      <path fill="#FFFFFF" d="m62 119 33-20 34 20-10 149H72L62 119Z"/>
+      <path fill="#0047AB" d="M52 271h88l18 95h-45l-18-60-15 60H35l17-95Z"/>
+      <path fill="#0D2344" d="M31 145 3 249l31 9 37-121-40 8Zm127 0 30 104-31 9-38-121 39 8Z"/>
+      <path fill="#0047AB" d="m95 151-18 9v15c0 12 7 22 18 28 11-6 18-16 18-28v-15l-18-9Z"/>
+      <path fill="#16181D" d="M78 64h7v6h-7zm27 0h7v6h-7z"/>
+    </g>
+    <g transform="translate(178 0)">
+      <ellipse cx="82" cy="64" rx="38" ry="44" fill="#FFF4E8"/>
+      <path fill="#16181D" d="M40 58c4-52 84-58 86 4-21-20-55-26-86-4Z"/>
+      <circle cx="39" cy="67" r="14" fill="#16181D"/><circle cx="126" cy="67" r="14" fill="#16181D"/>
+      <path fill="#FFFFFF" d="m26 141 56-42 57 42-17 137H43L26 141Z"/>
+      <path fill="#0047AB" d="m26 141 27-21 29 34 30-34 27 21-15 35-14-11v113H55V165l-14 11-15-35Z"/>
+      <path fill="#0D2344" d="M43 278h79l27 88H15l28-88Z"/>
+      <path fill="#2F7BEA" d="M149 156c36 8 58 42 52 87l-35 3c-4-33-13-56-31-67l14-23Z"/>
+      <path fill="#3AC5C3" opacity=".55" d="M164 141h49v132h-49z"/>
+      <path fill="#16181D" d="M67 67h7v6h-7zm25 0h7v6h-7z"/>
+      <path fill="#0047AB" d="m82 163-16 8v13c0 11 6 19 16 25 10-6 16-14 16-25v-13l-16-8Z"/>
+    </g>
+  </g>
+</svg>

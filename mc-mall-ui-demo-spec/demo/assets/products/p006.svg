@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title">
+  <title id="title">绿色校徽刺绣针织外套</title>
+  <rect width="800" height="800" fill="#F5F6F8"/>
+  <ellipse cx="400" cy="704" rx="238" ry="28" fill="#E5E7EB"/>
+  <g transform="translate(88 65)">
+    <path fill="#ECF8F3" stroke="#E5E7EB" stroke-width="8" d="m62 112 126-65 124 59 124-59 126 65-72 192-71-27v355H205V277l-71 27-72-192Z"/>
+    <path fill="#25B88A" d="m188 47 124 59 124-59-26 86-98-27-98 27-26-86Z"/>
+    <path fill="#0047AB" d="M304 106h16v526h-16z" opacity=".8"/>
+    <path fill="#25B88A" d="m258 244-34 16v29c0 23 13 41 34 53 22-12 35-30 35-53v-29l-35-16Zm-5 67-18-18 10-10 8 8 20-23 11 10-31 33Z"/>
+    <path fill="#25B88A" d="M205 274h214v24H205z" opacity=".35"/>
+  </g>
+</svg>

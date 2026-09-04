@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 960" role="img" aria-labelledby="title desc">
+  <title id="title">MC 校园 POLO 套装细节</title>
+  <desc id="desc">展示透气面料、校园版型与校徽定制三个特点</desc>
+  <rect width="750" height="960" rx="24" fill="#EEF5FF"/>
+  <path fill="#ECFAF9" d="M0 0h750v300H0z"/>
+  <circle cx="594" cy="138" r="118" fill="#FFF4E8"/>
+  <g transform="translate(236 68)">
+    <path fill="#FFFFFF" stroke="#E5E7EB" stroke-width="5" d="m32 68 62-34 45 30 45-30 62 34-29 68-34-14v160H95V122l-34 14-29-68Z"/>
+    <path fill="#0047AB" d="M94 34c14 51 76 51 90 0l20 11c-23 74-107 74-130 0l20-11Z"/>
+    <path fill="#2F7BEA" opacity=".8" d="M95 122h88v24H95z"/>
+    <path fill="#0047AB" d="m139 158-20 10v16c0 13 8 22 20 29 12-7 20-16 20-29v-16l-20-10Z"/>
+  </g>
+  <g font-family="Arial,'PingFang SC',sans-serif">
+    <text x="48" y="366" fill="#0047AB" font-size="38" font-weight="700">专为校园日常打造</text>
+    <text x="48" y="412" fill="#667085" font-size="24">舒适、耐穿、轻松打理</text>
+    <g transform="translate(48 474)">
+      <rect width="654" height="126" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+      <circle cx="64" cy="63" r="38" fill="#ECFAF9"/>
+      <path fill="#3AC5C3" d="M43 61c13-19 31-28 52-27-1 28-15 48-44 58-8-10-11-21-8-31Zm9 21c11-19 22-30 35-38-10 10-19 23-27 40l-8-2Z"/>
+      <text x="124" y="53" fill="#16181D" font-size="26" font-weight="700">透气亲肤</text>
+      <text x="124" y="89" fill="#667085" font-size="21">细腻织面，日常活动保持清爽</text>
+    </g>
+    <g transform="translate(48 624)">
+      <rect width="654" height="126" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+      <circle cx="64" cy="63" r="38" fill="#ECF8F3"/>
+      <path fill="#25B88A" d="m64 27 27 12v20c0 20-10 36-27 44-17-8-27-24-27-44V39l27-12Zm-5 50 23-25-8-7-16 18-9-9-7 8 17 15Z"/>
+      <text x="124" y="53" fill="#16181D" font-size="26" font-weight="700">校徽定制</text>
+      <text x="124" y="89" fill="#667085" font-size="21">按学校规范制作，识别清晰耐洗</text>
+    </g>
+    <g transform="translate(48 774)">
+      <rect width="654" height="126" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+      <circle cx="64" cy="63" r="38" fill="#FFF4E8"/>
+      <path fill="#FF8A34" d="M42 43h44v12H42zm7 18h30v36H49zm8 7v21h14V68z"/>
+      <text x="124" y="53" fill="#16181D" font-size="26" font-weight="700">利落版型</text>
+      <text x="124" y="89" fill="#667085" font-size="21">课堂、活动与校园礼仪场景皆适合</text>
+    </g>
+  </g>
+</svg>

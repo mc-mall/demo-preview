@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title">
+  <title id="title">浅蓝色夏季短袖校服衬衫</title>
+  <rect width="800" height="800" fill="#F5F6F8"/>
+  <ellipse cx="400" cy="692" rx="210" ry="28" fill="#E5E7EB"/>
+  <g transform="translate(105 72)">
+    <path fill="#EEF5FF" stroke="#E5E7EB" stroke-width="8" d="m72 112 134-65 89 48 89-48 134 65-74 181-71-27v352H217V266l-71 27-74-181Z"/>
+    <path fill="#FFFFFF" d="m206 47 89 48 89-48-25 121-64-73-64 73-25-121Z"/>
+    <path fill="#2F7BEA" d="M287 95h16v523h-16z" opacity=".5"/>
+    <g fill="#0047AB">
+      <circle cx="322" cy="228" r="7"/><circle cx="322" cy="292" r="7"/><circle cx="322" cy="356" r="7"/><circle cx="322" cy="420" r="7"/>
+    </g>
+    <path fill="#3AC5C3" d="m217 266 78 24 78-24v34l-78 20-78-20v-34Z" opacity=".34"/>
+  </g>
+</svg>
