@@ -33,6 +33,13 @@
         <span>新学期限定 · 满 MOP 200 澳门本地配送费全免</span>
       </div>
 
+      <nav class="reference-channel-tabs reference-only" aria-label="首页频道">
+        <button class="active" type="button" data-home-category="all">开学季</button>
+        <button type="button" data-home-category="cat-school-short">校服</button>
+        <button type="button" data-home-category="cat-original-tshirt">运动服</button>
+        <button type="button" data-go="schoolView">学校专区</button>
+      </nav>
+
       <div id="homeBanner" class="home-banner"></div>
 
       <div class="search-card">
@@ -40,48 +47,67 @@
         <button type="button" data-search-trigger>搜索</button>
       </div>
 
-      <section class="section-block">
+      <nav class="home-shortcuts" aria-label="首页快捷入口">
+        <button type="button" data-go="schoolView">
+          <span class="shortcut-icon" aria-hidden="true">校</span>
+          <strong>学校专区</strong>
+          <small>快速匹配校服</small>
+        </button>
+        <button type="button" data-directory-entry="group">
+          <span class="shortcut-icon" aria-hidden="true">团</span>
+          <strong>团体单位</strong>
+          <small>按所属单位选购</small>
+        </button>
+        <button type="button" data-home-category="presale">
+          <span class="shortcut-icon" aria-hidden="true">预</span>
+          <strong>预售专区</strong>
+          <small>查看预计到货</small>
+        </button>
+      </nav>
+
+      <section class="section-block home-unit-section">
         <div class="section-head">
-          <h3>学校 / 单位入口</h3>
+          <div>
+            <span class="section-eyebrow">SHOP BY SCHOOL</span>
+            <h3>按学校 / 单位购买</h3>
+            <p>先选择所属学校，减少找错款式和尺码的情况。</p>
+          </div>
           <button class="text-btn" type="button" data-go="schoolView">全部</button>
         </div>
         <div id="unitStrip" class="unit-strip"></div>
       </section>
 
-      <section class="service-band">
-        <div>
-          <span>Custom Service</span>
-          <strong>团体服、球队服、学校合作咨询</strong>
-          <small>提交需求后进入后台 CRM 商机列表，由业务人员线下跟进。</small>
-        </div>
-        <button type="button" data-go="customView">咨询</button>
-      </section>
-
-      <section class="section-block">
+      <section class="section-block home-products-section">
         <div class="section-head">
-          <h3>热门商品</h3>
+          <div>
+            <span class="section-eyebrow">POPULAR NOW</span>
+            <h3>热门在售商品</h3>
+            <p>现货、预售与售罄状态清晰呈现。</p>
+          </div>
           <button class="text-btn" type="button" data-go="categoryView">分类</button>
         </div>
         <div id="featuredProducts" class="product-grid"></div>
       </section>
 
-      <div class="home-quick-dock" aria-label="快捷操作">
-        <button type="button" data-go="cartView" aria-label="查看购物车">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
-          <i id="cartBadge">0</i>
-        </button>
-        <button type="button" data-scroll-top aria-label="回到顶部">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16"/></svg>
-        </button>
-      </div>
+      <section class="service-band">
+        <div>
+          <span>GROUP SERVICE</span>
+          <strong>团体服、球队服与学校合作</strong>
+          <small>提交需求后由业务人员跟进款式、数量与交付安排。</small>
+        </div>
+        <button type="button" data-go="customView">提交咨询</button>
+      </section>
+
     </section>
 
-    <section id="schoolView" class="view" data-title="学校入口" data-kicker="School">
+    <section id="schoolView" class="view" data-title="学校专区" data-kicker="School">
+      <nav class="filter-pills" aria-label="归属筛选入口"><button type="button" data-directory="school" class="active">学校专区</button><button type="button" data-directory="group">团体单位</button></nav>
+      <label class="directory-search"><input id="unitSearch" type="search" placeholder="搜索学校名称" aria-label="搜索学校或单位" /></label>
       <div class="filter-pills" id="unitTypeTabs"></div>
       <div id="schoolList" class="school-list"></div>
     </section>
 
-    <section id="productListView" class="view" data-title="学校商品" data-kicker="Products">
+    <section id="productListView" class="view" data-title="商品列表" data-kicker="Products">
       <div class="product-list-topbar">
         <div class="product-list-nav">
           <button id="productListBackBtn" type="button" aria-label="返回">
@@ -97,7 +123,7 @@
 
       <label class="product-list-search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
-        <input id="unitProductSearch" type="search" placeholder="搜索当前学校商品" />
+        <input id="unitProductSearch" type="search" placeholder="搜索商品名称或 SKU" aria-label="搜索列表商品" />
       </label>
 
       <div class="product-list-sort" aria-label="商品排序">
@@ -106,6 +132,7 @@
         <button type="button" data-unit-product-sort="上新">上新</button>
       </div>
 
+      <div class="product-list-context"><span id="productListSummary" aria-live="polite"></span><button id="clearProductFilters" type="button">查看全部商品</button></div>
       <div id="unitProductGrid" class="unit-product-grid"></div>
 
       <div class="product-list-quick-dock" aria-label="商品列表快捷操作">
@@ -120,37 +147,24 @@
 
     <section id="categoryView" class="view" data-title="商品分类" data-kicker="Products">
       <div class="category-topbar">
-        <button class="category-brand" type="button" data-go="homeView" aria-label="返回 MC 商城首页"><b>MC</b></button>
-        <strong>商城</strong>
-        <label class="category-search">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
-          <input id="productSearch" type="search" placeholder="搜索" aria-label="搜索商品、SKU或单位" />
-        </label>
-        <button class="category-top-cart" type="button" data-go="cartView" aria-label="查看购物车">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
-        </button>
-      </div>
-      <div class="category-layout">
-        <aside id="categoryTabs"></aside>
-        <div class="category-content">
-          <div class="category-hero">
-            <img src="./assets/mc-campaign-hero.jpg" alt="" />
-            <div>
-              <span>MC · SCHOOL & TEAM</span>
-              <h2>向新而行</h2>
-              <p>新学期装备系列</p>
-            </div>
+        <div class="category-head-row">
+          <button class="category-brand" type="button" data-go="homeView" aria-label="返回 MC 商城首页"><b>MC</b></button>
+          <div class="category-brand-copy">
+            <strong>商品分类</strong>
+            <span>MC 澳设商城</span>
           </div>
-          <div id="productList" class="product-list"></div>
+          <button class="category-top-cart" type="button" data-go="cartView" aria-label="查看购物车">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
+          </button>
         </div>
       </div>
-      <div class="category-quick-dock" aria-label="分类页快捷操作">
-        <button type="button" data-go="cartView" aria-label="查看购物车">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
-        </button>
-        <button type="button" data-scroll-top aria-label="回到顶部">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16"/></svg>
-        </button>
+      <div class="category-layout">
+        <aside id="categoryTabs" aria-label="一级产品分类"></aside>
+        <div class="category-content">
+          <h2 id="categoryResultTitle">全部分类</h2>
+          <p class="category-guide">选择产品分类，查看对应商品</p>
+          <div id="categoryGrid" class="category-entry-grid"></div>
+        </div>
       </div>
     </section>
 
@@ -281,6 +295,7 @@
     <nav class="tabbar" aria-label="底部导航">
       <button class="active" type="button" data-tab="homeView"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9H7v-6h10v6"/></svg></span>首页</button>
       <button type="button" data-tab="categoryView"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg></span>分类</button>
+      <button class="cart-tab" type="button" data-tab="cartView"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg><i id="cartBadge" class="hidden">0</i></span>购物车</button>
       <button type="button" data-tab="ordersView"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18l-3-2-4 2-4-2-3 2zM9 8h6M9 12h6"/></svg></span>订单</button>
       <button type="button" data-tab="profileView"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0"/></svg></span>我的</button>
     </nav>

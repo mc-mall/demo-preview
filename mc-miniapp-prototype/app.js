@@ -1,3 +1,6 @@
+const isReferenceTheme = new URLSearchParams(window.location.search).get("theme") === "reference";
+document.body.classList.toggle("reference-theme", isReferenceTheme);
+
 function makeThumb(bg, fg, label) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="360" height="280" viewBox="0 0 360 280"><rect width="360" height="280" rx="22" fill="${bg}"/><path d="M62 104h236v118H62z" fill="white" opacity="0.32"/><path d="M104 62h152l36 70H68z" fill="white" opacity="0.48"/><path d="M114 132h132v20H114zm0 38h88v18h-88z" fill="${fg}" opacity="0.28"/><text x="180" y="183" font-family="Arial, sans-serif" font-size="48" font-weight="800" text-anchor="middle" fill="${fg}">${label}</text></svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
@@ -18,10 +21,10 @@ const units = [
 
 const homeBanners = [
   {
-    kicker: "MC · SCHOOL & TEAM 2026",
-    title: "穿上热爱，\n并肩向前",
-    description: "校服、球队服与团体装备，一站式焕新。",
-    cta: "探索新学期系列",
+    kicker: "MC · SCHOOL ESSENTIALS",
+    title: "按学校，\n找到正确校服",
+    description: "学校授权商品、清晰尺码与现货状态，一站完成选购。",
+    cta: "选择学校 / 单位",
     target: "schoolView",
     image: "./assets/mc-campaign-hero.jpg",
   },
@@ -29,11 +32,52 @@ const homeBanners = [
 
 const categories = [
   { id: "all", name: "全部商品" },
+  { id: "instock", name: "现货商品" },
   { id: "cat-school-short", name: "夏季校服" },
+  { id: "cat-winter-coat", name: "冬季外套" },
   { id: "cat-original-tshirt", name: "运动服" },
   { id: "cat-sports-jersey", name: "球队服装" },
   { id: "presale", name: "预售专区" },
 ];
+
+const categoryBanners = {
+  all: {
+    eyebrow: "MC · BACK TO SCHOOL",
+    title: "开学季装备总览",
+    description: "从校服、运动服到球队装备，一站找到合适款式。",
+    tone: "blue",
+  },
+  instock: {
+    eyebrow: "READY TO SHIP",
+    title: "现货专区",
+    description: "优先查看当前可售款式与库存，缩短选购时间。",
+    tone: "cyan",
+  },
+  "cat-school-short": {
+    eyebrow: "SUMMER UNIFORM",
+    title: "夏季校服",
+    description: "轻薄、透气，按学校快速匹配正确校服。",
+    tone: "sky",
+  },
+  "cat-original-tshirt": {
+    eyebrow: "SPORTS UNIFORM",
+    title: "校园运动服",
+    description: "体育课、训练和校园活动的舒适装备。",
+    tone: "orange",
+  },
+  "cat-sports-jersey": {
+    eyebrow: "TEAM COLLECTION",
+    title: "球队服装",
+    description: "训练服、比赛服与团体配色集中选购。",
+    tone: "indigo",
+  },
+  presale: {
+    eyebrow: "PRE-ORDER",
+    title: "预售专区",
+    description: "清晰展示预计到货时间，提前安排新学期装备。",
+    tone: "amber",
+  },
+};
 
 const products = [
   {
@@ -105,7 +149,7 @@ const products = [
     id: "spu-winter-coat",
     spuCode: "SPU-SCHOOL-COAT-035",
     name: "校服冬季外套预售款",
-    categoryId: "presale",
+    categoryId: "cat-winter-coat",
     unitIds: ["unit-ho-kong", "unit-pui-ching", "unit-sjs"],
     thumb: makeThumb("#f1f7ec", "#1769A8", "外套"),
     gallery: [makeThumb("#f1f7ec", "#1769A8", "主图")],
@@ -220,7 +264,9 @@ let editingAddressId = "";
 let pendingDeleteAddressId = "";
 let selectedCheckoutAddressId = "";
 let addressEditorContext = "addressView";
-let selectedProductListUnitId = units[0].id;
+let selectedProductListUnitId = "";
+let directoryMode = "school";
+let categoryGroup = "all";
 let productListSourceView = "homeView";
 let unitProductSort = "综合";
 let unitProductPriceAsc = true;
@@ -308,6 +354,7 @@ function navigate(viewId, options = {}) {
     button.classList.toggle("active", button.dataset.tab === viewId);
   });
   renderCurrentView();
+  if (!options.fromRoute) syncBrowseRoute();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -328,8 +375,17 @@ function renderCurrentView() {
 }
 
 function renderHome() {
-  const banner = homeBanners[0];
-  $("#homeBanner").style.backgroundImage = `linear-gradient(180deg, rgba(6, 9, 12, 0.08) 32%, rgba(6, 9, 12, 0.88) 100%), url("${banner.image}")`;
+  const banner = isReferenceTheme ? {
+    ...homeBanners[0],
+    kicker: "MC · BACK TO SCHOOL 2026",
+    title: "新学期\n校服报到指南",
+    description: "第 1 天，换上合适的新装备。",
+    cta: "进入开学季",
+  } : homeBanners[0];
+  const bannerOverlay = isReferenceTheme
+    ? "linear-gradient(180deg, rgba(56, 148, 222, 0.42) 0%, rgba(55, 151, 226, 0.12) 48%, rgba(15, 79, 130, 0.58) 100%)"
+    : "linear-gradient(90deg, rgba(15, 79, 130, 0.96) 0%, rgba(23, 105, 168, 0.9) 44%, rgba(23, 105, 168, 0.22) 100%)";
+  $("#homeBanner").style.backgroundImage = `${bannerOverlay}, url("${banner.image}")`;
   $("#homeBanner").innerHTML = `
     <div>
       <span>${escapeHtml(banner.kicker)}</span>
@@ -367,43 +423,72 @@ function renderProductCard(product) {
 }
 
 function renderSchools() {
-  const types = ["全部", ...new Set(units.map((unit) => unit.type))];
-  $("#unitTypeTabs").innerHTML = types.map((type) => `<button class="${selectedUnitType === type ? "active" : ""}" type="button" data-unit-type="${type}">${type}</button>`).join("");
-  const rows = units.filter((unit) => selectedUnitType === "全部" || unit.type === selectedUnitType);
-  $("#schoolList").innerHTML = rows.map((unit) => `
-    <article class="school-card">
-      <img src="${unit.logo}" alt="" />
-      <div>
-        <strong>${escapeHtml(unit.name)}</strong>
-        <span>${escapeHtml(unit.type)} · ${escapeHtml(unit.contact)} · ${unit.code}</span>
-      </div>
-      <button class="small-action" type="button" data-school-products="${unit.id}">进入</button>
-    </article>
-  `).join("");
-  document.querySelectorAll("[data-unit-type]").forEach((button) => button.addEventListener("click", () => {
-    selectedUnitType = button.dataset.unitType;
-    renderSchools();
-  }));
-  document.querySelectorAll("[data-school-products]").forEach((button) => button.addEventListener("click", () => {
-    openUnitProductList(button.dataset.schoolProducts);
-  }));
+  $("#headerTitle").textContent = directoryMode === "school" ? "学校专区" : "团体单位";
+  $("#unitSearch").placeholder = directoryMode === "school" ? "搜索学校名称" : "搜索单位名称";
+  document.querySelectorAll("[data-directory]").forEach(button => button.classList.toggle("active", button.dataset.directory === directoryMode));
+  const types = directoryMode === "school" ? [] : ["全部", ...new Set(units.filter(unit => unit.type !== "学校").map(unit => unit.type))];
+  $("#unitTypeTabs").innerHTML = types.map(type => `<button class="${selectedUnitType === type ? "active" : ""}" type="button" data-unit-type="${type}">${type}</button>`).join("");
+  const keyword = $("#unitSearch").value.trim().toLowerCase();
+  const rows = units.filter(unit => (directoryMode === "school" ? unit.type === "学校" : unit.type !== "学校") && (selectedUnitType === "全部" || unit.type === selectedUnitType) && `${unit.name} ${unit.code}`.toLowerCase().includes(keyword));
+  $("#schoolList").innerHTML = rows.map(unit => `<button class="school-card directory-card" type="button" data-school-products="${unit.id}"><img src="${unit.logo}" alt="" /><span><strong>${escapeHtml(unit.name)}</strong><small>${escapeHtml(unit.type)} · ${products.filter(product => product.unitIds.includes(unit.id)).length} 件商品</small></span><b aria-hidden="true">›</b></button>`).join("") || '<div class="empty-state">没有匹配的学校或单位，请更换关键词。</div>';
+  document.querySelectorAll("[data-unit-type]").forEach(button => button.addEventListener("click", () => { selectedUnitType = button.dataset.unitType; renderSchools(); }));
+  document.querySelectorAll("[data-school-products]").forEach(button => button.addEventListener("click", () => openUnitProductList(button.dataset.schoolProducts)));
+}
+
+function openProductList({ unitId = "", categoryId = "all", keyword = "" } = {}) {
+  selectedProductListUnitId = unitId;
+  selectedCategory = categoryId;
+  if (["homeView", "schoolView", "categoryView"].includes(activeView)) productListSourceView = activeView;
+  unitProductSort = "综合";
+  unitProductPriceAsc = true;
+  $("#unitProductSearch").value = keyword;
+  navigate("productListView");
 }
 
 function openUnitProductList(unitId) {
-  if (!units.some((unit) => unit.id === unitId)) return;
-  selectedProductListUnitId = unitId;
-  productListSourceView = activeView;
-  unitProductSort = "综合";
-  unitProductPriceAsc = true;
-  $("#unitProductSearch").value = "";
-  navigate("productListView");
+  if (units.some(unit => unit.id === unitId)) openProductList({ unitId });
+}
+
+function syncBrowseRoute() {
+  const params = new URLSearchParams({ view: activeView });
+  if (["productListView", "detailView"].includes(activeView)) {
+    if (selectedProductListUnitId) params.set("unitId", selectedProductListUnitId);
+    params.set("category", selectedCategory);
+    params.set("q", $("#unitProductSearch").value);
+    params.set("sort", unitProductSort);
+    params.set("order", unitProductPriceAsc ? "asc" : "desc");
+    params.set("source", productListSourceView);
+  }
+  if (activeView === "detailView") params.set("product", selectedProductId);
+  params.set("directory", directoryMode);
+  const hash = `#${params}`;
+  if (location.hash !== hash) history.pushState(null, "", hash);
+}
+
+function restoreBrowseRoute() {
+  const params = new URLSearchParams(location.hash.slice(1));
+  const view = params.get("view") || "homeView";
+  directoryMode = params.get("directory") === "group" ? "group" : "school";
+  selectedUnitType = "全部";
+  selectedProductListUnitId = params.get("unitId") || "";
+  selectedCategory = categories.some(category => category.id === params.get("category")) ? params.get("category") : "all";
+  $("#unitProductSearch").value = params.get("q") || "";
+  unitProductSort = ["综合", "价格", "上新"].includes(params.get("sort")) ? params.get("sort") : "综合";
+  unitProductPriceAsc = params.get("order") !== "desc";
+  productListSourceView = ["homeView", "schoolView", "categoryView"].includes(params.get("source")) ? params.get("source") : "schoolView";
+  if (view === "detailView") {
+    selectedProductId = getProduct(params.get("product")).id;
+    selectedSkuId = getProduct(selectedProductId).skus[0].id;
+  }
+  navigate(viewIds.includes(view) ? view : "homeView", { fromRoute: true, backTo: view === "detailView" ? "productListView" : "homeView" });
 }
 
 function getUnitProductRows() {
   const keyword = $("#unitProductSearch").value.trim().toLowerCase();
   const rows = products.filter((product) => {
-    if (!product.unitIds.includes(selectedProductListUnitId)) return false;
-    const searchText = `${product.name} ${product.spuCode} ${product.description} ${product.skus.map((sku) => `${sku.spec} ${sku.code}`).join(" ")}`.toLowerCase();
+    if (selectedProductListUnitId && !product.unitIds.includes(selectedProductListUnitId)) return false;
+    if (!matchesProductCategory(product)) return false;
+    const searchText = `${product.name} ${product.spuCode} ${product.description} ${getProductUnits(product)} ${product.skus.map((sku) => `${sku.spec} ${sku.code}`).join(" ")}`.toLowerCase();
     return !keyword || searchText.includes(keyword);
   });
   if (unitProductSort === "价格") {
@@ -414,10 +499,13 @@ function getUnitProductRows() {
 }
 
 function renderUnitProductList() {
-  const unit = getUnit(selectedProductListUnitId);
+  const unit = units.find(item => item.id === selectedProductListUnitId);
   const rows = getUnitProductRows();
-  $("#productListTitle").textContent = unit.name;
-  $("#productListView").dataset.unitId = unit.id;
+  const title = unit?.name || (selectedProductListUnitId ? "归属单位不存在" : categories.find(category => category.id === selectedCategory)?.name || "全部商品");
+  $("#productListTitle").textContent = title;
+  $("#productListView").dataset.unitId = selectedProductListUnitId;
+  $("#productListSummary").textContent = `${title} · ${rows.length} 件商品`;
+  $("#clearProductFilters").hidden = !selectedProductListUnitId && selectedCategory === "all" && !$("#unitProductSearch").value;
   document.querySelectorAll("[data-unit-product-sort]").forEach((button) => {
     button.classList.toggle("active", button.dataset.unitProductSort === unitProductSort);
     if (button.dataset.unitProductSort === "价格") {
@@ -431,10 +519,10 @@ function renderUnitProductList() {
         <span class="unit-product-name">${escapeHtml(product.name)}</span>
         <small>${escapeHtml(product.description)}</small>
       </button>
-      <span class="unit-product-offer">${product.status === "预售" ? "预售商品" : product.status === "售罄" ? "暂时售罄" : "本店优惠"}</span>
+      <span class="unit-product-offer" data-status="${product.status}">${product.status === "预售" ? "预售商品" : product.status === "售罄" ? "暂时售罄" : "现货"}</span>
       <span class="unit-product-footer">
-        <b>${money(minPrice(product))}</b>
-        <button type="button" data-unit-list-add-cart="${product.id}" aria-label="将${escapeHtml(product.name)}加入购物车">
+        <span class="list-prices"><b>${money(minPrice(product))}</b><del>${money(Math.min(...product.skus.map(sku => sku.originalPrice)))}</del></span>
+        <button type="button" ${product.status === "售罄" ? "disabled" : ""} data-unit-list-add-cart="${product.id}" aria-label="将${escapeHtml(product.name)}加入购物车">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
         </button>
       </span>
@@ -442,9 +530,10 @@ function renderUnitProductList() {
   `).join("") : `
     <div class="unit-product-empty">
       <strong>暂无匹配商品</strong>
-      <span>${escapeHtml(unit.name)}当前没有符合条件的商品。</span>
+      <span>${escapeHtml(title)}当前没有符合条件的商品。</span>
     </div>
   `;
+  observeProductWaterfall();
   bindProductClicks();
   document.querySelectorAll("[data-unit-list-add-cart]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -454,42 +543,46 @@ function renderUnitProductList() {
         showToast("当前商品暂不可购买");
         return;
       }
-      addToCart(product.id, sku.id, 1);
+      selectedProductId = product.id;
+      selectedSkuId = sku.id;
+      selectedQty = 1;
+      navigate("detailView");
+      showToast("请选择规格后加入购物车");
     });
   });
 }
 
-function getFilteredProducts() {
-  const keyword = ($("#productSearch")?.value || $("#homeSearch")?.value || "").trim().toLowerCase();
-  return products.filter((product) => {
-    const categoryMatch = selectedCategory === "all" || product.categoryId === selectedCategory || (selectedCategory === "presale" && product.status === "预售");
-    const text = `${product.name} ${product.spuCode} ${product.status} ${getProductUnits(product)} ${product.skus.map((sku) => `${sku.spec} ${sku.code}`).join(" ")}`.toLowerCase();
-    return categoryMatch && (!keyword || text.includes(keyword));
+let productWaterfallObserver;
+function observeProductWaterfall() {
+  productWaterfallObserver?.disconnect();
+  const layout = () => document.querySelectorAll("#unitProductGrid .unit-product-card").forEach(card => {
+    const span = Math.ceil((card.getBoundingClientRect().height + 12) / 16);
+    card.style.gridRowEnd = `span ${span}`;
   });
+  productWaterfallObserver = new ResizeObserver(layout);
+  document.querySelectorAll("#unitProductGrid .unit-product-card").forEach(card => productWaterfallObserver.observe(card));
+}
+
+function matchesProductCategory(product, categoryId = selectedCategory) {
+  return categoryId === "all"
+    || (categoryId === "instock" && product.status === "在售")
+    || product.categoryId === categoryId
+    || (categoryId === "presale" && product.status === "预售");
 }
 
 function renderCategory() {
-  $("#categoryTabs").innerHTML = categories.map((category) => `<button class="${selectedCategory === category.id ? "active" : ""}" type="button" data-category="${category.id}">${category.name}</button>`).join("");
-  const rows = getFilteredProducts();
-  $("#productList").innerHTML = rows.length ? rows.map((product) => `
-    <button class="category-product-tile" type="button" data-product="${product.id}">
-      <span class="category-product-image"><img src="${product.thumb}" alt="" /></span>
-      <span class="category-product-copy">
-        <strong>${escapeHtml(product.name)}</strong>
-        <small>${escapeHtml(getProductUnits(product))}</small>
-        <span class="category-product-meta"><b>${money(minPrice(product))}</b>${statusBadge(product.status)}</span>
-      </span>
-    </button>
-  `).join("") : `<div class="empty-state">没有匹配商品，换个学校或分类试试。</div>`;
-  document.querySelectorAll("[data-category]").forEach((button) => button.addEventListener("click", () => {
-    selectedCategory = button.dataset.category;
-    renderCategory();
-  }));
-  bindProductClicks();
+  const groups = [{ id: "all", name: "全部分类" }, { id: "uniform", name: "校服" }, { id: "sports", name: "运动服装" }];
+  const leaves = categories.filter(category => category.id.startsWith("cat-"));
+  const rows = leaves.filter(category => categoryGroup === "all" || (categoryGroup === "uniform" ? ["cat-school-short", "cat-winter-coat"].includes(category.id) : ["cat-original-tshirt", "cat-sports-jersey"].includes(category.id)));
+  $("#categoryTabs").innerHTML = groups.map(group => `<button type="button" data-category-group="${group.id}" class="${categoryGroup === group.id ? "active" : ""}" aria-pressed="${categoryGroup === group.id}">${group.name}</button>`).join("");
+  $("#categoryResultTitle").textContent = groups.find(group => group.id === categoryGroup).name;
+  $("#categoryGrid").innerHTML = rows.map(category => `<button type="button" class="category-entry" data-category="${category.id}"><span><svg viewBox="0 0 48 48" aria-hidden="true"><path d="m16 8-12 8 6 10 6-4v19h16V22l6 4 6-10-12-8c-2 7-14 7-16 0Z" fill="currentColor"/></svg></span><strong>${escapeHtml(category.name)}</strong></button>`).join("");
+  document.querySelectorAll("[data-category-group]").forEach(button => button.addEventListener("click", () => { categoryGroup = button.dataset.categoryGroup; renderCategory(); }));
+  document.querySelectorAll("[data-category]").forEach(button => button.addEventListener("click", () => openProductList({ categoryId: button.dataset.category })));
 }
 
 function bindProductClicks() {
-  document.querySelectorAll("[data-product]").forEach((button) => button.addEventListener("click", () => {
+  $(`#${activeView}`).querySelectorAll("[data-product]").forEach((button) => button.addEventListener("click", () => {
     selectedProductId = button.dataset.product;
     selectedSkuId = getProduct(selectedProductId).skus[0].id;
     selectedQty = 1;
@@ -855,7 +948,7 @@ function renderProfile() {
     <section class="member-center">
       <div class="member-hero">
         <div class="member-hero-top">
-          <button class="member-menu-button" type="button" aria-label="会员菜单">
+          <button class="member-menu-button" type="button" data-member-action="security" aria-label="会员设置">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
           </button>
           <span>MC MEMBER</span>
@@ -863,6 +956,7 @@ function renderProfile() {
         <div class="member-identity">
           <div class="member-avatar">${loggedIn ? "陈" : "MC"}</div>
           <div>
+            ${isReferenceTheme ? `<span class="member-tier">${loggedIn ? "MC BLUE MEMBER" : "WELCOME TO MC"}</span>` : ""}
             <strong>${loggedIn ? "陈小姐" : "欢迎来到 MC"}</strong>
             <small>${loggedIn ? "6688 1024 · 小程序 / H5 共用账号" : "登录后同步订单、积分与售后"}</small>
           </div>
@@ -894,6 +988,13 @@ function renderProfile() {
           </button>
         </div>
       </section>
+
+      ${isReferenceTheme ? `
+        <div class="member-section-heading">
+          <div><span>MC SERVICES</span><h3>常用服务</h3></div>
+          <small>校服购买与会员服务</small>
+        </div>
+      ` : ""}
 
       <section class="member-service-grid">
         <button type="button" data-member-action="points"><span>积分权益</span><small>${memberPoints} 积分可用</small><b>◎</b></button>
@@ -1106,7 +1207,7 @@ function updateLoginState() {
 }
 
 function bindGoButtons() {
-  document.querySelectorAll("[data-go]").forEach((button) => button.addEventListener("click", () => navigate(button.dataset.go)));
+  document.querySelectorAll("[data-go]").forEach((button) => button.addEventListener("click", () => { if (button.dataset.go === "schoolView") { directoryMode = "school"; selectedUnitType = "全部"; $("#unitSearch").value = ""; } navigate(button.dataset.go); }));
 }
 
 function bindEvents() {
@@ -1141,17 +1242,24 @@ function bindEvents() {
     if (activeView === "profileView") renderProfile();
   });
   $("[data-search-trigger]").addEventListener("click", () => {
-    $("#productSearch").value = $("#homeSearch").value;
-    navigate("categoryView");
+    openProductList({ keyword: $("#homeSearch").value });
   });
   $("#homeSearch").addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
-      $("#productSearch").value = $("#homeSearch").value;
-      navigate("categoryView");
+      openProductList({ keyword: $("#homeSearch").value });
     }
   });
-  $("#productSearch").addEventListener("input", renderCategory);
-  $("#unitProductSearch").addEventListener("input", renderUnitProductList);
+  document.querySelectorAll("[data-home-category]").forEach((button) => {
+    button.addEventListener("click", () => {
+      openProductList({ categoryId: button.dataset.homeCategory });
+    });
+  });
+  $("#unitSearch").addEventListener("input", renderSchools);
+  const openDirectory = mode => { directoryMode = mode; selectedUnitType = "全部"; $("#unitSearch").value = ""; navigate("schoolView"); };
+  document.querySelectorAll("[data-directory]").forEach(button => button.addEventListener("click", () => openDirectory(button.dataset.directory)));
+  document.querySelectorAll("[data-directory-entry]").forEach(button => button.addEventListener("click", () => openDirectory(button.dataset.directoryEntry)));
+  $("#clearProductFilters").addEventListener("click", () => openProductList());
+  $("#unitProductSearch").addEventListener("input", () => { renderUnitProductList(); syncBrowseRoute(); });
   $("#productListBackBtn").addEventListener("click", () => navigate(productListSourceView || "schoolView"));
   document.querySelectorAll("[data-unit-product-sort]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -1162,6 +1270,7 @@ function bindEvents() {
         if (nextSort === "价格") unitProductPriceAsc = true;
       }
       renderUnitProductList();
+      syncBrowseRoute();
     });
   });
   document.querySelectorAll("[data-scroll-top]").forEach((button) => {
@@ -1190,3 +1299,6 @@ bindEvents();
 renderHome();
 renderCartBadge();
 updateLoginState();
+
+window.addEventListener("popstate", restoreBrowseRoute);
+restoreBrowseRoute();
