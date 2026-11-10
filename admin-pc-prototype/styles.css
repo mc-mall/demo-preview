@@ -2635,11 +2635,61 @@ img.unit-logo {
   color: var(--muted);
 }
 
-.discount-picker-layout {
+.discount-scope-bar,
+.discount-code-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.discount-scope-bar {
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid #cfe2f3;
+  border-radius: 6px;
+  background: #f4f9fd;
+}
+
+.discount-scope-bar strong {
+  color: var(--primary);
+  font-size: 16px;
+}
+
+.discount-scope-bar .form-hint {
+  margin-top: 3px;
+}
+
+.discount-code-panel {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.discount-code-panel summary,
+.discount-review-issues summary {
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.discount-code-body {
   display: grid;
-  grid-template-columns: minmax(0, 2.3fr) minmax(220px, 1fr);
-  gap: 12px;
-  align-items: start;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+.discount-code-body textarea {
+  min-height: 58px;
+}
+
+#discountCodeIssues p {
+  max-height: 100px;
+  margin: 4px 0 8px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .discount-picker-panel {
@@ -2650,7 +2700,7 @@ img.unit-logo {
 }
 
 #discountPicker .discount-filter {
-  grid-template-columns: minmax(0, 1fr) minmax(128px, 0.48fr);
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.6fr) minmax(120px, 0.34fr);
   margin-bottom: 8px;
 }
 
@@ -2664,7 +2714,6 @@ img.unit-logo {
 }
 
 #discountPicker .table-wrap,
-.discount-selection-list,
 #discountPricePreview {
   max-height: clamp(170px, 39vh, 420px);
   overflow: auto;
@@ -2687,8 +2736,12 @@ img.unit-logo {
   padding: 9px 8px;
 }
 
+#discountPicker th:first-child {
+  width: 42px;
+}
+
 #discountPicker td:last-child {
-  width: 105px;
+  width: clamp(108px, 16vw, 190px);
 }
 
 #discountPicker input[type="checkbox"] {
@@ -2712,56 +2765,59 @@ img.unit-logo {
   color: #9b4f00;
 }
 
-.discount-selection-panel {
-  background: #f8fafc;
+.discount-review-groups,
+.discount-review-issues {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
 }
 
-.discount-count {
-  background: #e4f0f9;
+.discount-review-groups h4,
+.discount-review-issues h4 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.discount-review-groups ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.discount-review-groups li {
+  padding: 4px 7px;
+  border-radius: 4px;
+  background: #f0f6fb;
+  font-size: 12px;
+}
+
+.discount-review-groups strong {
   color: var(--primary);
 }
 
-.discount-selection-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--line);
+.discount-review-issues {
+  border-color: #edd7ad;
+  background: #fffaf0;
+}
+
+.discount-review-issues details {
+  margin-top: 6px;
   font-size: 13px;
 }
 
-.discount-selection-item small,
+.discount-review-issues ul {
+  max-height: 110px;
+  margin: 5px 0 0;
+  padding-left: 20px;
+  overflow: auto;
+}
+
+.discount-review-issues small,
 .discount-selected-item summary small {
   color: var(--muted);
-}
-
-.discount-selection-item small {
-  display: block;
-  margin-top: 3px;
-}
-
-.discount-selection-item > div {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.discount-selection-item button {
-  flex-shrink: 0;
-}
-
-.discount-selection-empty {
-  padding: 12px 0;
-}
-
-#discountSelectedPagination {
-  justify-content: flex-end;
-}
-
-#discountSelectedPagination .pagination-info,
-#discountSelectedPagination [data-page-size],
-#discountSelectedPagination .pagination-controls > span:first-child {
-  display: none;
 }
 
 .discount-review-summary {
@@ -2907,7 +2963,11 @@ img.unit-logo {
 }
 
 @media (max-width: 860px) {
-  .discount-picker-layout {
-    grid-template-columns: minmax(0, 1fr);
+  #discountPicker .discount-filter {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #discountPicker .discount-filter .search-box {
+    grid-column: 1 / -1;
   }
 }

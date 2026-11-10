@@ -96,6 +96,45 @@ let products = [
   },
 ];
 
+// The two existing in-stock products plus these fixtures make 500 SPUs available for bulk selection.
+const discountDemoGroups = [
+  { categoryId: "cat-sports-jersey", unitId: "unit-macau-youth", count: 160, price: 168, names: ["训练短袖", "比赛球衣", "球队长裤", "训练外套"] },
+  { categoryId: "cat-school-short", unitId: "unit-sjs", count: 119, price: 148, names: ["夏季校服衬衫", "轻薄校服衬衫", "短袖校服衬衫"] },
+  { categoryId: "cat-original-tshirt", unitId: "unit-mc-retail", count: 119, price: 98, names: ["圆领棉 T", "条纹 T 恤", "速干 T 恤", "宽松印花 T 恤"] },
+  { categoryId: "cat-original-shirt", unitId: "unit-mc-retail", count: 100, price: 128, names: ["牛津纺衬衫", "日常短袖衬衫", "棉麻衬衫"] },
+];
+let discountDemoNumber = 0;
+for (const group of discountDemoGroups) {
+  const thumb = makeThumb("#e6f4ff", "#1769A8", "MC");
+  for (let index = 0; index < group.count; index++) {
+    const number = ++discountDemoNumber;
+    const suffix = String(number).padStart(4, "0");
+    const id = `spu-discount-demo-${suffix}`;
+    const spuCode = `MC-${suffix}`;
+    const name = `${group.names[index % group.names.length]} ${String(Math.floor(index / group.names.length) + 1).padStart(2, "0")} 款`;
+    products.push({
+      id, spuCode, name, thumb,
+      storeId: StoreDiscounts.demoStoreId,
+      categoryId: group.categoryId,
+      unitIds: [group.unitId],
+      status: "上架",
+      gallery: [thumb],
+      detailHtml: "<p>批量选品演示商品</p>",
+      description: "批量选品演示商品",
+      skus: ["M", "L"].map((spec, skuIndex) => ({
+        id: `${id}-${spec}`,
+        code: `${spuCode}-${spec}`,
+        barcode: String(6901005000000 + number * 10 + skuIndex),
+        spec,
+        price: group.price + (index % 5) * 10 + skuIndex * 10,
+        stock: 24,
+        warning: 5,
+        saleable: true,
+      })),
+    });
+  }
+}
+
 const orders = [
   {
     id: "ORD20260718036",
@@ -769,7 +808,6 @@ const pagination = {
   products: { page: 1, pageSize: 15 },
   discounts: { page: 1, pageSize: 15 },
   discountProducts: { page: 1, pageSize: 15 },
-  discountSelected: { page: 1, pageSize: 15 },
   discountPreview: { page: 1, pageSize: 15 },
   orders: { page: 1, pageSize: 15 },
   presaleOrders: { page: 1, pageSize: 15 },
@@ -1119,7 +1157,6 @@ function renderPagination(key, total, totalPages) {
     products: "productPagination",
     discounts: "discountPagination",
     discountProducts: "discountProductPagination",
-    discountSelected: "discountSelectedPagination",
     discountPreview: "discountPreviewPagination",
     orders: "orderPagination",
     presaleOrders: "presaleOrderPagination",
@@ -1166,7 +1203,6 @@ function renderPagedList(key) {
     products: renderProducts,
     discounts: renderDiscounts,
     discountProducts: renderDiscountProducts,
-    discountSelected: renderDiscountSelection,
     discountPreview: renderDiscountReview,
     orders: renderOrders,
     presaleOrders: renderPresaleOrders,

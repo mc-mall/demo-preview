@@ -9,7 +9,13 @@ const discountProductRows = document.querySelector("#discountProductRows");
 const discountProductScroll = discountProductRows.closest(".table-wrap");
 const discountSelectPage = document.querySelector("#discountSelectPage");
 const discountSelectMatches = document.querySelector("#discountSelectMatches");
-const discountSelectedList = document.querySelector("#discountSelectedList");
+const discountProductView = document.querySelector("#discountProductView");
+const discountSelectStore = document.querySelector("#discountSelectStore");
+const discountUndoSelection = document.querySelector("#discountUndoSelection");
+const discountCodeInput = document.querySelector("#discountCodeInput");
+const discountAddCodes = document.querySelector("#discountAddCodes");
+const discountCodeResult = document.querySelector("#discountCodeResult");
+const discountCodeIssues = document.querySelector("#discountCodeIssues");
 const discountName = document.querySelector("#discountName");
 const discountStartsAt = document.querySelector("#discountStartsAt");
 const discountEndsAt = document.querySelector("#discountEndsAt");
@@ -26,6 +32,8 @@ let discountReadOnly;
 let discountStep = 1;
 let discountStatusTimer;
 let selectedDiscountProducts = new Set();
+let previousDiscountSelection = null;
+let matchedDiscountCodeIds = [];
 
 function canUseDiscounts(api = "discount_view") {
   const employee = getEmployeeById(currentEmployeeId);
@@ -92,11 +100,13 @@ function renderDiscounts() {
   renderPagination("discounts", page.total, page.totalPages);
 }
 
-function getMatchingDiscountProducts() {
+function getMatchingDiscountProducts(storeProducts = getStoreDiscountProducts()) {
   const keyword = discountProductSearch.value.trim().toLowerCase();
   const categoryId = discountProductCategory.value;
-  return getStoreDiscountProducts().filter((product) => {
-    if (!isDiscountProductEligible(product) || (categoryId && product.categoryId !== categoryId)) return false;
+  const view = discountProductView.value;
+  const rows = view === "selected" ? getSelectedDiscountProducts(storeProducts) : storeProducts.filter(isDiscountProductEligible);
+  return rows.filter((product) => {
+    if ((categoryId && product.categoryId !== categoryId) || (view === "unselected" && selectedDiscountProducts.has(product.id))) return false;
     const searchText = [product.name, product.spuCode, ...product.skus.map((sku) => sku.code)].join(" ").toLowerCase();
     return searchText.includes(keyword);
   });
@@ -118,6 +128,18 @@ function findDiscountOverlaps(campaigns, { startsAt, endsAt }, now) {
     campaign.startsAt < endsAt && startsAt < campaign.endsAt);
 }
 
+function getDiscountConflicts(info, campaigns = StoreDiscounts.read(), now = Date.now()) {
+  return new Map(findDiscountOverlaps(campaigns, info, now)
+    .flatMap((campaign) => campaign.productIds.map((id) => [id, campaign.name])));
+}
+
+function getDiscountReviewIssues(selected, conflicts) {
+  return {
+    unavailable: selected.filter((product) => !isDiscountProductEligible(product)),
+    overlapping: selected.filter((product) => isDiscountProductEligible(product) && conflicts.has(product.id)),
+  };
+}
+
 function discountPriceRange(prices) {
   const low = Math.min(...prices);
   const high = Math.max(...prices);
@@ -125,66 +147,91 @@ function discountPriceRange(prices) {
 }
 
 function renderDiscountProducts() {
-  const rows = getMatchingDiscountProducts();
+  const storeProducts = getStoreDiscountProducts();
+  const eligible = storeProducts.filter(isDiscountProductEligible);
+  const conflicts = getDiscountConflicts(readDiscountInfo());
+  const storeConflictCount = eligible.filter((product) => conflicts.has(product.id)).length;
+  const rows = getMatchingDiscountProducts(storeProducts);
   const page = getPageSlice(rows, "discountProducts");
   const previousFirstId = discountProductRows.querySelector("[data-discount-product]")?.dataset.discountProduct;
   const checkedCount = page.rows.filter((product) => selectedDiscountProducts.has(product.id)).length;
   const selectedMatches = rows.filter((product) => selectedDiscountProducts.has(product.id)).length;
+  const allMatchedSelected = rows.length > 0 && selectedMatches === rows.length;
   discountSelectPage.disabled = !page.rows.length;
   discountSelectPage.checked = page.rows.length > 0 && checkedCount === page.rows.length;
   discountSelectPage.indeterminate = checkedCount > 0 && checkedCount < page.rows.length;
+  discountSelectMatches.hidden = !discountProductSearch.value.trim() && !discountProductCategory.value && discountProductView.value === "all";
   discountSelectMatches.disabled = !rows.length;
-  const allMatchedSelected = rows.length > 0 && selectedMatches === rows.length;
   discountSelectMatches.textContent = `${allMatchedSelected ? "取消选中全部结果" : "选中全部结果"}（${rows.length} 件）`;
   document.querySelector("#discountMatchCount").textContent = `找到 ${rows.length} 件商品，已选中其中 ${selectedMatches} 件`;
+  document.querySelector("#discountSelectedCount").textContent = `已选 ${selectedDiscountProducts.size} 件商品`;
+  document.querySelector("#discountFooterCount").textContent = `已选 ${selectedDiscountProducts.size} 件商品`;
+  document.querySelector("#discountScopeHint").textContent = `本店可选现售商品 ${eligible.length} 件${storeConflictCount ? ` · ${storeConflictCount} 件与已有活动时间重叠` : ""}`;
+  discountSelectStore.textContent = `选中全店 ${eligible.length} 件`;
+  discountSelectStore.disabled = !eligible.some((product) => !selectedDiscountProducts.has(product.id));
+  discountUndoSelection.disabled = previousDiscountSelection === null;
 
-  const overlapping = findDiscountOverlaps(StoreDiscounts.read(), readDiscountInfo(), Date.now());
-  const conflicts = new Map(overlapping.flatMap((campaign) => campaign.productIds.map((id) => [id, campaign.name])));
   discountProductRows.innerHTML = page.rows.map((product) => {
     const id = escapeHtml(product.id);
     const conflict = conflicts.get(product.id);
+    const eligibleProduct = isDiscountProductEligible(product);
+    const issue = !eligibleProduct ? "商品当前不可参与活动" : conflict ? `与「${conflict}」时间重叠` : "";
     return `
       <tr class="${selectedDiscountProducts.has(product.id) ? "discount-row-selected" : ""}">
         <td><input id="discount-check-${id}" type="checkbox" data-discount-product="${id}" aria-label="选择 ${escapeHtml(product.name)}" ${selectedDiscountProducts.has(product.id) ? "checked" : ""} /></td>
         <td>
           <label class="discount-product-name" for="discount-check-${id}">${escapeHtml(product.name)}</label>
-          <small>${escapeHtml(product.spuCode)} · ${product.skus.length} 个规格</small>
-          ${conflict ? `<small class="discount-conflict">与「${escapeHtml(conflict)}」时间重叠</small>` : ""}
+          <small>${escapeHtml(product.spuCode || product.id)} · ${product.skus.length} 个规格</small>
+          ${issue ? `<small class="discount-conflict">${escapeHtml(issue)}</small>` : ""}
         </td>
-        <td>${escapeHtml(getCategoryPath(product.categoryId))}</td>
-        <td>${discountPriceRange(product.skus.map((sku) => sku.price))}</td>
+        <td>${escapeHtml(getCategoryPath(product.categoryId) || "类目不可用")}</td>
+        <td>${product.skus.length ? discountPriceRange(product.skus.map((sku) => sku.price)) : "—"}</td>
       </tr>`;
-  }).join("") || '<tr><td colspan="4"><small>暂无匹配的现售商品，可调整关键词或类目。</small></td></tr>';
+  }).join("") || '<tr><td colspan="4"><small>当前范围没有商品，可调整筛选条件。</small></td></tr>';
   if (page.rows[0]?.id !== previousFirstId) discountProductScroll.scrollTop = 0;
   renderPagination("discountProducts", page.total, page.totalPages);
-  renderDiscountSelection();
 }
 
-function getSelectedDiscountProducts() {
-  const storeProducts = new Map(getStoreDiscountProducts().map((product) => [product.id, product]));
-  return [...selectedDiscountProducts].map((id) => storeProducts.get(id) || { id, name: id, skus: [] });
+function getSelectedDiscountProducts(storeProducts = getStoreDiscountProducts()) {
+  const byId = new Map(storeProducts.map((product) => [product.id, product]));
+  return [...selectedDiscountProducts].map((id) => byId.get(id) || { id, name: id, skus: [] });
 }
 
-function renderDiscountSelection() {
-  const page = getPageSlice(getSelectedDiscountProducts(), "discountSelected");
-  document.querySelector("#discountSelectedCount").textContent = `${page.total} 件`;
-  document.querySelector("#discountFooterCount").textContent = `已选 ${page.total} 件商品`;
-  discountSelectedList.innerHTML = page.rows.map((product) => `
-    <div class="discount-selection-item">
-      <div>
-        <strong>${escapeHtml(product.name)}</strong>
-        <small>${isDiscountProductEligible(product) ? escapeHtml(product.spuCode) : "商品当前不可参与活动"}</small>
-      </div>
-      <button class="text-btn" type="button" data-remove-discount-product="${escapeHtml(product.id)}" aria-label="移除 ${escapeHtml(product.name)}">移除</button>
-    </div>
-  `).join("") || '<p class="discount-selection-empty form-hint">请从左侧勾选商品。已选商品会集中显示在这里。</p>';
-  renderPagination("discountSelected", page.total, page.totalPages);
-  document.querySelector("#discountSelectedPagination").classList.toggle("hidden", page.totalPages === 1);
+function renderDiscountReviewScope(selected, info) {
+  const counts = new Map();
+  for (const product of selected) {
+    const category = getCategoryPath(product.categoryId) || "类目不可用";
+    counts.set(category, (counts.get(category) || 0) + 1);
+  }
+  document.querySelector("#discountCategorySummary").innerHTML = [...counts].sort((a, b) => b[1] - a[1])
+    .map(([category, count]) => `<li>${escapeHtml(category)} <strong>${count} 件</strong></li>`).join("");
+  const issueSection = document.querySelector("#discountReviewIssues");
+  issueSection.classList.add("hidden");
+  if (discountReadOnly) return;
+  const conflicts = getDiscountConflicts(info);
+  const { unavailable, overlapping } = getDiscountReviewIssues(selected, conflicts);
+  const issueCount = unavailable.length + overlapping.length;
+  if (!issueCount) return;
+
+  issueSection.classList.remove("hidden");
+  document.querySelector("#discountRemoveIssues").textContent = `移除这 ${issueCount} 件商品`;
+  document.querySelector("#discountReviewIssueList").innerHTML = [
+    { title: "当前不可参与", products: unavailable },
+    { title: "活动时间冲突", products: overlapping },
+  ].filter((group) => group.products.length).map((group) => `<details open>
+    <summary>${group.title} · ${group.products.length} 件</summary>
+    <ul>${group.products.map((product) => {
+      const conflict = conflicts.get(product.id);
+      return `<li>${escapeHtml(product.name)} <small>${escapeHtml(product.spuCode || product.id)}${conflict ? ` · ${escapeHtml(conflict)}` : ""}</small></li>`;
+    }).join("")}</ul>
+  </details>`).join("");
 }
 
 function renderDiscountReview() {
   const info = readDiscountInfo();
-  const page = getPageSlice(getSelectedDiscountProducts(), "discountPreview");
+  const selected = getSelectedDiscountProducts();
+  renderDiscountReviewScope(selected, info);
+  const page = getPageSlice(selected, "discountPreview");
   document.querySelector("#discountReviewSummary").innerHTML = [
     ["活动名称", info.name],
     ["折扣", `${info.fold} 折`],
@@ -264,14 +311,21 @@ function openDiscount(campaign) {
   document.querySelector("#discountSteps").classList.toggle("hidden", discountReadOnly);
   document.querySelector("#discountReviewTitle").textContent = discountReadOnly ? "活动信息与参与商品" : "核对活动与折后价";
   document.querySelector("#discountReviewHint").classList.toggle("hidden", discountReadOnly);
+  const categoryCounts = new Map();
+  for (const product of getStoreDiscountProducts().filter(isDiscountProductEligible)) {
+    categoryCounts.set(product.categoryId, (categoryCounts.get(product.categoryId) || 0) + 1);
+  }
   discountProductCategory.innerHTML = '<option value="">全部类目</option>' + getLeafCategories().map((category) =>
-    `<option value="${escapeHtml(category.id)}">${escapeHtml(getCategoryPath(category.id))}</option>`).join("");
+    `<option value="${escapeHtml(category.id)}">${escapeHtml(getCategoryPath(category.id))}（${categoryCounts.get(category.id) || 0}）</option>`).join("");
   selectedDiscountProducts = new Set(campaign?.productIds || []);
+  previousDiscountSelection = null;
+  document.querySelector("#discountCodePanel").open = false;
+  resetDiscountCodeMatch();
   const history = document.querySelector("#discountHistory");
   history.classList.toggle("hidden", !campaign?.history.length);
   history.innerHTML = campaign ? `<h4>操作记录</h4><ul class="record-list">${[...campaign.history].reverse().map((entry) =>
     `<li>${macauDiscountDateTime(entry.at).replace("T", " ")} · ${escapeHtml(entry.operator)} · ${entry.action}</li>`).join("")}</ul>` : "";
-  ["discountProducts", "discountSelected", "discountPreview"].forEach(resetPagination);
+  ["discountProducts", "discountPreview"].forEach(resetPagination);
   showDiscountStep(discountReadOnly ? 3 : 1);
   discountDialog.showModal();
   if (!discountReadOnly) discountName.focus();
@@ -322,15 +376,15 @@ discountForm.addEventListener("submit", (event) => {
       showDiscountError("活动已到期，请返回「活动信息」更新结束时间。");
       return;
     }
-    const unavailable = getSelectedDiscountProducts().find((product) => !isDiscountProductEligible(product));
-    if (unavailable) {
-      showDiscountError(`「${unavailable.name}」当前不可参与活动，请返回选品移除后再发布。`);
-      return;
-    }
-    const overlap = findDiscountOverlaps(campaigns, info, now)
-      .find((campaign) => campaign.productIds.some((id) => selectedDiscountProducts.has(id)));
-    if (overlap) {
-      showDiscountError(`所选商品与「${overlap.name}」的活动时间重叠，请返回修改时间或选品。`);
+    const selected = getSelectedDiscountProducts();
+    const conflicts = getDiscountConflicts(info, campaigns, now);
+    const { unavailable, overlapping } = getDiscountReviewIssues(selected, conflicts);
+    if (unavailable.length || overlapping.length) {
+      renderDiscountReviewScope(selected, info);
+      const message = unavailable.length
+        ? `「${unavailable[0].name}」当前不可参与活动，请处理异常商品后再发布。`
+        : `所选商品与「${conflicts.get(overlapping[0].id)}」的活动时间重叠，请修改时间或移除冲突商品。`;
+      showDiscountError(message);
       return;
     }
   }
@@ -400,19 +454,27 @@ discountProductSearch.addEventListener("keydown", (event) => {
   if (event.key === "Enter") event.preventDefault();
 });
 discountProductCategory.addEventListener("change", filterDiscountProducts);
+discountProductView.addEventListener("change", filterDiscountProducts);
+
 function setDiscountSelection(ids, checked) {
+  const next = new Set(selectedDiscountProducts);
   for (const id of ids) {
-    if (checked) selectedDiscountProducts.add(id);
-    else selectedDiscountProducts.delete(id);
+    if (checked) next.add(id);
+    else next.delete(id);
   }
+  if (next.size === selectedDiscountProducts.size) return;
+  previousDiscountSelection = selectedDiscountProducts;
+  selectedDiscountProducts = next;
   discountFormHint.textContent = "";
-  renderDiscountProducts();
+  if (discountStep === 2) renderDiscountProducts();
 }
 
 discountProductRows.addEventListener("change", (event) => {
   const { discountProduct } = event.target.dataset;
   setDiscountSelection([discountProduct], event.target.checked);
-  discountProductRows.querySelector(`[data-discount-product="${CSS.escape(discountProduct)}"]`)?.focus();
+  const nextInput = discountProductRows.querySelector(`[data-discount-product="${CSS.escape(discountProduct)}"]`)
+    || discountProductRows.querySelector("[data-discount-product]");
+  (nextInput || discountProductView).focus({ preventScroll: true });
 });
 discountSelectPage.addEventListener("change", () => {
   const ids = [...discountProductRows.querySelectorAll("[data-discount-product]")].map((input) => input.dataset.discountProduct);
@@ -422,14 +484,85 @@ discountSelectMatches.addEventListener("click", () => {
   const ids = getMatchingDiscountProducts().map((product) => product.id);
   setDiscountSelection(ids, !ids.every((id) => selectedDiscountProducts.has(id)));
 });
-discountSelectedList.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-remove-discount-product]");
-  if (!button) return;
-  const index = [...discountSelectedList.querySelectorAll("button")].indexOf(button);
-  setDiscountSelection([button.dataset.removeDiscountProduct], false);
-  const remaining = discountSelectedList.querySelectorAll("button");
-  (remaining[Math.min(index, remaining.length - 1)] || discountProductSearch).focus();
+discountSelectStore.addEventListener("click", () => {
+  const ids = getStoreDiscountProducts().filter(isDiscountProductEligible).map((product) => product.id);
+  setDiscountSelection(ids, true);
+});
+discountUndoSelection.addEventListener("click", () => {
+  if (!previousDiscountSelection) return;
+  selectedDiscountProducts = previousDiscountSelection;
+  previousDiscountSelection = null;
+  renderDiscountProducts();
+});
+
+function resetDiscountCodeMatch() {
+  matchedDiscountCodeIds = [];
+  discountAddCodes.disabled = true;
+  discountCodeResult.textContent = "";
+  discountCodeIssues.innerHTML = "";
+}
+
+function matchDiscountCodes() {
+  resetDiscountCodeMatch();
+  const entries = discountCodeInput.value.split(/[\n\r\t,，、;；]+/)
+    .map((code) => code.trim().toUpperCase()).filter(Boolean);
+  if (!entries.length) {
+    discountCodeResult.textContent = "请先输入 SPU 编码。";
+    return;
+  }
+
+  const productsByCode = new Map();
+  for (const product of getStoreDiscountProducts()) {
+    const key = product.spuCode.trim().toUpperCase();
+    const matching = productsByCode.get(key) || [];
+    matching.push(product);
+    productsByCode.set(key, matching);
+  }
+  const unique = new Set();
+  const duplicates = new Set();
+  const missing = [];
+  const unavailable = [];
+  const ambiguous = [];
+  for (const code of entries) {
+    if (unique.has(code)) {
+      duplicates.add(code);
+      continue;
+    }
+    unique.add(code);
+    const matches = productsByCode.get(code) || [];
+    if (!matches.length) missing.push(code);
+    else if (matches.length > 1) ambiguous.push(code);
+    else if (!isDiscountProductEligible(matches[0])) unavailable.push(code);
+    else matchedDiscountCodeIds.push(matches[0].id);
+  }
+
+  discountCodeResult.textContent = `匹配 ${matchedDiscountCodeIds.length} 件 · 重复 ${entries.length - unique.size} 条 · 未匹配 ${missing.length} 条 · 不可参与 ${unavailable.length} 条 · 编码不唯一 ${ambiguous.length} 条`;
+  discountCodeIssues.innerHTML = [
+    ["重复编码", [...duplicates]], ["未匹配编码", missing], ["不可参与编码", unavailable], ["对应多个商品的编码", ambiguous],
+  ].filter(([, codes]) => codes.length).map(([label, codes]) => `<details>
+    <summary>${label} · ${codes.length} 个</summary><p>${codes.map(escapeHtml).join("、")}</p>
+  </details>`).join("");
+  discountAddCodes.disabled = !matchedDiscountCodeIds.length;
+}
+
+discountCodeInput.addEventListener("input", resetDiscountCodeMatch);
+document.querySelector("#discountCheckCodes").addEventListener("click", matchDiscountCodes);
+discountAddCodes.addEventListener("click", () => {
+  const previousCount = selectedDiscountProducts.size;
+  setDiscountSelection(matchedDiscountCodeIds, true);
+  discountCodeResult.textContent += ` · 新增 ${selectedDiscountProducts.size - previousCount} 件`;
+  discountAddCodes.disabled = true;
+});
+
+document.querySelector("#discountRemoveIssues").addEventListener("click", () => {
+  if (discountReadOnly || discountStep !== 3) return;
+  const { unavailable, overlapping } = getDiscountReviewIssues(getSelectedDiscountProducts(), getDiscountConflicts(readDiscountInfo()));
+  setDiscountSelection([...unavailable, ...overlapping].map((product) => product.id), false);
+  showDiscountStep(selectedDiscountProducts.size ? 3 : 2);
 });
 window.addEventListener("storage", (event) => {
-  if (event.key === StoreDiscounts.storageKey && !discountsPage.classList.contains("hidden")) renderDiscounts();
+  if (event.key !== StoreDiscounts.storageKey || discountsPage.classList.contains("hidden")) return;
+  renderDiscounts();
+  if (discountDialog.open && discountStep === 2) renderDiscountProducts();
+  if (discountDialog.open && discountStep === 3 && !discountReadOnly) renderDiscountReview();
 });

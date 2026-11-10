@@ -1502,35 +1502,55 @@
               <h4 id="discountProductsTitle" tabindex="-1">选择参与商品</h4>
               <p class="form-hint">按商品选择，折扣应用到该商品的各个规格。更换筛选条件或翻页会保留已选商品。</p>
             </div>
-            <div class="discount-picker-layout">
-              <section id="discountPicker" class="discount-picker-panel" aria-label="可选商品">
-                <div class="filter-row discount-filter">
-                  <label class="search-box">
-                    <span>⌕</span><input id="discountProductSearch" type="search" placeholder="搜索商品名称、SPU 编码或 SKU 货号" aria-label="搜索活动商品" />
-                  </label>
-                  <select id="discountProductCategory" aria-label="筛选商品类目"></select>
-                </div>
-                <div class="discount-bulk-bar">
-                  <span id="discountMatchCount" class="form-hint" aria-live="polite"></span>
-                  <button id="discountSelectMatches" class="text-btn" type="button">选中全部筛选结果</button>
-                </div>
-                <div class="table-wrap">
-                  <table>
-                    <thead><tr><th><input id="discountSelectPage" type="checkbox" aria-label="全选本页商品" /></th><th>商品</th><th>类目</th><th>日常售价</th></tr></thead>
-                    <tbody id="discountProductRows"></tbody>
-                  </table>
-                </div>
-                <div id="discountProductPagination" class="pagination-bar"></div>
-              </section>
-              <aside class="discount-picker-panel discount-selection-panel" aria-labelledby="discountSelectionTitle">
-                <div class="mini-head">
-                  <strong id="discountSelectionTitle">已选商品</strong>
-                  <span id="discountSelectedCount" class="discount-count" aria-live="polite"></span>
-                </div>
-                <div id="discountSelectedList" class="discount-selection-list"></div>
-                <div id="discountSelectedPagination" class="pagination-bar"></div>
-              </aside>
+            <div class="discount-scope-bar">
+              <div>
+                <strong id="discountSelectedCount" aria-live="polite"></strong>
+                <p id="discountScopeHint" class="form-hint"></p>
+              </div>
+              <div class="panel-actions">
+                <button id="discountUndoSelection" class="ghost-btn compact" type="button" disabled>撤销上次选品</button>
+                <button id="discountSelectStore" class="primary-btn compact" type="button">选中全店商品</button>
+              </div>
             </div>
+
+            <details id="discountCodePanel" class="discount-code-panel">
+              <summary>按 SPU 编码名单选品</summary>
+              <div class="discount-code-body">
+                <label for="discountCodeInput">粘贴 SPU 编码，支持换行、逗号或制表符分隔</label>
+                <textarea id="discountCodeInput" rows="2" placeholder="例如 MC-0001、MC-0201、MC-0498"></textarea>
+                <div class="discount-code-actions">
+                  <button id="discountCheckCodes" class="ghost-btn compact" type="button">核对编码</button>
+                  <button id="discountAddCodes" class="primary-btn compact" type="button" disabled>加入已匹配商品</button>
+                  <span id="discountCodeResult" class="form-hint" role="status"></span>
+                </div>
+                <div id="discountCodeIssues"></div>
+              </div>
+            </details>
+
+            <section id="discountPicker" class="discount-picker-panel" aria-label="活动商品">
+              <div class="filter-row discount-filter">
+                <label class="search-box">
+                  <span>⌕</span><input id="discountProductSearch" type="search" placeholder="搜索商品名称、SPU 编码或 SKU 货号" aria-label="搜索活动商品" />
+                </label>
+                <select id="discountProductCategory" aria-label="筛选商品类目"></select>
+                <select id="discountProductView" aria-label="查看范围">
+                  <option value="all">全部可选商品</option>
+                  <option value="selected">仅看已选</option>
+                  <option value="unselected">仅看未选</option>
+                </select>
+              </div>
+              <div class="discount-bulk-bar">
+                <span id="discountMatchCount" class="form-hint" aria-live="polite"></span>
+                <button id="discountSelectMatches" class="text-btn" type="button">选中全部筛选结果</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th><input id="discountSelectPage" type="checkbox" aria-label="全选本页商品" /></th><th>商品 / SPU 编码</th><th>类目</th><th>日常售价</th></tr></thead>
+                  <tbody id="discountProductRows"></tbody>
+                </table>
+              </div>
+              <div id="discountProductPagination" class="pagination-bar"></div>
+            </section>
           </section>
 
           <section id="discountReviewStep" class="discount-step hidden" aria-labelledby="discountReviewTitle">
@@ -1539,6 +1559,17 @@
               <p id="discountReviewHint" class="form-hint">确认活动规则和商品后，可发布活动或保存草稿。</p>
             </div>
             <dl id="discountReviewSummary" class="discount-review-summary"></dl>
+            <section class="discount-review-groups" aria-labelledby="discountCategorySummaryTitle">
+              <h4 id="discountCategorySummaryTitle">参与商品按类目汇总</h4>
+              <ul id="discountCategorySummary"></ul>
+            </section>
+            <section id="discountReviewIssues" class="discount-review-issues hidden" aria-labelledby="discountReviewIssuesTitle">
+              <div class="mini-head">
+                <h4 id="discountReviewIssuesTitle" tabindex="-1">需要处理的商品</h4>
+                <button id="discountRemoveIssues" class="ghost-btn compact" type="button">移除异常商品</button>
+              </div>
+              <div id="discountReviewIssueList"></div>
+            </section>
             <section class="form-section discount-products">
               <div class="mini-head"><strong id="discountPreviewTitle">价格预览</strong><small class="form-hint">展开商品可查看各 SKU 的折前售价和折后价</small></div>
               <div id="discountPricePreview"></div>
