@@ -2489,3 +2489,164 @@ img.unit-logo {
   height: 100%;
   object-fit: cover;
 }
+
+.discount-preview-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.discount-filter {
+  grid-template-columns: minmax(220px, 1fr) minmax(140px, 240px);
+}
+
+.discount-dates {
+  white-space: nowrap;
+  line-height: 1.6;
+}
+
+.discount-dialog {
+  width: min(920px, calc(100vw - 72px));
+  max-height: calc(100vh - 48px);
+}
+
+#discountForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding: 2px;
+}
+
+.discount-fields {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.discount-fields .form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.discount-shipping {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.discount-shipping small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.discount-products {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.discount-products .table-wrap {
+  margin-top: 8px;
+}
+
+.discount-products table {
+  min-width: 0;
+}
+
+.discount-products .mini-head {
+  margin-bottom: 8px;
+}
+
+#discountPicker {
+  margin-bottom: 16px;
+}
+
+.discount-selected-item {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.discount-sku-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding-top: 6px;
+  font-size: 13px;
+}
+
+.discount-sku-row small,
+.discount-sku-row del {
+  color: var(--muted);
+}
+
+.discount-sku-row strong {
+  color: var(--primary);
+}
+
+.discount-feedback {
+  color: var(--red);
+}
+
+.discount-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#discountFormActions {
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  margin: 0;
+  padding: 12px 0 2px;
+  background: #fff;
+  border-top: 1px solid var(--line);
+}
+
+#discountsPage [hidden],
+#discountForm [hidden] {
+  display: none;
+}
+
+#discountPicker input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--primary);
+}
+
+.discount-shipping input[role="switch"] {
+  appearance: none;
+  width: 36px;
+  height: 20px;
+  border: 0;
+  border-radius: 20px;
+  padding: 2px;
+  background: #667085;
+  cursor: pointer;
+}
+
+.discount-shipping input[role="switch"]::before {
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.discount-shipping input[role="switch"]:checked {
+  background: var(--primary);
+}
+
+.discount-shipping input[role="switch"]:checked::before {
+  transform: translateX(16px);
+}

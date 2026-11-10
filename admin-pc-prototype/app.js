@@ -376,6 +376,12 @@ const permissionCatalog = [
     ],
   },
   {
+    group: "营销中心",
+    pages: [
+      { id: "discounts", name: "折扣活动", apis: [{ id: "discount_view", name: "查看活动" }, { id: "discount_edit", name: "保存草稿" }, { id: "discount_publish", name: "发布活动" }, { id: "discount_end", name: "结束活动" }] },
+    ],
+  },
+  {
     group: "订单中心",
     pages: [
       { id: "orders", name: "现货订单", apis: [{ id: "order_query", name: "查询" }, { id: "order_detail", name: "查看详情" }, { id: "order_ship", name: "发货" }, { id: "order_export", name: "导出" }] },
@@ -694,6 +700,7 @@ const pageTitle = document.querySelector("#pageTitle");
 const dashboardPage = document.querySelector("#dashboardPage");
 const productsPage = document.querySelector("#productsPage");
 const inventoryAlertsPage = document.querySelector("#inventoryAlertsPage");
+const discountsPage = document.querySelector("#discountsPage");
 const ordersPage = document.querySelector("#ordersPage");
 const presaleOrdersPage = document.querySelector("#presaleOrdersPage");
 const afterSalesPage = document.querySelector("#afterSalesPage");
@@ -760,6 +767,8 @@ let currentEmployeeId = null;
 let currentStoreId = null;
 const pagination = {
   products: { page: 1, pageSize: 15 },
+  discounts: { page: 1, pageSize: 15 },
+  discountProducts: { page: 1, pageSize: 15 },
   orders: { page: 1, pageSize: 15 },
   presaleOrders: { page: 1, pageSize: 15 },
   afterSales: { page: 1, pageSize: 15 },
@@ -796,6 +805,7 @@ function renderActiveStoreOptions(employee, selectedStoreId) {
 function refreshStoreScopedViews() {
   Object.keys(pagination).forEach(resetPagination);
   renderProducts();
+  renderDiscounts();
   renderInventoryAlerts();
   renderOrders();
   renderPresaleOrders();
@@ -831,6 +841,7 @@ loginForm.addEventListener("submit", async (event) => {
     document.querySelector(".admin-profile strong").textContent = employee.name;
     document.querySelector(".admin-profile small").textContent = username;
     renderActiveStoreOptions(employee, currentStoreId);
+    updateDiscountAccess();
     requestAnimationFrame(drawSalesChart);
     return;
   }
@@ -849,6 +860,7 @@ document.querySelector("#logoutBtn").addEventListener("click", () => {
   delete adminView.dataset.storeId;
   currentEmployeeId = null;
   currentStoreId = null;
+  updateDiscountAccess();
   activeStoreSelect.innerHTML = "";
   storeSwitchHint.textContent = "";
   loginForm.reset();
@@ -888,15 +900,17 @@ function expandNavForPage(page) {
 
 document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
   button.addEventListener("click", () => {
+    const page = button.dataset.page;
+    if (page === "discounts" && !canUseDiscounts()) return;
     document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
     button.classList.add("active");
 
-    const page = button.dataset.page;
     expandNavForPage(page);
     const titles = {
       dashboard: "工作台",
       products: "商品中心 / 商品列表",
       inventoryAlerts: "商品中心 / 库存预警",
+      discounts: "营销中心 / 折扣活动",
       orders: "订单中心 / 现货订单",
       presaleOrders: "订单中心 / 预售订单",
       afterSales: "订单中心 / 售后订单",
@@ -910,6 +924,7 @@ document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
     dashboardPage.classList.toggle("hidden", page !== "dashboard");
     productsPage.classList.toggle("hidden", page !== "products");
     inventoryAlertsPage.classList.toggle("hidden", page !== "inventoryAlerts");
+    discountsPage.classList.toggle("hidden", page !== "discounts");
     ordersPage.classList.toggle("hidden", page !== "orders");
     presaleOrdersPage.classList.toggle("hidden", page !== "presaleOrders");
     afterSalesPage.classList.toggle("hidden", page !== "afterSales");
@@ -921,6 +936,7 @@ document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
 
     if (page === "dashboard") requestAnimationFrame(drawSalesChart);
     if (page === "inventoryAlerts") renderInventoryAlerts();
+    if (page === "discounts") renderDiscounts();
     if (page === "orders") renderOrders();
     if (page === "presaleOrders") renderPresaleOrders();
     if (page === "afterSales") renderAfterSales();
@@ -1099,6 +1115,8 @@ function getPageSlice(rows, key) {
 function renderPagination(key, total, totalPages) {
   const paginationTargets = {
     products: "productPagination",
+    discounts: "discountPagination",
+    discountProducts: "discountProductPagination",
     orders: "orderPagination",
     presaleOrders: "presaleOrderPagination",
     afterSales: "afterSalePagination",
@@ -1142,6 +1160,8 @@ function renderPagination(key, total, totalPages) {
 function renderPagedList(key) {
   const renderers = {
     products: renderProducts,
+    discounts: renderDiscounts,
+    discountProducts: renderDiscountProducts,
     orders: renderOrders,
     presaleOrders: renderPresaleOrders,
     afterSales: renderAfterSales,
@@ -1633,6 +1653,7 @@ function saveProductFromDrawer() {
   document.querySelector("#formUnits").classList.remove("has-error");
   const product = {
     id: editingProductId || `spu-${Date.now()}`,
+    storeId: editingProductId ? products.find((item) => item.id === editingProductId)?.storeId || StoreDiscounts.demoStoreId : currentStoreId,
     spuCode: document.querySelector("#formSpuCode").value.trim(),
     name: document.querySelector("#formName").value.trim(),
     categoryId: document.querySelector("#formCategory").value,

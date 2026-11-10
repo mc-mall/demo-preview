@@ -257,6 +257,7 @@ let selectedQty = 1;
 let selectedOrderId = orders[0].id;
 let selectedOrderTab = "全部";
 let selectedDelivery = "澳门本地配送";
+let displayedCheckoutQuote = "";
 let pendingOrderId = "";
 let selectedPayment = "Mpay";
 let loggedIn = false;
@@ -322,8 +323,28 @@ function getProductUnits(product) {
   return product.unitIds.map((id) => getUnit(id).name).join(" / ");
 }
 
-function minPrice(product) {
-  return Math.min(...product.skus.map((sku) => sku.price));
+function skuQuote(sku, campaign) {
+  const original = StoreDiscounts.toCents(sku.price);
+  const payable = campaign ? StoreDiscounts.discountedCents(sku.price, campaign.fold) : original;
+  return { original, payable, campaign };
+}
+
+function listingQuote(product, campaigns, now) {
+  const campaign = StoreDiscounts.campaignFor(product, campaigns, now);
+  const available = product.skus.filter((sku) => sku.saleable && sku.stock > 0);
+  const skus = campaign && available.length ? available : product.skus;
+  const quotes = skus.map((sku) => skuQuote(sku, campaign));
+  const lowest = quotes.reduce((best, quote) => quote.payable < best.payable ? quote : best);
+  const from = quotes.some((quote) => quote.payable !== lowest.payable) ? " 起" : "";
+  return { ...lowest, from };
+}
+
+function renderListingPrice(quote, originalPrice = "") {
+  return `<span class="list-prices">
+    ${quote.campaign ? '<small class="discount-price-label">限时折扣价</small>' : ""}
+    <b>${money(quote.payable / 100)}${quote.campaign ? quote.from : ""}</b>
+    ${quote.campaign ? `<del aria-label="原价 ${money(quote.original / 100)}">${money(quote.original / 100)}</del>` : originalPrice}
+  </span>`;
 }
 
 function statusBadge(status) {
@@ -401,7 +422,9 @@ function renderHome() {
       <span>${escapeHtml(unit.type)} · ${products.filter((product) => product.unitIds.includes(unit.id)).length} 件商品</span>
     </button>
   `).join("");
-  $("#featuredProducts").innerHTML = products.map(renderProductCard).join("");
+  const campaigns = StoreDiscounts.read();
+  const now = Date.now();
+  $("#featuredProducts").innerHTML = products.map((product) => renderProductCard(product, listingQuote(product, campaigns, now))).join("");
   $("#homeBanner [data-go]")?.addEventListener("click", (event) => navigate(event.currentTarget.dataset.go));
   bindProductClicks();
   document.querySelectorAll("[data-unit]").forEach((button) => {
@@ -409,14 +432,14 @@ function renderHome() {
   });
 }
 
-function renderProductCard(product) {
+function renderProductCard(product, quote) {
   return `
     <button class="product-card" type="button" data-product="${product.id}">
       <img src="${product.thumb}" alt="" />
       <div>
         <strong>${escapeHtml(product.name)}</strong>
         <small>${escapeHtml(getProductUnits(product))}</small>
-        <span class="price-row"><b class="price">${money(minPrice(product))}</b>${statusBadge(product.status)}</span>
+        <span class="price-row">${quote.campaign ? renderListingPrice(quote) : `<b class="price">${money(quote.payable / 100)}</b>`}${statusBadge(product.status)}</span>
       </div>
     </button>
   `;
@@ -483,7 +506,7 @@ function restoreBrowseRoute() {
   navigate(viewIds.includes(view) ? view : "homeView", { fromRoute: true, backTo: view === "detailView" ? "productListView" : "homeView" });
 }
 
-function getUnitProductRows() {
+function getUnitProductRows(prices) {
   const keyword = $("#unitProductSearch").value.trim().toLowerCase();
   const rows = products.filter((product) => {
     if (selectedProductListUnitId && !product.unitIds.includes(selectedProductListUnitId)) return false;
@@ -492,7 +515,7 @@ function getUnitProductRows() {
     return !keyword || searchText.includes(keyword);
   });
   if (unitProductSort === "价格") {
-    return rows.sort((a, b) => (minPrice(a) - minPrice(b)) * (unitProductPriceAsc ? 1 : -1));
+    return rows.sort((a, b) => (prices.get(a.id).payable - prices.get(b.id).payable) * (unitProductPriceAsc ? 1 : -1));
   }
   if (unitProductSort === "上新") return rows.reverse();
   return rows;
@@ -500,7 +523,10 @@ function getUnitProductRows() {
 
 function renderUnitProductList() {
   const unit = units.find(item => item.id === selectedProductListUnitId);
-  const rows = getUnitProductRows();
+  const campaigns = StoreDiscounts.read();
+  const now = Date.now();
+  const prices = new Map(products.map((product) => [product.id, listingQuote(product, campaigns, now)]));
+  const rows = getUnitProductRows(prices);
   const title = unit?.name || (selectedProductListUnitId ? "归属单位不存在" : categories.find(category => category.id === selectedCategory)?.name || "全部商品");
   $("#productListTitle").textContent = title;
   $("#productListView").dataset.unitId = selectedProductListUnitId;
@@ -521,7 +547,7 @@ function renderUnitProductList() {
       </button>
       <span class="unit-product-offer" data-status="${product.status}">${product.status === "预售" ? "预售商品" : product.status === "售罄" ? "暂时售罄" : "现货"}</span>
       <span class="unit-product-footer">
-        <span class="list-prices"><b>${money(minPrice(product))}</b><del>${money(Math.min(...product.skus.map(sku => sku.originalPrice)))}</del></span>
+        ${renderListingPrice(prices.get(product.id), `<del>${money(Math.min(...product.skus.map(sku => sku.originalPrice)))}</del>`)}
         <button type="button" ${product.status === "售罄" ? "disabled" : ""} data-unit-list-add-cart="${product.id}" aria-label="将${escapeHtml(product.name)}加入购物车">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l1.8 10.1a2 2 0 0 0 2 1.7h7.9a2 2 0 0 0 1.9-1.4L21 7H6.1M9 20h.01M17 20h.01"/></svg>
         </button>
@@ -593,14 +619,23 @@ function bindProductClicks() {
 function renderDetail() {
   const product = getProduct(selectedProductId);
   const sku = getSku(product, selectedSkuId);
+  const campaign = StoreDiscounts.campaignFor(product, StoreDiscounts.read(), Date.now());
+  const quote = skuQuote(sku, campaign);
+  const endsAt = campaign && new Intl.DateTimeFormat("zh-Hans", {
+    timeZone: "Asia/Macau", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).format(campaign.endsAt);
   $("#productDetail").innerHTML = `
     <div class="detail-gallery"><img src="${product.gallery[0] || product.thumb}" alt="" /></div>
     <article class="detail-card">
       <div class="price-row">${statusBadge(product.status)}<span>${escapeHtml(product.spuCode)}</span></div>
       <h2>${escapeHtml(product.name)}</h2>
       <div class="detail-price-panel">
-        <span class="original-price">原价 ${money(sku.originalPrice || sku.price)}</span>
-        <strong class="sale-price"><small>折后价</small>${money(sku.price)}</strong>
+        ${campaign
+          ? `<del class="original-price">原价 ${money(quote.original / 100)}</del>
+             <strong class="sale-price"><small>限时折扣价</small>${money(quote.payable / 100)}</strong>
+             <small class="discount-end-time">${campaign.fold} 折 · ${endsAt} 结束（澳门时间）</small>`
+          : `<span class="original-price">原价 ${money(sku.originalPrice || sku.price)}</span>
+             <strong class="sale-price"><small>售价</small>${money(sku.price)}</strong>`}
       </div>
       <div class="service-tags" aria-label="商品服务">
         <span>支持自提</span>
@@ -689,15 +724,30 @@ function renderCartBadge() {
 }
 
 function cartRows() {
+  const campaigns = StoreDiscounts.read();
+  const now = Date.now();
   return cart.map((item) => {
     const product = getProduct(item.productId);
     const sku = getSku(product, item.skuId);
-    return { ...item, product, sku, amount: sku.price * item.qty };
+    const quote = skuQuote(sku, StoreDiscounts.campaignFor(product, campaigns, now));
+    return { ...item, product, sku, ...quote };
   });
 }
 
-function cartAmount() {
-  return cartRows().reduce((sum, item) => sum + item.amount, 0);
+function checkoutQuote(rows) {
+  let subtotal = 0;
+  let discount = 0;
+  let shippingBasis = 0;
+  for (const item of rows) {
+    subtotal += item.payable * item.qty;
+    discount += (item.original - item.payable) * item.qty;
+    shippingBasis += (item.campaign?.useDiscountedFreeShipping ? item.payable : item.original) * item.qty;
+  }
+  const shipping = selectedDelivery === "澳门本地配送" && shippingBasis < 20000 ? 1500 : 0;
+  const key = JSON.stringify([selectedDelivery, shipping, shippingBasis, rows.map((item) =>
+    [item.skuId, item.qty, item.original, item.payable, item.campaign?.id]
+  )]);
+  return { subtotal, discount, shippingBasis, shipping, key };
 }
 
 function renderCart() {
@@ -708,7 +758,8 @@ function renderCart() {
       <div>
         <strong>${escapeHtml(item.product.name)}</strong>
         <small>${escapeHtml(item.sku.spec)}</small>
-        <span class="price-row"><b class="price">${money(item.sku.price)}</b><button class="small-action" type="button" data-remove-cart="${index}">删除</button></span>
+        <span class="price-row"><b class="price">${money(item.payable / 100)}</b><button class="small-action" type="button" data-remove-cart="${index}">删除</button></span>
+        ${item.campaign ? `<small class="discount-price-label">限时折扣 · 本项省 ${money((item.original - item.payable) * item.qty / 100)}</small>` : ""}
         <div class="quantity-row">
           <small>${escapeHtml(getProductUnits(item.product))}</small>
           <div class="stepper">
@@ -718,7 +769,7 @@ function renderCart() {
       </div>
     </article>
   `).join("") : `<div class="empty-state">购物车是空的，先去选择学校或商品。</div>`;
-  $("#cartTotal").textContent = money(cartAmount());
+  $("#cartTotal").textContent = money(rows.reduce((sum, item) => sum + item.payable * item.qty, 0) / 100);
   document.querySelectorAll("[data-remove-cart]").forEach((button) => button.addEventListener("click", () => {
     cart.splice(Number(button.dataset.removeCart), 1);
     renderCart();
@@ -740,14 +791,18 @@ function renderCheckout() {
   $("#checkoutItems").innerHTML = rows.map((item) => `
     <div class="summary-item">
       <span>${escapeHtml(item.product.name)}<br><small>${escapeHtml(item.sku.spec)} × ${item.qty}</small></span>
-      <strong>${money(item.amount)}</strong>
+      <strong>${money(item.payable * item.qty / 100)}</strong>
     </div>
   `).join("");
-  const subtotal = cartAmount();
-  const shipping = selectedDelivery === "澳门本地配送" && subtotal < 200 ? 15 : 0;
-  $("#checkoutSubtotal").textContent = money(subtotal);
-  $("#shippingFee").textContent = money(shipping);
-  $("#payableAmount").textContent = money(subtotal + shipping);
+  const quote = checkoutQuote(rows);
+  displayedCheckoutQuote = quote.key;
+  $("#checkoutSubtotal").textContent = money((quote.subtotal + quote.discount) / 100);
+  $("#checkoutDiscountRow").classList.toggle("hidden", !quote.discount);
+  $("#checkoutDiscount").textContent = `−${money(quote.discount / 100)}`;
+  $("#shippingBasisRow").classList.toggle("hidden", !quote.discount || selectedDelivery !== "澳门本地配送");
+  $("#shippingBasis").textContent = money(quote.shippingBasis / 100);
+  $("#shippingFee").textContent = money(quote.shipping / 100);
+  $("#payableAmount").textContent = money((quote.subtotal + quote.shipping) / 100);
   $("#addressField").classList.toggle("hidden", selectedDelivery !== "澳门本地配送");
   $("#pickupField").classList.toggle("hidden", selectedDelivery !== "门店自提");
   if (selectedDelivery === "澳门本地配送") renderCheckoutAddress();
@@ -813,8 +868,13 @@ function submitOrder() {
   }
   const contactAddress = checkoutAddress || addresses.find((address) => address.isDefault) || addresses[0];
   const rows = cartRows();
-  const subtotal = cartAmount();
-  const shipping = selectedDelivery === "澳门本地配送" && subtotal < 200 ? 15 : 0;
+  if (!rows.length) return;
+  const quote = checkoutQuote(rows);
+  if (quote.key !== displayedCheckoutQuote) {
+    renderCheckout();
+    showToast("活动或价格已变化，请核对金额后再次提交");
+    return;
+  }
   const hasPresale = rows.some((item) => item.product.status === "预售");
   const id = `ORD${Date.now().toString().slice(-10)}`;
   const order = {
@@ -823,8 +883,18 @@ function submitOrder() {
     customer: contactAddress?.name || "H5 客户",
     phone: contactAddress?.phone || "",
     unitId: rows[0].product.unitIds[0],
-    items: rows.map((item) => ({ productId: item.product.id, name: item.product.name, sku: item.sku.spec, qty: item.qty, price: item.sku.price })),
-    amount: subtotal + shipping,
+    items: rows.map((item) => ({
+      productId: item.product.id, name: item.product.name, sku: item.sku.spec, qty: item.qty,
+      price: item.payable / 100,
+      ...(item.campaign && { discount: {
+        id: item.campaign.id, name: item.campaign.name, originalPrice: item.original / 100,
+        amount: (item.original - item.payable) * item.qty / 100,
+        useDiscountedFreeShipping: item.campaign.useDiscountedFreeShipping,
+      } }),
+    })),
+    discountAmount: quote.discount / 100,
+    shippingAmount: quote.shipping / 100,
+    amount: (quote.subtotal + quote.shipping) / 100,
     paymentMethod: selectedPayment,
     paymentStatus: "待支付",
     fulfillmentStatus: hasPresale ? "待备货" : selectedDelivery === "门店自提" ? "待自提" : "待发货",
@@ -916,8 +986,14 @@ function renderOrderDetail() {
       ${order.eta ? `<div class="summary-line"><span>预计到货</span><strong>${escapeHtml(order.eta)}</strong></div>` : ""}
       ${order.pickupStore ? `<div class="summary-line"><span>自提门店</span><strong>${escapeHtml(order.pickupStore)}</strong></div>` : ""}
       <h3>商品明细</h3>
-      ${order.items.map((item) => `<div class="summary-item"><span>${escapeHtml(item.name)}<br><small>${escapeHtml(item.sku)} × ${item.qty}</small></span><strong>${money(item.price * item.qty)}</strong></div>`).join("")}
-      <div class="summary-line total"><span>实付金额</span><strong>${money(order.amount)}</strong></div>
+      ${order.items.map((item) => `<div class="summary-item">
+        <span>${escapeHtml(item.name)}<br><small>${escapeHtml(item.sku)} × ${item.qty}</small>
+          ${item.discount ? `<br><small>${escapeHtml(item.discount.name)} · 原价 ${money(item.discount.originalPrice)}</small>` : ""}
+        </span><strong>${money(StoreDiscounts.toCents(item.price) * item.qty / 100)}</strong>
+      </div>`).join("")}
+      ${order.discountAmount ? `<div class="summary-line"><span>限时折扣优惠</span><strong>−${money(order.discountAmount)}</strong></div>` : ""}
+      ${order.shippingAmount !== undefined ? `<div class="summary-line"><span>配送费</span><strong>${money(order.shippingAmount)}</strong></div>` : ""}
+      <div class="summary-line total"><span>${order.paymentStatus === "待支付" ? "应付金额" : "实付金额"}</span><strong>${money(order.amount)}</strong></div>
       <h3>进度</h3>
       <ul class="timeline">
         <li>订单已创建，库存已锁定</li>
@@ -1295,10 +1371,28 @@ function bindEvents() {
   });
 }
 
+let discountRefreshTimer;
+function refreshDiscountSurface() {
+  clearTimeout(discountRefreshTimer);
+  const now = Date.now();
+  const boundary = StoreDiscounts.nextBoundary(StoreDiscounts.read(), now);
+  if (Number.isFinite(boundary)) {
+    discountRefreshTimer = setTimeout(refreshDiscountSurface, Math.min(boundary - now, 2_147_483_647));
+  }
+  if (["homeView", "productListView", "detailView", "cartView"].includes(activeView)) renderCurrentView();
+}
+
+window.addEventListener("storage", (event) => {
+  if (event.key === StoreDiscounts.storageKey) refreshDiscountSurface();
+});
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) refreshDiscountSurface();
+});
+
 bindEvents();
-renderHome();
 renderCartBadge();
 updateLoginState();
 
 window.addEventListener("popstate", restoreBrowseRoute);
 restoreBrowseRoute();
+refreshDiscountSurface();

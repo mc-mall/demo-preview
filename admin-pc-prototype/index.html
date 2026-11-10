@@ -62,6 +62,10 @@
               库存预警
             </button>
           </div>
+          <div class="nav-group collapsed hidden" data-nav-group id="discountNav">
+            <button class="nav-label" type="button" aria-expanded="false"><span>◇</span>营销中心<b>⌄</b></button>
+            <button class="nav-item sub-item" data-page="discounts">折扣活动</button>
+          </div>
           <div class="nav-group collapsed" data-nav-group>
             <button class="nav-label" type="button" aria-expanded="false"><span>≡</span>订单中心<b>⌄</b></button>
             <button class="nav-item sub-item" data-page="orders">
@@ -281,6 +285,40 @@
               </table>
             </div>
             <div id="inventoryAlertPagination" class="pagination-bar"></div>
+          </section>
+        </section>
+
+
+        <section id="discountsPage" class="page-panel hidden">
+          <section class="content-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Marketing</p>
+                <h3>折扣活动</h3>
+                <p class="form-hint">为本店指定商品设置限时折扣，客户结算时自动享受。</p>
+              </div>
+              <div class="panel-actions">
+                <a class="ghost-btn compact discount-preview-link" href="../mc-miniapp-prototype/#view=productListView" target="_blank" rel="noopener">查看商城</a>
+                <button id="newDiscountBtn" class="primary-btn compact" type="button">新建活动</button>
+              </div>
+            </div>
+            <div class="filter-row discount-filter">
+              <label class="search-box">
+                <span>⌕</span>
+                <input id="discountSearch" type="search" placeholder="搜索活动名称" aria-label="搜索活动名称" />
+              </label>
+              <select id="discountStatus" aria-label="活动状态">
+                <option value="">全部状态</option>
+                <option>草稿</option><option>待开始</option><option>进行中</option><option>已结束</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table class="discount-table">
+                <thead><tr><th>活动名称</th><th>折扣</th><th>参与商品</th><th>活动时间（澳门）</th><th>免运判定</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody id="discountRows"></tbody>
+              </table>
+            </div>
+            <div id="discountPagination" class="pagination-bar"></div>
           </section>
         </section>
 
@@ -1422,6 +1460,74 @@
       </div>
     </dialog>
 
+
+    <dialog id="discountDialog" class="manage-dialog discount-dialog" aria-labelledby="discountDialogTitle">
+      <div class="drawer-head">
+        <div>
+          <p class="eyebrow">Limited-time Discount</p>
+          <h3 id="discountDialogTitle">新建折扣活动</h3>
+        </div>
+        <button id="closeDiscountBtn" class="icon-btn" type="button" aria-label="关闭">×</button>
+      </div>
+      <form id="discountForm" class="dialog-form">
+        <fieldset id="discountFields" class="discount-fields">
+          <div class="form-grid">
+            <label><span>活动名称</span><input id="discountName" maxlength="50" required placeholder="例如 周末运动服折扣" /></label>
+            <label><span>折扣（折）</span><input id="discountFold" type="number" min="0.1" max="9.9" step="0.1" required placeholder="例如 8.5" /></label>
+          </div>
+          <div class="form-grid">
+            <label><span>开始时间（澳门）</span><input id="discountStartsAt" type="datetime-local" required /></label>
+            <label><span>结束时间（澳门）</span><input id="discountEndsAt" type="datetime-local" required /></label>
+          </div>
+          <label class="check-line discount-shipping">
+            <input id="discountFreeShipping" type="checkbox" role="switch" />
+            <span><strong>按折后商品金额判定免运</strong><small>关闭时，活动商品按折前售价计入免运门槛。</small></span>
+          </label>
+        </fieldset>
+        <section class="form-section discount-products">
+          <div class="mini-head"><strong>参与商品</strong><small id="discountSelectedCount"></small></div>
+          <div id="discountPicker">
+            <div class="filter-row discount-filter">
+              <label class="search-box">
+                <span>⌕</span><input id="discountProductSearch" type="search" placeholder="搜索商品名称、SPU 编码或 SKU 货号" aria-label="搜索活动商品" />
+              </label>
+              <select id="discountProductCategory" aria-label="筛选商品类目"></select>
+            </div>
+            <p class="form-hint">可跨页勾选本店上架的现售商品。选中后，折扣应用到该商品的各个规格。</p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th><input id="discountSelectPage" type="checkbox" aria-label="全选本页商品" /></th><th>商品</th><th>类目</th><th>规格数</th></tr></thead>
+                <tbody id="discountProductRows"></tbody>
+              </table>
+            </div>
+            <div id="discountProductPagination" class="pagination-bar"></div>
+          </div>
+          <div class="mini-head"><strong>已选商品与价格预览</strong><small>按各 SKU 的当前售价计算</small></div>
+          <div id="discountPricePreview"></div>
+        </section>
+        <section id="discountHistory" class="detail-block hidden"></section>
+        <p id="discountFormHint" class="form-hint discount-feedback" role="status"></p>
+        <div id="discountFormActions" class="dialog-actions">
+          <button id="saveDiscountDraftBtn" class="ghost-btn" type="submit" value="draft">保存草稿</button>
+          <button id="publishDiscountBtn" class="primary-btn compact" type="submit" value="publish">发布活动</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="endDiscountDialog" class="manage-dialog edit-dialog" aria-labelledby="endDiscountTitle">
+      <div class="drawer-head"><h3 id="endDiscountTitle">结束折扣活动</h3></div>
+      <form id="endDiscountForm" class="dialog-form" method="dialog">
+        <p id="endDiscountMessage"></p>
+        <p class="form-hint">结束后，客户的新订单将恢复按日常售价结算，已生成的订单继续使用原金额。</p>
+        <div class="dialog-actions">
+          <button class="ghost-btn" type="submit" value="cancel">取消</button>
+          <button class="primary-btn danger-btn" type="submit" value="end">确认结束</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="../shared/store-discounts.js"></script>
     <script src="./app.js"></script>
+    <script src="./discounts.js"></script>
   </body>
 </html>

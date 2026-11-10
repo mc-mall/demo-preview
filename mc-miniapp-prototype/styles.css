@@ -5317,3 +5317,19 @@ body {
 .unit-product-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: 4px; gap: 12px; align-items: start; columns: auto; }
 .unit-product-card { margin: 0; }
 .unit-product-empty { grid-column: 1 / -1; }
+
+.list-prices .discount-price-label,
+.discount-price-label {
+  color: #b42327;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.list-prices .discount-price-label {
+  font-weight: 600;
+}
+
+#detailView .discount-end-time {
+  color: var(--muted);
+  font-size: 12px;
+}

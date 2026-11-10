@@ -209,6 +209,8 @@
         <h3>订单明细</h3>
         <div id="checkoutItems"></div>
         <div class="summary-line"><span>商品金额</span><strong id="checkoutSubtotal">MOP 0</strong></div>
+        <div id="checkoutDiscountRow" class="summary-line hidden"><span>限时折扣</span><strong id="checkoutDiscount" class="discount-price-label"></strong></div>
+        <div id="shippingBasisRow" class="summary-line hidden"><span>免运判定金额</span><strong id="shippingBasis"></strong></div>
         <div class="summary-line"><span>配送费</span><strong id="shippingFee">MOP 0</strong></div>
         <div class="summary-line total"><span>应付金额</span><strong id="payableAmount">MOP 0</strong></div>
         <button id="submitOrderBtn" class="primary-action block" type="button">提交订单</button>
@@ -390,6 +392,7 @@
   </dialog>
 
   <div id="toast" class="toast" role="status"></div>
+  <script src="../shared/store-discounts.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
