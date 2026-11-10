@@ -96,6 +96,45 @@ let products = [
   },
 ];
 
+// The two existing in-stock products plus these fixtures make 500 SPUs available for bulk selection.
+const discountDemoGroups = [
+  { categoryId: "cat-sports-jersey", unitId: "unit-macau-youth", count: 160, price: 168, names: ["训练短袖", "比赛球衣", "球队长裤", "训练外套"] },
+  { categoryId: "cat-school-short", unitId: "unit-sjs", count: 119, price: 148, names: ["夏季校服衬衫", "轻薄校服衬衫", "短袖校服衬衫"] },
+  { categoryId: "cat-original-tshirt", unitId: "unit-mc-retail", count: 119, price: 98, names: ["圆领棉 T", "条纹 T 恤", "速干 T 恤", "宽松印花 T 恤"] },
+  { categoryId: "cat-original-shirt", unitId: "unit-mc-retail", count: 100, price: 128, names: ["牛津纺衬衫", "日常短袖衬衫", "棉麻衬衫"] },
+];
+let discountDemoNumber = 0;
+for (const group of discountDemoGroups) {
+  const thumb = makeThumb("#e6f4ff", "#1769A8", "MC");
+  for (let index = 0; index < group.count; index++) {
+    const number = ++discountDemoNumber;
+    const suffix = String(number).padStart(4, "0");
+    const id = `spu-discount-demo-${suffix}`;
+    const spuCode = `MC-${suffix}`;
+    const name = `${group.names[index % group.names.length]} ${String(Math.floor(index / group.names.length) + 1).padStart(2, "0")} 款`;
+    products.push({
+      id, spuCode, name, thumb,
+      storeId: StoreDiscounts.demoStoreId,
+      categoryId: group.categoryId,
+      unitIds: [group.unitId],
+      status: "上架",
+      gallery: [thumb],
+      detailHtml: "<p>批量选品演示商品</p>",
+      description: "批量选品演示商品",
+      skus: ["M", "L"].map((spec, skuIndex) => ({
+        id: `${id}-${spec}`,
+        code: `${spuCode}-${spec}`,
+        barcode: String(6901005000000 + number * 10 + skuIndex),
+        spec,
+        price: group.price + (index % 5) * 10 + skuIndex * 10,
+        stock: 24,
+        warning: 5,
+        saleable: true,
+      })),
+    });
+  }
+}
+
 const orders = [
   {
     id: "ORD20260718036",
@@ -373,6 +412,12 @@ const permissionCatalog = [
     pages: [
       { id: "products", name: "商品列表", apis: [{ id: "product_query", name: "查询" }, { id: "product_detail", name: "查看详情" }, { id: "product_create", name: "新建" }, { id: "product_update", name: "修改" }, { id: "product_export", name: "导出" }] },
       { id: "inventoryAlerts", name: "库存预警", apis: [{ id: "inventory_query", name: "查询" }, { id: "inventory_restock", name: "补库存" }, { id: "inventory_offsale", name: "下架" }] },
+    ],
+  },
+  {
+    group: "营销中心",
+    pages: [
+      { id: "discounts", name: "折扣活动", apis: [{ id: "discount_view", name: "查看活动" }, { id: "discount_edit", name: "保存草稿" }, { id: "discount_publish", name: "发布活动" }, { id: "discount_end", name: "结束活动" }] },
     ],
   },
   {
@@ -694,6 +739,7 @@ const pageTitle = document.querySelector("#pageTitle");
 const dashboardPage = document.querySelector("#dashboardPage");
 const productsPage = document.querySelector("#productsPage");
 const inventoryAlertsPage = document.querySelector("#inventoryAlertsPage");
+const discountsPage = document.querySelector("#discountsPage");
 const ordersPage = document.querySelector("#ordersPage");
 const presaleOrdersPage = document.querySelector("#presaleOrdersPage");
 const afterSalesPage = document.querySelector("#afterSalesPage");
@@ -760,6 +806,9 @@ let currentEmployeeId = null;
 let currentStoreId = null;
 const pagination = {
   products: { page: 1, pageSize: 15 },
+  discounts: { page: 1, pageSize: 15 },
+  discountProducts: { page: 1, pageSize: 15 },
+  discountPreview: { page: 1, pageSize: 15 },
   orders: { page: 1, pageSize: 15 },
   presaleOrders: { page: 1, pageSize: 15 },
   afterSales: { page: 1, pageSize: 15 },
@@ -796,6 +845,7 @@ function renderActiveStoreOptions(employee, selectedStoreId) {
 function refreshStoreScopedViews() {
   Object.keys(pagination).forEach(resetPagination);
   renderProducts();
+  renderDiscounts();
   renderInventoryAlerts();
   renderOrders();
   renderPresaleOrders();
@@ -831,6 +881,7 @@ loginForm.addEventListener("submit", async (event) => {
     document.querySelector(".admin-profile strong").textContent = employee.name;
     document.querySelector(".admin-profile small").textContent = username;
     renderActiveStoreOptions(employee, currentStoreId);
+    updateDiscountAccess();
     requestAnimationFrame(drawSalesChart);
     return;
   }
@@ -849,6 +900,7 @@ document.querySelector("#logoutBtn").addEventListener("click", () => {
   delete adminView.dataset.storeId;
   currentEmployeeId = null;
   currentStoreId = null;
+  updateDiscountAccess();
   activeStoreSelect.innerHTML = "";
   storeSwitchHint.textContent = "";
   loginForm.reset();
@@ -888,15 +940,17 @@ function expandNavForPage(page) {
 
 document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
   button.addEventListener("click", () => {
+    const page = button.dataset.page;
+    if (page === "discounts" && !canUseDiscounts()) return;
     document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
     button.classList.add("active");
 
-    const page = button.dataset.page;
     expandNavForPage(page);
     const titles = {
       dashboard: "工作台",
       products: "商品中心 / 商品列表",
       inventoryAlerts: "商品中心 / 库存预警",
+      discounts: "营销中心 / 折扣活动",
       orders: "订单中心 / 现货订单",
       presaleOrders: "订单中心 / 预售订单",
       afterSales: "订单中心 / 售后订单",
@@ -910,6 +964,7 @@ document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
     dashboardPage.classList.toggle("hidden", page !== "dashboard");
     productsPage.classList.toggle("hidden", page !== "products");
     inventoryAlertsPage.classList.toggle("hidden", page !== "inventoryAlerts");
+    discountsPage.classList.toggle("hidden", page !== "discounts");
     ordersPage.classList.toggle("hidden", page !== "orders");
     presaleOrdersPage.classList.toggle("hidden", page !== "presaleOrders");
     afterSalesPage.classList.toggle("hidden", page !== "afterSales");
@@ -921,6 +976,7 @@ document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
 
     if (page === "dashboard") requestAnimationFrame(drawSalesChart);
     if (page === "inventoryAlerts") renderInventoryAlerts();
+    if (page === "discounts") renderDiscounts();
     if (page === "orders") renderOrders();
     if (page === "presaleOrders") renderPresaleOrders();
     if (page === "afterSales") renderAfterSales();
@@ -1099,6 +1155,9 @@ function getPageSlice(rows, key) {
 function renderPagination(key, total, totalPages) {
   const paginationTargets = {
     products: "productPagination",
+    discounts: "discountPagination",
+    discountProducts: "discountProductPagination",
+    discountPreview: "discountPreviewPagination",
     orders: "orderPagination",
     presaleOrders: "presaleOrderPagination",
     afterSales: "afterSalePagination",
@@ -1142,6 +1201,9 @@ function renderPagination(key, total, totalPages) {
 function renderPagedList(key) {
   const renderers = {
     products: renderProducts,
+    discounts: renderDiscounts,
+    discountProducts: renderDiscountProducts,
+    discountPreview: renderDiscountReview,
     orders: renderOrders,
     presaleOrders: renderPresaleOrders,
     afterSales: renderAfterSales,
@@ -1633,6 +1695,7 @@ function saveProductFromDrawer() {
   document.querySelector("#formUnits").classList.remove("has-error");
   const product = {
     id: editingProductId || `spu-${Date.now()}`,
+    storeId: editingProductId ? products.find((item) => item.id === editingProductId)?.storeId || StoreDiscounts.demoStoreId : currentStoreId,
     spuCode: document.querySelector("#formSpuCode").value.trim(),
     name: document.querySelector("#formName").value.trim(),
     categoryId: document.querySelector("#formCategory").value,
