@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f9">
+  <title>MC 门店自助终端</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="terminal">
+    <header class="terminal-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">MC</span>
+        <span><strong>澳设商城</strong><small>门店自助终端</small></span>
+      </div>
+      <nav class="mode-switch" aria-label="运行模式">
+        <button type="button" data-mode="locker" aria-pressed="true">自提柜</button>
+        <button type="button" data-mode="checkout" aria-pressed="false">自助收银</button>
+      </nav>
+    </header>
+    <main id="screen" class="screen"></main>
+    <footer class="terminal-footer">
+      <span><i class="status-dot" aria-hidden="true"></i>演示模式 · 扫码与柜门模拟</span>
+      <button id="reset-demo" class="text-button" type="button">重置演示</button>
+    </footer>
+  </div>
+  <p id="announcement" class="sr-only" role="status"></p>
+</body>
+</html>
