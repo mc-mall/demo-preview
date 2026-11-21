@@ -16,6 +16,8 @@ const screen = document.querySelector('#screen');
 const announcement = document.querySelector('#announcement');
 const modeButtons = document.querySelectorAll('[data-mode]');
 const resetButton = document.querySelector('#reset-demo');
+const demoStatus = document.querySelector('#demo-status');
+const checkout = createCheckout(screen, () => render());
 let terminal = loadTerminal();
 let mode = 'locker';
 let page = 'home';
@@ -169,18 +171,16 @@ function renderPickupDone() {
 }
 
 function render(message = '') {
-  const transactionInProgress = Boolean(terminal.activeDoor || terminal.returnAt);
+  const transactionInProgress = Boolean(terminal.activeDoor || terminal.returnAt || checkout.isPaymentPending());
   modeButtons.forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.mode === mode));
     button.disabled = transactionInProgress;
   });
   resetButton.disabled = transactionInProgress;
+  demoStatus.textContent = mode === 'checkout' ? '演示模式 · 扫码与支付模拟' : '演示模式 · 扫码与柜门模拟';
 
   if (mode === 'checkout') {
-    screen.innerHTML = `<section class="flow" aria-labelledby="page-title">
-      ${pageHeading('自助购物模式', '自助收银', '购物流程待补充。', false)}
-      <button class="primary" type="button" data-action="locker">返回自提柜</button>
-    </section>`;
+    checkout.render();
   } else {
     switch (page) {
       case 'deposit-scan':
@@ -202,7 +202,7 @@ function render(message = '') {
   }
 
   announcement.textContent = message;
-  (screen.querySelector('#order-value[inputmode="numeric"]') || screen.querySelector('#page-title')).focus();
+  (screen.querySelector('#order-value[inputmode="numeric"], [data-checkout-focus]') || screen.querySelector('#page-title')).focus();
 }
 
 function showError(message) {
@@ -303,16 +303,21 @@ function showPickupCountdown() {
 
 modeButtons.forEach((button) => {
   button.addEventListener('click', () => {
+    if (mode === 'checkout' && !checkout.leave()) return;
     mode = button.dataset.mode;
     goHome();
   });
 });
 
 resetButton.addEventListener('click', () => {
+  if (mode === 'checkout') {
+    if (checkout.leave()) goHome();
+    return;
+  }
   if (window.confirm('确定重置演示订单和柜门状态？')) {
     terminal = initialTerminal();
     saveTerminal();
-    goHome(mode === 'locker' ? '已重置演示数据。' : '');
+    goHome('已重置演示数据。');
   }
 });
 
@@ -340,10 +345,6 @@ screen.addEventListener('click', (event) => {
     case 'pickup':
       page = 'pickup';
       render();
-      break;
-    case 'locker':
-      mode = 'locker';
-      goHome();
       break;
     case 'home':
       goHome();
