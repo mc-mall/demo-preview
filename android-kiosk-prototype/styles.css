@@ -58,8 +58,8 @@ h1:focus { outline: none; }
 .brand strong { font-size: 16px; line-height: 1.25; }
 .brand small { margin-top: 2px; color: var(--muted); font-size: 12px; }
 
-.mode-switch, .method-switch { display: flex; gap: 4px; padding: 4px; border-radius: 13px; background: #ecf0f6; }
-.mode-switch button, .method-switch button {
+.mode-switch { display: flex; gap: 4px; padding: 4px; border-radius: 13px; background: #ecf0f6; }
+.mode-switch button {
   min-height: 44px;
   padding: 7px clamp(9px, 2vw, 22px);
   border: 1px solid transparent;
@@ -70,7 +70,7 @@ h1:focus { outline: none; }
   font-weight: 700;
   white-space: nowrap;
 }
-.mode-switch button[aria-pressed="true"], .method-switch button[aria-pressed="true"] {
+.mode-switch button[aria-pressed="true"] {
   border-color: var(--line);
   background: var(--surface);
   color: var(--blue);
@@ -142,13 +142,18 @@ h1:focus { outline: none; }
 .back span { margin-right: 5px; }
 
 .panel { padding: clamp(16px, 2.5vw, 26px); border: 1px solid var(--line); border-radius: 19px; background: var(--surface); }
-.method-switch { margin-bottom: 10px; }
-.method-switch button { flex: 1; }
 .scan-graphic { display: grid; place-items: center; height: 72px; margin-bottom: 16px; border: 1px dashed #a8b8e3; border-radius: 12px; background: #f1f5ff; color: var(--blue); }
 .order-panel label { display: block; margin-bottom: 5px; color: var(--ink); font-size: 14px; font-weight: 700; }
 .order-panel input { display: block; width: 100%; height: 52px; padding: 8px 12px; border: 1px solid #a8b5c8; border-radius: 11px; background: #fff; color: var(--ink); font-size: 21px; font-weight: 650; font-variant-numeric: tabular-nums; }
 .order-panel input::placeholder { color: #627188; font-size: 15px; font-weight: 450; }
 .order-panel input[aria-invalid="true"] { border-color: #bd303d; }
+.pickup-scan-input { position: relative; color: var(--blue); }
+.pickup-scan-input .barcode-icon { position: absolute; z-index: 1; top: 16px; left: 12px; width: 24px; height: 19px; pointer-events: none; }
+.pickup-scan-input input { height: 50px; padding-left: 46px; }
+.pickup-code-entry { margin-top: 12px; }
+.pickup-code-entry input { height: 46px; letter-spacing: .16em; pointer-events: none; }
+.pickup-code-entry input::placeholder { letter-spacing: normal; }
+.order-samples { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 14px; margin: 3px 0 -7px; }
 .form-error { margin: 6px 0 9px; color: #a52432; font-size: 14px; line-height: 1.4; }
 .form-error:empty { margin-block: 7px; }
 .keypad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 9px 0 12px; }

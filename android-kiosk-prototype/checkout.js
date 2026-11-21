@@ -9,11 +9,19 @@ function createCheckout(screen, refresh) {
     { barcode: '200000001003', name: '运动袜（3 双装）', spec: '白色 / 均码', original: 2900, price: 2900, image: 'a002-socks.svg', shortName: '运动袜' },
   ];
   const payments = ['Mpay', '中银智慧付', 'Alipay HK'];
+  const paymentStorageKey = 'mc-mall.android-kiosk.payment.v1';
+  const callbackWait = 1800;
+  const queryWait = 650;
+  const delayedResultWait = 8000;
   const imageDirectory = '../mc-mall-ui-demo-spec/demo/assets/products/';
   const cart = new Map();
-  let view = 'home';
+  let order = loadPayment();
+  let view = order?.status || 'home';
   let member = null;
-  let order = null;
+  let selectedPayment = '';
+  let lastScan = null;
+  let querying = false;
+  let queryNote = '';
   let orderSequence = 0;
 
   function money(cents) {
@@ -29,12 +37,16 @@ function createCheckout(screen, refresh) {
     cart.clear();
     member = null;
     order = null;
+    selectedPayment = '';
+    lastScan = null;
+    queryNote = '';
+    savePayment();
     view = 'home';
   }
 
   function leave() {
-    if (view === 'pending') return false;
-    if (cart.size && view !== 'paid' && !window.confirm('确定结束本次购物并清空购物车？')) return false;
+    if (isPaymentPending()) return false;
+    if ((cart.size || order) && view !== 'paid' && !window.confirm('确定结束本次购物并清空购物车？')) return false;
     reset();
     return true;
   }
@@ -123,6 +135,7 @@ function createCheckout(screen, refresh) {
               <span>模拟扫码</span>
               ${products.map((product) => `<button class="text-button" type="button" data-checkout-action="demo-product" data-barcode="${product.barcode}" title="条形码 ${product.barcode}">${product.shortName}</button>`).join('')}
             </div>
+            ${lastScan ? `<p class="scan-feedback"><span aria-hidden="true">✓</span> 已扫入 ${lastScan.product.name}，当前 ${lastScan.quantity} 件</p>` : ''}
           </div>
           <div class="panel cart-panel">
             <header class="cart-heading"><h2>购物车</h2><span>${count} 件商品</span></header>
@@ -136,8 +149,10 @@ function createCheckout(screen, refresh) {
             <div><dt>商品原价</dt><dd>${money(original)}</dd></div>
             <div><dt>商品优惠</dt><dd>${total < original ? '−' : ''}${money(original - total)}</dd></div>
           </dl>
-          <div class="payable"><span>应付金额</span><strong>${money(total)}</strong></div>
-          <button class="primary full" type="button" data-checkout-action="create-order" ${count ? '' : 'disabled'}>确认结账</button>
+          <div class="checkout-actions">
+            <div class="payable"><span>应付金额</span><strong>${money(total)}</strong></div>
+            <button class="primary full" type="button" data-checkout-action="create-order" ${count ? '' : 'disabled'}>确认结账</button>
+          </div>
         </aside>
       </div>
     </section>`;
@@ -145,7 +160,7 @@ function createCheckout(screen, refresh) {
 
   function cartRow(product, quantity) {
     const discount = product.original - product.price;
-    return `<li class="cart-row">
+    return `<li class="cart-row${lastScan?.product === product ? ' just-scanned' : ''}" data-cart-barcode="${product.barcode}">
       <img src="${imageDirectory}${product.image}" width="76" height="76" alt="">
       <div class="cart-product"><strong>${product.name}</strong><span>${product.spec}</span>
         <p class="cart-price">${money(product.price)} ${discount ? `<del>${money(product.original)}</del>` : ''}</p>
@@ -165,8 +180,9 @@ function createCheckout(screen, refresh) {
   }
 
   function methodsView() {
+    const failed = order.status === 'failed';
     return `<section class="flow" aria-labelledby="page-title">
-      ${heading('选择支付方式', '', 'edit-cart', '返回购物车')}
+      ${heading('选择支付方式', '', failed ? 'back-to-failure' : 'edit-cart', failed ? '返回支付结果' : '返回购物车')}
       <div class="panel payment-panel">
         ${paymentHeader()}
         <div class="payment-methods">
@@ -178,7 +194,7 @@ function createCheckout(screen, refresh) {
 
   function scanView() {
     return `<section class="flow" aria-labelledby="page-title">
-      ${heading('等待扫描付款码', `请打开 ${order.payment} 的付款码并对准扫码器。`, 'methods', '更换支付方式')}
+      ${heading('等待扫描付款码', `请打开 ${selectedPayment} 的付款码并对准扫码器。`, 'methods', '更换支付方式')}
       <div class="panel payment-panel order-panel">
         ${paymentHeader()}
         <div class="scan-graphic payment-graphic" aria-hidden="true"><i class="barcode-icon"></i><span></span></div>
@@ -187,6 +203,10 @@ function createCheckout(screen, refresh) {
           <input id="checkout-payment-code" type="password" inputmode="none" maxlength="32" autocomplete="off" aria-describedby="checkout-error" placeholder="等待扫码" data-checkout-focus>
           <p id="checkout-error" class="form-error" role="alert"></p>
           <button class="secondary full" type="button" data-checkout-action="demo-payment">模拟扫描付款码</button>
+          <div class="payment-demo-options" role="group" aria-label="模拟支付异常">
+            <button class="text-button" type="button" data-checkout-action="demo-payment" data-result="failed">模拟支付失败</button>
+            <button class="text-button" type="button" data-checkout-action="demo-payment" data-result="delayed">模拟回调延迟</button>
+          </div>
         </form>
       </div>
     </section>`;
@@ -199,6 +219,33 @@ function createCheckout(screen, refresh) {
         <span class="pay-spinner" aria-hidden="true"></span>
         ${paymentHeader()}
         <p class="payment-status" role="status">${order.payment} 支付处理中…</p>
+      </div>
+    </section>`;
+  }
+
+  function unknownView() {
+    return `<section class="flow" aria-labelledby="page-title">
+      ${heading('支付结果待确认', '暂未收到支付结果，请查询当前订单。')}
+      <div class="panel payment-panel payment-state">
+        <span class="payment-state-mark pending-mark" aria-hidden="true">…</span>
+        ${paymentHeader()}
+        <p class="payment-notice" role="status">${querying ? '正在查询支付结果…' : queryNote || '请先查询结果，避免重复付款。'}</p>
+        <button class="primary full" type="button" data-checkout-action="query-payment" ${querying ? 'disabled' : ''}>${querying ? '正在查询…' : '查询支付结果'}</button>
+      </div>
+    </section>`;
+  }
+
+  function failedView() {
+    return `<section class="flow" aria-labelledby="page-title">
+      ${heading('支付失败', '请重新出示付款码，或更换支付方式。')}
+      <div class="panel payment-panel payment-state">
+        <span class="payment-state-mark failure-mark" aria-hidden="true">×</span>
+        ${paymentHeader()}
+        <p class="payment-notice">${order.payment} 本次付款未成功。</p>
+        <div class="payment-retry-actions">
+          <button class="primary full" type="button" data-checkout-action="retry-payment">重新付款</button>
+          <button class="secondary full" type="button" data-checkout-action="methods">更换支付方式</button>
+        </div>
       </div>
     </section>`;
   }
@@ -231,11 +278,12 @@ function createCheckout(screen, refresh) {
     }
   }
 
-  function changeQuantity(product, change) {
+  function changeQuantity(product, change, scanned = false) {
     const quantity = (cart.get(product) || 0) + change;
     if (quantity > 0) cart.set(product, quantity);
     else cart.delete(product);
-    refresh();
+    lastScan = scanned ? { product, quantity } : null;
+    refresh(scanned ? `已扫入 ${product.name}，当前 ${quantity} 件` : '', { preserveScroll: true });
   }
 
   function createOrder() {
@@ -251,21 +299,84 @@ function createCheckout(screen, refresh) {
     moveTo('methods');
   }
 
-  function receivePaymentScan(value, form) {
-    if (view !== 'scan' || order.status !== 'unpaid') return;
+  function isPaymentPending() {
+    return view === 'pending' || view === 'unknown';
+  }
+
+  function loadPayment() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(paymentStorageKey));
+      if (saved && /^POS-[A-Z0-9]+-\d+$/.test(saved.id) && payments.includes(saved.payment)
+        && Number.isSafeInteger(saved.total) && saved.total >= 0 && Number.isSafeInteger(saved.count) && saved.count > 0
+        && ['pending', 'unknown', 'failed', 'paid'].includes(saved.status)
+        && ['paid', 'failed', 'delayed'].includes(saved.attempt?.result)
+        && Number.isFinite(saved.attempt.callbackAt) && Number.isFinite(saved.attempt.availableAt)) return saved;
+    } catch {
+      // A payment can still be simulated in memory if browser storage is unavailable.
+    }
+    return null;
+  }
+
+  function savePayment() {
+    try {
+      if (order) {
+        const { id, total, count, payment, status, attempt } = order;
+        sessionStorage.setItem(paymentStorageKey, JSON.stringify({ id, total, count, payment, status, attempt }));
+      } else {
+        sessionStorage.removeItem(paymentStorageKey);
+      }
+    } catch {
+      // Keep the current page usable when browser storage is unavailable.
+    }
+  }
+
+  function changePaymentStatus(status) {
+    order.status = status;
+    savePayment();
+    moveTo(status);
+  }
+
+  function schedulePaymentCallback() {
+    const attempt = order.attempt;
+    window.setTimeout(() => {
+      if (order?.attempt !== attempt || order.status !== 'pending') return;
+      changePaymentStatus(attempt.result === 'delayed' ? 'unknown' : attempt.result);
+    }, Math.max(0, attempt.callbackAt - Date.now()));
+  }
+
+  function receivePaymentScan(value, form, result = 'paid') {
+    if (view !== 'scan' || !['unpaid', 'failed'].includes(order.status)) return;
     if (value !== demoPaymentCode) {
       formError(form, '请使用演示付款码完成模拟支付。');
       return;
     }
 
-    const pendingOrder = order;
-    pendingOrder.status = 'pending';
-    moveTo('pending');
+    const now = Date.now();
+    order.payment = selectedPayment;
+    order.attempt = {
+      result,
+      callbackAt: now + callbackWait,
+      availableAt: now + (result === 'delayed' ? delayedResultWait : callbackWait),
+    };
+    queryNote = '';
+    changePaymentStatus('pending');
+    schedulePaymentCallback();
+  }
+
+  function queryPayment() {
+    if (view !== 'unknown' || querying) return;
+
+    querying = true;
+    refresh();
     window.setTimeout(() => {
-      if (order !== pendingOrder || pendingOrder.status !== 'pending') return;
-      pendingOrder.status = 'paid';
-      moveTo('paid');
-    }, 1800);
+      querying = false;
+      if (Date.now() >= order.attempt.availableAt) {
+        changePaymentStatus('paid');
+      } else {
+        queryNote = '付款结果尚未确认，请稍后再查询。';
+        refresh(queryNote);
+      }
+    }, queryWait);
   }
 
   screen.addEventListener('submit', (event) => {
@@ -284,7 +395,7 @@ function createCheckout(screen, refresh) {
         break;
       case 'product': {
         const product = products.find((candidate) => candidate.barcode === value);
-        if (product) changeQuantity(product, 1);
+        if (product) changeQuantity(product, 1, true);
         else formError(form, value ? '未识别到商品，请核对条形码后重试。' : '请扫描商品条形码。');
         break;
       }
@@ -326,7 +437,7 @@ function createCheckout(screen, refresh) {
       case 'subtract':
       case 'add': {
         const product = products.find((candidate) => candidate.barcode === button.dataset.barcode);
-        changeQuantity(product, button.dataset.checkoutAction === 'subtract' ? -1 : 1);
+        changeQuantity(product, button.dataset.checkoutAction === 'subtract' ? -1 : 1, button.dataset.checkoutAction === 'demo-product');
         break;
       }
       case 'create-order':
@@ -337,25 +448,39 @@ function createCheckout(screen, refresh) {
         moveTo('cart');
         break;
       case 'payment-method':
-        order.payment = payments[Number(button.dataset.index)];
+        selectedPayment = payments[Number(button.dataset.index)];
         moveTo('scan');
         break;
       case 'methods':
-        order.payment = null;
         moveTo('methods');
         break;
+      case 'retry-payment':
+        selectedPayment = order.payment;
+        moveTo('scan');
+        break;
+      case 'back-to-failure':
+        moveTo('failed');
+        break;
+      case 'query-payment':
+        queryPayment();
+        break;
       case 'demo-payment':
-        receivePaymentScan(demoPaymentCode, screen.querySelector('[data-checkout-form="payment"]'));
+        receivePaymentScan(demoPaymentCode, screen.querySelector('[data-checkout-form="payment"]'), button.dataset.result);
         break;
     }
   });
 
-  const views = { home: homeView, phone: phoneView, member: memberView, cart: cartView, methods: methodsView, scan: scanView, pending: pendingView, paid: paidView };
+  const views = {
+    home: homeView, phone: phoneView, member: memberView, cart: cartView, methods: methodsView,
+    scan: scanView, pending: pendingView, unknown: unknownView, failed: failedView, paid: paidView,
+  };
+  if (view === 'pending') schedulePaymentCallback();
   return {
     render() {
       screen.innerHTML = views[view]();
     },
     leave,
-    isPaymentPending: () => view === 'pending',
+    isPaymentPending,
+    hasRestoredPayment: () => Boolean(order),
   };
 }

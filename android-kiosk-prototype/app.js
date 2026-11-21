@@ -17,13 +17,12 @@ const announcement = document.querySelector('#announcement');
 const modeButtons = document.querySelectorAll('[data-mode]');
 const resetButton = document.querySelector('#reset-demo');
 const demoStatus = document.querySelector('#demo-status');
-const checkout = createCheckout(screen, () => render());
+const checkout = createCheckout(screen, render);
 let terminal = loadTerminal();
 let mode = 'locker';
 let page = 'home';
 let order = null;
 let selectedDoor = '';
-let pickupMethod = 'code';
 let countdownTimer;
 
 function initialTerminal() {
@@ -59,7 +58,6 @@ function goHome(message = '') {
   page = 'home';
   order = null;
   selectedDoor = '';
-  pickupMethod = 'code';
   render(message);
 }
 
@@ -100,31 +98,35 @@ function renderHome(message) {
 
 function renderOrderForm() {
   const depositing = page === 'deposit-scan';
-  const usingCode = !depositing && pickupMethod === 'code';
-  const label = usingCode ? '6 位自提码' : '订单条形码';
   const sample = depositing
     ? orders.find((entry) => terminal.placements[entry.id] === '')
     : orders.find((entry) => doors.includes(terminal.placements[entry.id]));
-  const sampleValue = sample ? (usingCode ? sample.pickupCode : sample.barcode) : '';
   return `<section class="flow" aria-labelledby="page-title">
     ${depositing
       ? pageHeading('存货 · 1 / 3', '扫描订单小票', '将小票条形码对准扫码器，也可手动录入条形码。')
-      : pageHeading('取货', '验证订单', '输入订单自提码，或扫描订单条形码。')}
+      : pageHeading('取货', '验证订单', '直接扫描订单条形码，或输入 6 位自提码。')}
     <div class="panel order-panel">
-      ${depositing ? '<div class="scan-graphic" aria-hidden="true"><i class="barcode-icon"></i></div>' : `<div class="method-switch" role="group" aria-label="取货方式">
-        <button type="button" data-action="code" aria-pressed="${usingCode}">自提码</button>
-        <button type="button" data-action="barcode" aria-pressed="${!usingCode}">扫条形码</button>
-      </div>`}
+      ${depositing ? '<div class="scan-graphic" aria-hidden="true"><i class="barcode-icon"></i></div>' : ''}
       <form id="order-form" novalidate>
-        <label for="order-value">${label}</label>
-        <input id="order-value" type="text" inputmode="${usingCode ? 'none' : 'numeric'}" ${usingCode ? 'maxlength="6"' : 'maxlength="32"'} autocomplete="off" spellcheck="false" aria-describedby="form-error" placeholder="${usingCode ? '请输入自提码' : '扫描或输入条形码'}">
+        <label for="order-value">订单条形码</label>
+        <div class="${depositing ? '' : 'pickup-scan-input'}">
+          ${depositing ? '' : '<i class="barcode-icon" aria-hidden="true"></i>'}
+          <input id="order-value" type="text" inputmode="${depositing ? 'numeric' : 'none'}" maxlength="32" autocomplete="off" spellcheck="false" aria-describedby="form-error" placeholder="${depositing ? '扫描或输入条形码' : '等待扫码'}">
+        </div>
         <p id="form-error" class="form-error" role="alert"></p>
-        ${usingCode ? `<div class="keypad" aria-label="数字键盘">
+        ${depositing ? '' : `<div class="pickup-code-entry">
+          <label for="pickup-code">或输入 6 位自提码</label>
+          <input id="pickup-code" type="text" readonly tabindex="-1" placeholder="使用下方数字键盘" aria-describedby="form-error">
+        </div>
+        <div class="keypad" role="group" aria-label="数字键盘">
           ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => `<button type="button" data-action="digit" data-digit="${digit}">${digit}</button>`).join('')}
           <button type="button" data-action="clear">清空</button><button type="button" data-action="digit" data-digit="0">0</button><button type="button" data-action="delete" aria-label="删除一位">⌫</button>
-        </div>` : ''}
+        </div>`}
         <button class="primary full" type="submit">${depositing ? '验证订单' : '确认取货'}</button>
-        ${sampleValue ? `<button class="text-button sample" type="button" data-action="sample" data-value="${sampleValue}">${usingCode ? '填入演示码' : '模拟扫码'} <span>${sampleValue}</span></button>` : ''}
+        ${sample ? `<div class="order-samples">
+          ${depositing ? '' : `<button class="text-button" type="button" data-action="sample-code" data-value="${sample.pickupCode}">填入演示码 ${sample.pickupCode}</button>`}
+          <button class="text-button" type="button" data-action="sample" data-value="${sample.barcode}">模拟扫码 ${sample.barcode}</button>
+        </div>` : ''}
       </form>
     </div>
   </section>`;
@@ -170,8 +172,8 @@ function renderPickupDone() {
   </section>`;
 }
 
-function render(message = '') {
-  const transactionInProgress = Boolean(terminal.activeDoor || terminal.returnAt || checkout.isPaymentPending());
+function render(message = '', { preserveScroll = false } = {}) {
+  const transactionInProgress = Boolean(terminal.activeDoor || terminal.returnAt || (mode === 'checkout' && checkout.isPaymentPending()));
   modeButtons.forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.mode === mode));
     button.disabled = transactionInProgress;
@@ -202,52 +204,56 @@ function render(message = '') {
   }
 
   announcement.textContent = message;
-  (screen.querySelector('#order-value[inputmode="numeric"], [data-checkout-focus]') || screen.querySelector('#page-title')).focus();
+  (screen.querySelector('#order-value, [data-checkout-focus]') || screen.querySelector('#page-title')).focus({ preventScroll: preserveScroll });
 }
 
-function showError(message) {
-  const input = document.querySelector('#order-value');
+function showError(message, field) {
+  const scanner = document.querySelector('#order-value');
   document.querySelector('#form-error').textContent = message;
-  input.setAttribute('aria-invalid', 'true');
-  if (input.inputMode === 'numeric') {
-    input.focus();
-    input.select();
-  }
+  field.setAttribute('aria-invalid', 'true');
+  scanner.focus();
+  scanner.select();
 }
 
 function clearError() {
   document.querySelector('#form-error').textContent = '';
   document.querySelector('#order-value').removeAttribute('aria-invalid');
+  document.querySelector('#pickup-code')?.removeAttribute('aria-invalid');
 }
 
-function validateOrder(value) {
+function validateOrder() {
   const depositing = page === 'deposit-scan';
-  const usingCode = !depositing && pickupMethod === 'code';
-  const credential = value.trim();
+  const scanner = document.querySelector('#order-value');
+  const keypad = document.querySelector('#pickup-code');
+  const scanned = scanner.value.trim();
+  const field = !scanned && keypad ? keypad : scanner;
+  const credential = field.value.trim();
+  const usingCode = field === keypad || (!depositing && /^\d{6}$/.test(credential));
 
   if (usingCode && !/^\d{6}$/.test(credential)) {
-    showError('请输入完整的 6 位自提码。');
+    showError('请输入完整的 6 位自提码。', field);
     return;
   }
   if (!credential) {
-    showError('请扫描或输入订单条形码。');
+    showError('请扫描或输入订单条形码。', field);
     return;
   }
 
-  const matchingOrder = orders.find((entry) => (usingCode ? entry.pickupCode : entry.barcode) === credential);
+  const matchingOrder = orders.find((entry) => field === scanner && entry.barcode === credential)
+    || (usingCode && orders.find((entry) => entry.pickupCode === credential));
   if (!matchingOrder) {
-    showError(usingCode ? '自提码无效，请核对后重试。' : '未识别到订单，请核对条形码后重试。');
+    showError(usingCode ? '自提码无效，请核对后重试。' : '未识别到订单，请核对条形码后重试。', field);
     return;
   }
 
   const placement = terminal.placements[matchingOrder.id];
   if (placement === 'collected') {
-    showError('该订单已取货。');
+    showError('该订单已取货。', field);
     return;
   }
   if (depositing) {
     if (placement) {
-      showError(`该订单已存入 ${placement} 柜门。`);
+      showError(`该订单已存入 ${placement} 柜门。`, field);
       return;
     }
     order = matchingOrder;
@@ -255,7 +261,7 @@ function validateOrder(value) {
     page = 'door-selection';
     render();
   } else if (!placement) {
-    showError('该订单尚未存入自提柜，请联系店员。');
+    showError('该订单尚未存入自提柜，请联系店员。', field);
   } else {
     openDoor('pickup', matchingOrder.id, placement);
   }
@@ -324,12 +330,11 @@ resetButton.addEventListener('click', () => {
 screen.addEventListener('submit', (event) => {
   if (event.target.id !== 'order-form') return;
   event.preventDefault();
-  validateOrder(document.querySelector('#order-value').value);
+  validateOrder();
 });
 
 screen.addEventListener('input', (event) => {
   if (event.target.id !== 'order-value') return;
-  if (event.target.inputMode === 'none') event.target.value = event.target.value.replace(/\D/g, '');
   clearError();
 });
 
@@ -357,20 +362,18 @@ screen.addEventListener('click', (event) => {
         goHome();
       }
       break;
-    case 'code':
-    case 'barcode':
-      if (pickupMethod !== button.dataset.action) {
-        pickupMethod = button.dataset.action;
-        render();
-      }
-      break;
     case 'digit':
     case 'delete':
-    case 'clear': {
-      const input = document.querySelector('#order-value');
+    case 'clear':
+    case 'sample-code': {
+      const scanner = document.querySelector('#order-value');
+      const input = document.querySelector('#pickup-code');
       if (button.dataset.action === 'clear') input.value = '';
       else if (button.dataset.action === 'delete') input.value = input.value.slice(0, -1);
+      else if (button.dataset.action === 'sample-code') input.value = button.dataset.value;
       else if (input.value.length < 6) input.value += button.dataset.digit;
+      scanner.value = '';
+      if (event.detail > 0 || button.dataset.action === 'sample-code') scanner.focus({ preventScroll: true });
       clearError();
       break;
     }
@@ -378,7 +381,7 @@ screen.addEventListener('click', (event) => {
       const input = document.querySelector('#order-value');
       input.value = button.dataset.value;
       clearError();
-      if (input.inputMode !== 'none') input.form.requestSubmit();
+      input.form.requestSubmit();
       break;
     }
     case 'select-door':
@@ -404,5 +407,6 @@ if (terminal.activeDoor) {
 } else if (remainingSeconds() > 0) {
   showPickupCountdown();
 } else {
+  if (checkout.hasRestoredPayment()) mode = 'checkout';
   goHome();
 }

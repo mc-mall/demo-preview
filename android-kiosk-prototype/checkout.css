@@ -16,12 +16,15 @@
 .demo-products { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; color: var(--muted); font-size: 13px; }
 .demo-products > span { margin-right: 4px; }
 .demo-products button { padding: 5px 9px; border: 1px solid var(--line); background: #f4f7fe; font-size: 13px; }
+.scan-feedback { margin: 10px 0 0; padding: 8px 10px; border-radius: 8px; background: #edf9f1; color: #176542; font-size: 14px; font-weight: 650; }
+.scan-feedback span { margin-right: 4px; }
 .cart-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .cart-heading > span { color: var(--muted); font-size: 14px; }
 .cart-empty { padding: 32px 0 26px; color: var(--muted); text-align: center; }
 .cart-items { margin: 12px 0 0; padding: 0; list-style: none; }
 .cart-row { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding-block: 12px; border-top: 1px solid var(--line); }
 .cart-row:last-child { padding-bottom: 0; }
+.cart-row.just-scanned { animation: scanned-product 1.45s ease-out; }
 .cart-row img { display: block; width: 76px; height: 76px; border-radius: 10px; background: #f1f4f9; object-fit: cover; }
 .cart-product > span { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; }
 .cart-product > span.product-discount { color: #176542; }
@@ -31,6 +34,7 @@
 .quantity button { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 9px; background: #f4f7fd; color: var(--ink); font-size: 21px; font-weight: 650; }
 .quantity button:hover { background: #e6eeff; }
 
+.checkout-summary { position: sticky; top: 16px; }
 .customer-label { margin-top: 5px; color: var(--muted); font-size: 14px; }
 .receipt-details { display: grid; gap: 10px; margin: 18px 0; }
 .receipt-details div { display: flex; justify-content: space-between; gap: 12px; }
@@ -51,18 +55,43 @@
 .payment-graphic span { position: absolute; width: 50px; height: 2px; border-radius: 100px; background: #4f74e1; box-shadow: 0 0 8px #a9baf2; }
 .secondary { min-height: 48px; padding: 8px 15px; border: 1px solid var(--line); border-radius: 11px; background: #f4f7fd; color: var(--blue); font-weight: 750; }
 .secondary:hover { background: #edf2ff; }
+.payment-demo-options { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 14px; margin: 3px 0 -7px; }
 .payment-state { text-align: center; }
 .payment-status { margin-top: 14px; color: var(--muted); }
+.payment-notice { margin: 14px 0; color: var(--muted); line-height: 1.5; }
+.payment-state-mark { display: grid; place-items: center; width: 62px; height: 62px; margin: 3px auto 14px; border-radius: 50%; font-size: 35px; line-height: 1; }
+.pending-mark { background: #fff3d8; color: #854d0e; }
+.failure-mark { background: #fcecee; color: #a52432; }
+.payment-retry-actions { display: grid; gap: 8px; }
 .pay-spinner { display: block; width: 55px; height: 55px; margin: 4px auto 14px; border: 4px solid #e1e9ff; border-top-color: var(--blue); border-radius: 50%; animation: wait-for-payment 1s linear infinite; }
 
 @keyframes wait-for-payment { to { transform: rotate(1turn); } }
+@keyframes scanned-product { from { background: #e5f6ed; } to { background: transparent; } }
 
 @media (prefers-reduced-motion: reduce) {
   .pay-spinner { animation: none; }
+  .cart-row.just-scanned { animation: none; background: #edf9f1; }
 }
 
 @media (max-width: 760px) {
+  .terminal:has(.checkout-actions) { padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
   .checkout-layout { grid-template-columns: 1fr; }
+  .checkout-summary { position: static; }
+  .checkout-actions {
+    position: fixed;
+    z-index: 2;
+    inset: auto 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .checkout-actions .primary { width: auto; padding-inline: clamp(10px, 4vw, 26px); white-space: nowrap; }
+  .checkout-actions .payable { margin: 0; padding: 0; border: 0; }
+  .checkout-actions .payable strong { font-size: clamp(18px, 5.5vw, 27px); white-space: nowrap; }
 }
 
 @media (max-width: 540px) {
