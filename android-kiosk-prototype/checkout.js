@@ -234,24 +234,26 @@ function createCheckout(screen, refresh) {
     </section>`;
   }
 
-  function renderMemberDialog(dialog, content) {
+  function renderMemberDialog(dialog, content, title = '会员结账') {
     dialog.innerHTML = `<header class="member-dialog-heading">
-      <h2 id="member-title">会员结账</h2>
+      <h2 id="member-title" tabindex="-1">${title}</h2>
       <button class="text-button close-dialog" type="button" data-checkout-action="close-member" aria-label="关闭">×</button>
     </header>${content}`;
   }
 
-  function showMemberForm(dialog) {
+  function showMemberForm(dialog, number = '') {
     renderMemberDialog(dialog, `<form data-checkout-form="member" class="order-panel" novalidate>
       <label for="member-phone">手机号码</label>
       <input id="member-phone" type="tel" inputmode="tel" maxlength="26" autocomplete="off" placeholder="输入手机号" aria-describedby="member-hint member-error" autofocus>
-      <p id="member-hint" class="member-hint">如果该号码尚未注册，将自动注册为普通会员。</p>
+      <p id="member-hint" class="member-hint">如果该号码尚未注册，将请你确认注册。</p>
       <p id="member-error" class="form-error" role="alert"></p>
       <button class="primary full" type="submit">查询会员</button>
       <button class="text-button" type="button" data-checkout-action="demo-member">填入演示手机号 ${checkoutDemoPhone}</button>
     </form>`);
+    const input = dialog.querySelector('#member-phone');
+    input.value = number;
     if (dialog.open) {
-      dialog.querySelector('#member-phone').focus();
+      input.focus();
     } else {
       dialog.onclose = () => {
         if (!dialog.open) dialog.replaceChildren();
@@ -273,6 +275,21 @@ function createCheckout(screen, refresh) {
     confirm.focus();
   }
 
+  function showRegistrationConfirmation(dialog, match, phone) {
+    renderMemberDialog(dialog, `<div class="member-profile">
+      <span>此手机号尚未注册</span>
+      <strong>${phone}</strong>
+      <span>确认后将注册为普通会员，并进入支付方式选择。</span>
+    </div>
+    <button class="primary full" type="button" data-confirm-registration>确认注册并继续支付</button>
+    <button class="text-button" type="button" data-edit-registration>返回修改手机号</button>`, '确认注册新会员');
+    dialog.querySelector('[data-confirm-registration]').addEventListener('click', () => {
+      if (dialog.open && view === 'cart' && cart.size) createOrder(memberDirectory.register(match));
+    }, { once: true });
+    dialog.querySelector('[data-edit-registration]').addEventListener('click', () => showMemberForm(dialog, phone));
+    dialog.querySelector('#member-title').focus();
+  }
+
   async function matchMember(form) {
     const input = form.querySelector('input');
     const submit = form.querySelector('button[type="submit"]');
@@ -288,9 +305,9 @@ function createCheckout(screen, refresh) {
     const match = await memberDirectory.match(phone);
     if (!dialog.open || !dialog.contains(form) || view !== 'cart') return;
 
-    const member = memberDirectory.findOrRegister(match);
-    if (member.newMember) createOrder(member);
-    else showMatchedMember(dialog, member);
+    const member = memberDirectory.find(match);
+    if (member) showMatchedMember(dialog, member);
+    else showRegistrationConfirmation(dialog, match, phone);
   }
 
   function cartGroup(label, items) {
@@ -327,7 +344,7 @@ function createCheckout(screen, refresh) {
         <p class="payment-member">${order.member
           ? `会员结账 · ${safeText(order.member.name)} · ${safeText(order.member.maskedPhone)}`
           : '非会员结账'}</p>
-        ${order.member?.newMember ? '<p class="scan-feedback" role="status">已自动注册为普通会员，可以继续支付。</p>' : ''}
+        ${order.member?.newMember ? '<p class="scan-feedback" role="status">已注册为普通会员，可以继续支付。</p>' : ''}
         <div class="payment-methods">
           ${payments.map((payment, index) => `<button type="button" data-checkout-action="payment-method" data-index="${index}"><span>${payment}</span><span aria-hidden="true">→</span></button>`).join('')}
         </div>

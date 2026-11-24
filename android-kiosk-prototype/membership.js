@@ -30,20 +30,43 @@ function createCheckoutMemberDirectory() {
     };
   }
 
-  function findOrRegister({ key, demo, persistent, profile }) {
-    let existing = demo || knownInTab.has(key);
-    if (!existing && persistent) {
+  function memberId(key, persistent) {
+    return persistent ? key : `local-${crypto.getRandomValues(new Uint32Array(2)).join('-')}`;
+  }
+
+  function isRegistered(key) {
+    try {
+      return localStorage.getItem(storagePrefix + key) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  function find({ key, demo, persistent, profile }) {
+    let id = knownInTab.get(key);
+    if (!id && (demo || (persistent && isRegistered(key)))) {
+      id = memberId(key, persistent);
+      knownInTab.set(key, id);
+    }
+    return id ? { ...profile, id, newMember: false } : null;
+  }
+
+  function register(match) {
+    const existing = find(match);
+    if (existing) return existing;
+
+    const { key, persistent, profile } = match;
+    if (persistent) {
       try {
-        existing = localStorage.getItem(storagePrefix + key) === '1';
-        if (!existing) localStorage.setItem(storagePrefix + key, '1');
+        localStorage.setItem(storagePrefix + key, '1');
       } catch {
         // Membership is still available in the current tab if storage is disabled.
       }
     }
-    const id = persistent ? key : knownInTab.get(key) ?? `local-${crypto.getRandomValues(new Uint32Array(2)).join('-')}`;
+    const id = memberId(key, persistent);
     knownInTab.set(key, id);
-    return { ...profile, id, newMember: !existing };
+    return { ...profile, id, newMember: true };
   }
 
-  return { match, findOrRegister };
+  return { match, find, register };
 }
