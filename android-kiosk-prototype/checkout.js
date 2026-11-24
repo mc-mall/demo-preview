@@ -393,8 +393,8 @@ function createCheckout(screen, refresh) {
       <div class="quantity" role="group" aria-label="${item.name} ${item.spec} 数量">
         <button type="button" data-checkout-action="subtract" data-sku="${item.sku}" aria-label="${item.name}减一件">−</button>
         <strong aria-label="${item.quantity} 件">${item.quantity}</strong>
-        ${review ? `<button class="remove-selected" type="button" data-checkout-action="remove-selected" data-sku="${item.sku}" aria-label="移除 ${item.name} ${item.spec}">移除</button>`
-          : `<button type="button" data-checkout-action="add" data-sku="${item.sku}" aria-label="${item.name}加一件">+</button>`}
+        <button type="button" data-checkout-action="add" data-sku="${item.sku}" aria-label="${item.name}加一件">+</button>
+        ${review ? `<button class="remove-selected" type="button" data-checkout-action="remove-selected" data-sku="${item.sku}" aria-label="移除 ${item.name} ${item.spec}">移除</button>` : ''}
       </div>
     </li>`;
   }
