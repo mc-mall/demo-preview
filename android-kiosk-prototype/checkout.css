@@ -80,20 +80,30 @@
 }
 .stage-nav button:hover { border-color: #8ca3e6; }
 .stage-nav button[aria-pressed="true"] { border-color: var(--blue); background: var(--blue); color: #fff; }
-.uniform-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.catalog-list {
+  max-height: clamp(250px, calc(100dvh - 390px), 510px);
+  margin: -4px;
+  padding: 4px;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+.catalog-list:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 14px; }
+.uniform-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .uniform-card {
   display: grid;
   align-content: start;
-  gap: 8px;
-  padding: 10px;
+  min-width: 0;
+  gap: 6px;
+  padding: 8px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--surface);
   color: var(--ink);
   text-align: left;
 }
 .uniform-card:hover { border-color: #829be5; box-shadow: 0 4px 14px #1e39721a; }
-.uniform-image { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; height: clamp(132px, 26vh, 250px); background: #f5f7fa; border-radius: 10px; overflow: hidden; }
+.uniform-image { display: block; justify-self: center; width: min(100%, clamp(116px, 19vw, 164px)); aspect-ratio: 1; border-radius: 9px; overflow: hidden; }
 .uniform-image img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .uniform-copy { display: grid; gap: 3px; padding: 3px 3px 1px; min-width: 0; }
 .uniform-copy > strong { font-size: clamp(15px, 1.9vw, 20px); line-height: 1.35; }
@@ -120,6 +130,7 @@
 .catalog-cart-copy span { color: var(--muted); font-size: 13px; }
 .catalog-cart-copy strong { color: var(--blue); font-size: clamp(21px, 2.8vw, 30px); line-height: 1.15; white-space: nowrap; }
 .catalog-cart button { padding-inline: clamp(10px, 3.3vw, 36px); white-space: nowrap; }
+.pickup-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 14px; margin-top: 4px; }
 
 .size-dialog {
   --detail-padding: clamp(14px, 4vw, 22px);
@@ -277,12 +288,40 @@
 
 .paid-page { max-width: 800px; }
 .paid-summary { text-align: center; }
+.paid-pickup-number { margin: 14px 0 0; color: var(--muted); }
+.paid-pickup-number strong { margin-left: 6px; color: var(--ink); font-size: 24px; letter-spacing: .09em; font-variant-numeric: tabular-nums; }
+.pickup-status {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f0f4fc;
+  color: var(--ink);
+  line-height: 1.45;
+}
+.pickup-status:empty { display: none; }
+.pickup-status[data-state="ready"] { background: #e5f6ed; color: #176542; }
+.pickup-status span { font-size: 14px; }
+.pickup-update { color: var(--ink); font-size: 14px; line-height: 1.5; }
+.pickup-update:empty { display: none; }
+.warehouse-queue { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+.warehouse-queue h2 { margin: 0 0 8px; font-size: 18px; }
+.warehouse-queue .description { margin-top: 6px; font-size: 14px; }
+.pickup-queue { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.pickup-queue li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 8px 10px; border-radius: 10px; background: #f4f6fa; }
+.pickup-queue li span { display: grid; gap: 2px; }
+.pickup-queue strong { font-variant-numeric: tabular-nums; letter-spacing: .06em; }
+.pickup-queue small { color: var(--muted); }
+.pickup-queue button { min-height: 44px; }
 .paid-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
 .print-receipts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; margin-top: 14px; }
 .order-receipt { padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
 .receipt-heading { padding-bottom: 10px; border-bottom: 1px dashed #758398; text-align: center; }
 .receipt-heading h2 { margin: 5px 0; font-size: 19px; }
 .receipt-heading p { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.receipt-pickup-number strong { color: var(--ink); font-size: 22px; letter-spacing: .09em; font-variant-numeric: tabular-nums; }
+.pickup-barcode { display: block; width: min(100%, 52mm); height: auto; margin: 8px auto 0; break-inside: avoid; }
 .receipt-items { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
 .receipt-items li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 8px; padding: 8px 0; border-bottom: 1px dashed #a4afc0; }
 .receipt-items strong, .receipt-items small { display: block; }
@@ -304,7 +343,6 @@
   .shopping-steps li { font-size: 13px; }
   .school-banner { min-height: 88px; }
   .uniform-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .uniform-image { height: clamp(112px, 36vw, 172px); }
   .uniform-card { padding: 7px; }
   .catalog-cart { margin-top: 10px; }
   .catalog-cart .primary { font-size: 14px; }
@@ -330,5 +368,6 @@
   .order-receipt :is(li, .receipt-heading, .receipt-details) { break-inside: avoid; }
   .order-receipt :is(p, small, dt, dd) { color: #000; font-size: 9pt; }
   .receipt-heading h2 { font-size: 13pt; }
+  .receipt-pickup-number strong { color: #000; font-size: 17pt; }
   .order-receipt .receipt-details { margin: 3mm 0; }
 }

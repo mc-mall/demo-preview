@@ -8,6 +8,7 @@ function createCheckout(screen, refresh) {
   const queryWait = 650;
   const delayedResultWait = 8000;
   const cart = new Map();
+  const pickup = createPickupDesk(screen);
   let order = loadPayment();
   let view = order?.status || 'home';
   let school = checkoutSchools[0];
@@ -16,7 +17,6 @@ function createCheckout(screen, refresh) {
   let lastScan = null;
   let querying = false;
   let queryNote = '';
-  let orderSequence = 0;
 
   function money(cents) {
     return `MOP ${(cents / 100).toFixed(2)}`;
@@ -100,8 +100,8 @@ function createCheckout(screen, refresh) {
           <div class="stage-nav" role="group" aria-label="学段分类">
             ${school.stages.map((entry) => `<button type="button" data-checkout-action="stage" data-stage="${entry}" aria-pressed="${entry === stage}">${entry}</button>`).join('')}
           </div>
-          <div class="uniform-grid">
-            ${uniforms.map(uniformCard).join('')}
+          <div class="catalog-list" tabindex="0" role="region" aria-label="校服商品列表">
+            <div class="uniform-grid">${uniforms.map(uniformCard).join('')}</div>
           </div>
         </div>
       </div>
@@ -109,6 +109,10 @@ function createCheckout(screen, refresh) {
         <div class="catalog-cart-copy"><span>购物车 · ${count} 件</span><strong>${money(total)}</strong></div>
         <button class="primary" type="button" data-checkout-action="cart">下一步 · 扫实物 <span aria-hidden="true">→</span></button>
       </div>
+      <nav class="pickup-tools" aria-label="取货服务">
+        <button class="text-button" type="button" data-checkout-action="pickup-status">查询取货进度</button>
+        <button class="text-button" type="button" data-checkout-action="warehouse">仓库拣货</button>
+      </nav>
       <dialog class="size-dialog" aria-labelledby="size-title"></dialog>
     </section>`;
   }
@@ -328,7 +332,7 @@ function createCheckout(screen, refresh) {
     return `<header class="receipt-heading">
       <p>澳设商城 · 门店自助终端</p>
       <h2>${title}</h2>
-      <p>订单号 ${order.id}</p>
+      <p class="receipt-pickup-number"><span>取货号</span> <strong>${order.pickupNumber}</strong></p>
       <p>${paidAt} · 支付已确认（演示）</p>
     </header>`;
   }
@@ -345,20 +349,20 @@ function createCheckout(screen, refresh) {
         <div><dt>支付方式</dt><dd>${order.payment}</dd></div>
         <div><dt>实付金额</dt><dd>${money(order.total)}</dd></div>
       </dl>
-      ${pickingCount ? '<p class="receipt-note">请保留本联，凭订单号领取店员配好的校服。</p>' : ''}
+      ${pickingCount ? '<p class="receipt-note">可在终端查询取货进度。收到拣货完成通知后，请凭取货号到取货台领取校服。</p>' : ''}
     </article>`;
   }
 
   function warehouseReceipt(pickingItems, pickingCount) {
     return `<article class="order-receipt" aria-label="仓库联">
       ${receiptHeader('仓库联 · 拣货单')}
-      ${pickingCount ? `<ul class="receipt-items">${pickingItems.map((item) => `<li>
+      ${pickingCount ? `${pickupBarcode(order.pickupNumber)}<ul class="receipt-items">${pickingItems.map((item) => `<li>
         <div><strong>${safeText(item.name)}</strong><small>${safeText(item.spec)}</small>
           <small>SKU ${safeText(item.sku)}</small><small>货位 ${safeText(item.location)}</small>
         </div><b>× ${item.quantity}</b>
       </li>`).join('')}</ul>
       <dl class="receipt-details"><div><dt>应拣校服</dt><dd>${pickingCount} 件</dd></div></dl>
-      <p class="receipt-note">按货位、尺码及数量拣货，按订单号交接。</p>`
+      <p class="receipt-note">按货位、尺码及数量拣货。完成后，扫描本联取货号条码通知客户。</p>`
         : '<p class="receipt-note">本单商品由客户随身带走，无需拣货。</p>'}
     </article>`;
   }
@@ -370,9 +374,11 @@ function createCheckout(screen, refresh) {
     return `<section class="paid-page" aria-labelledby="page-title">
       <div class="panel paid-summary">
         <span class="success-mark" aria-hidden="true">✓</span>
-        ${heading('支付完成', pickingCount ? '请保留客户联，稍后凭订单号领取校服。' : '')}
+        ${heading('支付完成', pickingCount ? '请保留客户联，凭取货号领取校服。' : '')}
         <div class="payment-amount"><span>实付金额</span><strong>${money(order.total)}</strong></div>
-        <p class="payment-order">${order.id} · ${order.payment} · ${order.count} 件</p>
+        <p class="payment-order">${order.payment} · ${order.count} 件</p>
+        ${order.pickupNumber ? `<p class="paid-pickup-number">取货号 <strong>${order.pickupNumber}</strong></p>
+          <div class="pickup-status" role="status" data-pickup-status="${order.pickupNumber}"></div>` : ''}
         <div class="paid-actions">
           ${order.items ? '<button class="secondary" type="button" data-checkout-action="print">打印两联小票</button>' : ''}
           <button class="primary" type="button" data-checkout-action="home">开始下一单</button>
@@ -438,12 +444,14 @@ function createCheckout(screen, refresh) {
     const quantity = Number(form.querySelector('[data-uniform-quantity]').value);
     if (view !== 'home' || !product?.sizes.includes(size) || !Number.isSafeInteger(quantity) || quantity < 1) return;
 
+    const scrollTop = screen.querySelector('.catalog-list').scrollTop;
     form.closest('dialog').close();
     changeQuantity({
       kind: 'uniform', productId: product.id, sku: `${product.id}-${size}`,
       name: product.name, spec: `${product.school.name} · ${product.stage} · ${product.color} · ${size} cm`,
       price: product.price, image: product.image, location: product.location,
     }, quantity, { message: `已加入 ${product.name} · ${size} cm · ${quantity} 件` });
+    screen.querySelector('.catalog-list').scrollTop = scrollTop;
     screen.querySelector(`[data-product="${product.id}"]`).focus({ preventScroll: true });
   }
 
@@ -463,7 +471,7 @@ function createCheckout(screen, refresh) {
     if (view !== 'cart' || !cart.size) return;
     order = {
       ...totals(),
-      id: `POS-${Date.now().toString(36).toUpperCase()}-${++orderSequence}`,
+      id: `POS-${Date.now().toString(36).toUpperCase()}-${crypto.getRandomValues(new Uint32Array(1))[0]}`,
       items: Array.from(cart.values()),
       payment: null,
       status: 'unpaid',
@@ -504,9 +512,18 @@ function createCheckout(screen, refresh) {
     }
   }
 
+  function registerPickup() {
+    if (!order.items) return;
+    const count = order.items.reduce((sum, item) => sum + (item.kind === 'uniform' ? item.quantity : 0), 0);
+    order.pickupNumber = pickup.register(order.id, count, order.pickupNumber);
+  }
+
   function changePaymentStatus(status) {
     order.status = status;
-    if (status === 'paid') order.paidAt = Date.now();
+    if (status === 'paid') {
+      order.paidAt = Date.now();
+      registerPickup();
+    }
     savePayment();
     moveTo(status);
     if (status === 'paid' && order.items) scheduleReceiptPrint();
@@ -601,6 +618,10 @@ function createCheckout(screen, refresh) {
       case 'close-size':
         button.closest('dialog').close();
         break;
+      case 'pickup-status':
+      case 'warehouse':
+        moveTo(button.dataset.checkoutAction);
+        break;
       case 'cart':
         moveTo('cart');
         break;
@@ -655,12 +676,19 @@ function createCheckout(screen, refresh) {
   const views = {
     home: homeView, cart: cartView, methods: methodsView,
     scan: scanView, pending: pendingView, unknown: unknownView, failed: failedView, paid: paidView,
+    warehouse: () => pickup.warehouseView(heading('仓库拣货', '完成拣货后，扫描仓库联条码通知客户取货。', 'browse', '返回自助购物')),
+    'pickup-status': () => pickup.statusView(heading('查询取货进度', '请输入客户联上的六位取货号。', 'browse', '返回自助购物')),
   };
   if (view === 'pending') schedulePaymentCallback();
-  if (view === 'paid' && order.items && !order.printRequested) scheduleReceiptPrint();
+  if (view === 'paid' && order.items) {
+    registerPickup();
+    savePayment();
+    if (!order.printRequested) scheduleReceiptPrint();
+  }
   return {
     render() {
       screen.innerHTML = views[view]();
+      if (view === 'paid') pickup.refreshStatus();
     },
     leave,
     isPaymentPending,
