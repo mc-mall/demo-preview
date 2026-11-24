@@ -241,10 +241,16 @@ function createCheckout(screen, refresh) {
     </header>${content}`;
   }
 
-  function showMemberForm(dialog, number = '') {
+  function showMemberForm(dialog, areaCode = checkoutDefaultAreaCode, number = '') {
     renderMemberDialog(dialog, `<form data-checkout-form="member" class="order-panel" novalidate>
       <label for="member-phone">手机号码</label>
-      <input id="member-phone" type="tel" inputmode="tel" maxlength="26" autocomplete="off" placeholder="输入手机号" aria-describedby="member-hint member-error" autofocus>
+      <div class="member-phone-fields">
+        <select name="areaCode" aria-label="手机区号">
+          ${Object.entries(checkoutPhoneRegions).map(([code, region]) =>
+            `<option value="${code}" ${areaCode === code ? 'selected' : ''}>${code} ${region.label}</option>`).join('')}
+        </select>
+        <input id="member-phone" name="phone" type="tel" inputmode="tel" maxlength="26" autocomplete="off" placeholder="${checkoutPhoneRegions[areaCode].length} 位手机号" aria-describedby="member-hint member-error" autofocus>
+      </div>
       <p id="member-hint" class="member-hint">如果该号码尚未注册，将请你确认注册。</p>
       <p id="member-error" class="form-error" role="alert"></p>
       <button class="primary full" type="submit">查询会员</button>
@@ -262,16 +268,17 @@ function createCheckout(screen, refresh) {
     }
   }
 
-  function showMatchedMember(dialog, member) {
+  function showMatchedMember(dialog, member, areaCode) {
     renderMemberDialog(dialog, `<div class="member-profile">
       <strong>${member.name}</strong>
       <span>${member.tier}</span>
       <span>${member.maskedPhone}</span>
     </div>
     <button class="primary full" type="button" data-confirm-member>确认并选择支付方式</button>
-    <button class="text-button" type="button" data-checkout-action="change-member">重新输入手机号</button>`);
+    <button class="text-button" type="button" data-change-member>重新输入手机号</button>`);
     const confirm = dialog.querySelector('[data-confirm-member]');
     confirm.addEventListener('click', () => createOrder(member), { once: true });
+    dialog.querySelector('[data-change-member]').addEventListener('click', () => showMemberForm(dialog, areaCode));
     confirm.focus();
   }
 
@@ -286,27 +293,44 @@ function createCheckout(screen, refresh) {
     dialog.querySelector('[data-confirm-registration]').addEventListener('click', () => {
       if (dialog.open && view === 'cart' && cart.size) createOrder(memberDirectory.register(match));
     }, { once: true });
-    dialog.querySelector('[data-edit-registration]').addEventListener('click', () => showMemberForm(dialog, phone));
+    dialog.querySelector('[data-edit-registration]').addEventListener('click', () => {
+      const { areaCode, number } = splitCheckoutPhone(phone);
+      showMemberForm(dialog, areaCode, number);
+    });
     dialog.querySelector('#member-title').focus();
   }
 
+  function updateMemberPhoneFields(form, changedControl) {
+    const { areaCode, phone } = form.elements;
+    if (changedControl === phone) {
+      const parts = splitCheckoutPhone(phone.value);
+      if (parts.areaCode) {
+        areaCode.value = parts.areaCode;
+        phone.value = parts.number;
+      }
+    }
+    phone.placeholder = `${checkoutPhoneRegions[areaCode.value].length} 位手机号`;
+  }
+
   async function matchMember(form) {
-    const input = form.querySelector('input');
+    const { areaCode, phone: input } = form.elements;
     const submit = form.querySelector('button[type="submit"]');
     if (submit.disabled) return;
-    const phone = normalizeCheckoutPhone(input.value);
+    const phone = normalizeCheckoutPhone(input.value, areaCode.value);
     if (!phone) {
-      formError(form, '请输入澳门或香港 8 位手机号（香港请加 +852），或内地 11 位手机号。');
+      const region = checkoutPhoneRegions[areaCode.value];
+      formError(form, `请输入有效的${region.label} ${region.length} 位手机号。`);
       return;
     }
     input.readOnly = true;
+    areaCode.disabled = true;
     submit.disabled = true;
     const dialog = form.closest('dialog');
     const match = await memberDirectory.match(phone);
     if (!dialog.open || !dialog.contains(form) || view !== 'cart') return;
 
     const member = memberDirectory.find(match);
-    if (member) showMatchedMember(dialog, member);
+    if (member) showMatchedMember(dialog, member, splitCheckoutPhone(phone).areaCode);
     else showRegistrationConfirmation(dialog, match, phone);
   }
 
@@ -680,7 +704,9 @@ function createCheckout(screen, refresh) {
 
   screen.addEventListener('input', (event) => {
     const form = event.target.closest('[data-checkout-form="product"], [data-checkout-form="payment"], [data-checkout-form="member"]');
-    if (form) formError(form, '');
+    if (!form) return;
+    if (form.dataset.checkoutForm === 'member') updateMemberPhoneFields(form, event.target);
+    formError(form, '');
   });
 
   screen.addEventListener('click', (event) => {
@@ -729,18 +755,20 @@ function createCheckout(screen, refresh) {
         changeQuantity(cart.get(button.dataset.sku), button.dataset.checkoutAction === 'subtract' ? -1 : 1);
         break;
       case 'member-checkout':
-      case 'change-member':
         showMemberForm(screen.querySelector('.member-dialog'));
         break;
       case 'close-member':
         button.closest('dialog').close();
         break;
       case 'demo-member': {
-        const input = button.form.querySelector('input');
-        if (input.readOnly) break;
-        input.value = checkoutDemoPhone;
-        formError(button.form, '');
-        input.focus();
+        const form = button.form;
+        const { areaCode, phone } = form.elements;
+        if (phone.readOnly) break;
+        areaCode.value = checkoutDefaultAreaCode;
+        phone.value = checkoutDemoPhone;
+        updateMemberPhoneFields(form, areaCode);
+        formError(form, '');
+        phone.focus();
         break;
       }
       case 'create-order':

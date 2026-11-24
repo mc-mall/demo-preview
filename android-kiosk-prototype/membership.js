@@ -1,13 +1,24 @@
 'use strict';
 
 const checkoutDemoPhone = '00000001';
+const checkoutDefaultAreaCode = '+853';
+const checkoutPhoneRegions = {
+  '+853': { label: '澳门', length: 8 },
+  '+852': { label: '香港', length: 8 },
+  '+86': { label: '中国内地', length: 11 },
+};
 
-function normalizeCheckoutPhone(value) {
-  const number = value.trim().replace(/[\s()-]/g, '').replace(/^00(?=\d{9,}$)/, '+');
-  if (/^\d{8}$/.test(number)) return '+853' + number;
-  if (/^1\d{10}$/.test(number)) return '+86' + number;
-  if (/^\+(?:85[23]\d{8}|861\d{10})$/.test(number)) return number;
-  return '';
+function splitCheckoutPhone(value) {
+  const compact = value.trim().replace(/[\s()-]/g, '').replace(/^00(?=\d{9,}$)/, '+');
+  const areaCode = Object.keys(checkoutPhoneRegions).find((code) => compact.startsWith(code));
+  return { areaCode, number: areaCode ? compact.slice(areaCode.length) : compact };
+}
+
+function normalizeCheckoutPhone(value, selectedAreaCode) {
+  const { areaCode = selectedAreaCode, number } = splitCheckoutPhone(value);
+  const region = checkoutPhoneRegions[areaCode];
+  if (!/^\d+$/.test(number) || number.length !== region?.length || (areaCode === '+86' && !number.startsWith('1'))) return '';
+  return areaCode + number;
 }
 
 function createCheckoutMemberDirectory() {
@@ -15,7 +26,7 @@ function createCheckoutMemberDirectory() {
   const storagePrefix = 'mc-mall.android-kiosk.member.v1.';
 
   async function match(phone) {
-    const demo = phone === '+853' + checkoutDemoPhone;
+    const demo = phone === checkoutDefaultAreaCode + checkoutDemoPhone;
     const digest = window.crypto.subtle
       ? await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(phone)).catch(() => null)
       : null;

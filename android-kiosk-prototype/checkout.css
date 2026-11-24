@@ -232,6 +232,19 @@
 .member-dialog::backdrop { background: #121e3b88; }
 .member-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .member-dialog-heading h2 { margin: 0; font-size: 23px; }
+.member-phone-fields { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; }
+.member-phone-fields select {
+  min-height: 52px;
+  padding-inline: 8px;
+  border: 1px solid #a8b5c8;
+  border-radius: 11px;
+  background: #f5f7fb;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}
+.member-phone-fields select:focus-visible { outline: 3px solid #6385ff; outline-offset: 3px; }
 .member-hint { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.5; }
 .member-dialog .primary + .text-button { display: block; margin: 4px auto -4px; }
 .member-profile { display: grid; gap: 5px; margin-bottom: 14px; padding: 13px 16px; border-radius: 11px; background: #edf2ff; }
