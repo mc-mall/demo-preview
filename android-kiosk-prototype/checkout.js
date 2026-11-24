@@ -125,22 +125,51 @@ function createCheckout(screen, refresh) {
     </button>`;
   }
 
+  function sizeGuide(product) {
+    const { columns, values } = product.sizeGuide;
+    return `<details class="size-guide">
+      <summary>查看尺码表</summary>
+      <table>
+        <caption>成衣尺寸（cm）· 演示数据</caption>
+        <thead><tr><th scope="col">尺码</th>${columns.map((column) => `<th scope="col">${column}</th>`).join('')}</tr></thead>
+        <tbody>${product.sizes.map((size) => `<tr><th scope="row">${size}</th>${values[size].map((value) => `<td>${value}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+    </details>`;
+  }
+
   function chooseSize(product) {
     const dialog = screen.querySelector('.size-dialog');
     dialog.innerHTML = `<form data-checkout-form="uniform" data-product="${product.id}">
       <header class="size-header">
-        <div><h2 id="size-title">选择尺码</h2><p>${product.school.name} · ${product.stage}</p></div>
+        <div><h2 id="size-title">商品详情</h2><p>${product.school.name} · ${product.stage}</p></div>
         <button class="text-button close-dialog" type="button" aria-label="关闭" data-checkout-action="close-size">×</button>
       </header>
-      <div class="size-product">
-        <img src="${product.image}" width="92" height="92" alt="">
-        <div><strong>${product.name}</strong><span>${product.color}</span><b>${money(product.price)}</b></div>
+      <div class="size-content">
+        <div class="size-product">
+          <img src="${product.image}" width="92" height="92" alt="">
+          <div><strong>${product.name}</strong><span>${product.color}</span><b>${money(product.price)} / 件</b></div>
+        </div>
+        <p class="size-description">${product.description}</p>
+        <fieldset class="size-options">
+          <legend>尺码（cm）</legend>
+          <div>${product.sizes.map((size, index) => `<label><input type="radio" name="size" value="${size}" required ${index === 0 ? 'autofocus' : ''}><span>${size}</span></label>`).join('')}</div>
+        </fieldset>
+        ${sizeGuide(product)}
       </div>
-      <fieldset class="size-options">
-        <legend>尺码（cm）</legend>
-        <div>${product.sizes.map((size, index) => `<label><input type="radio" name="size" value="${size}" required ${index === 0 ? 'autofocus' : ''}><span>${size}</span></label>`).join('')}</div>
-      </fieldset>
-      <button class="primary full" type="submit">加入购物车</button>
+      <footer class="size-footer">
+        <div class="size-order">
+          <div class="size-order-quantity">
+            <span>数量</span>
+            <div class="quantity" role="group" aria-label="购买数量">
+              <button type="button" data-checkout-action="uniform-quantity" data-step="-1" aria-label="减少数量" disabled>−</button>
+              <output data-uniform-quantity aria-label="所选数量">1</output>
+              <button type="button" data-checkout-action="uniform-quantity" data-step="1" aria-label="增加数量">+</button>
+            </div>
+          </div>
+          <div class="size-subtotal"><span>小计</span><strong data-uniform-subtotal>${money(product.price)}</strong></div>
+        </div>
+        <button class="primary full" type="submit">加入购物车</button>
+      </footer>
     </form>`;
     dialog.showModal();
   }
@@ -391,17 +420,30 @@ function createCheckout(screen, refresh) {
     refresh(scanned ? `已扫入 ${item.name}，当前 ${quantity} 件` : message, { preserveScroll: true });
   }
 
+  function updateUniformQuantity(button) {
+    const form = button.form;
+    const product = checkoutUniforms.find((entry) => entry.id === form.dataset.product);
+    const output = form.querySelector('[data-uniform-quantity]');
+    const quantity = Number(output.value) + Number(button.dataset.step);
+    if (quantity < 1 || !Number.isSafeInteger(quantity * product.price)) return;
+
+    output.value = quantity;
+    form.querySelector('[data-uniform-subtotal]').textContent = money(product.price * quantity);
+    form.querySelector('[data-step="-1"]').disabled = quantity === 1;
+  }
+
   function addUniform(form) {
     const product = checkoutUniforms.find((entry) => entry.id === form.dataset.product);
     const size = new FormData(form).get('size');
-    if (view !== 'home' || !product?.sizes.includes(size)) return;
+    const quantity = Number(form.querySelector('[data-uniform-quantity]').value);
+    if (view !== 'home' || !product?.sizes.includes(size) || !Number.isSafeInteger(quantity) || quantity < 1) return;
 
     form.closest('dialog').close();
     changeQuantity({
       kind: 'uniform', productId: product.id, sku: `${product.id}-${size}`,
       name: product.name, spec: `${product.school.name} · ${product.stage} · ${product.color} · ${size} cm`,
       price: product.price, image: product.image, location: product.location,
-    }, 1, { message: `已加入 ${product.name} · ${size} cm` });
+    }, quantity, { message: `已加入 ${product.name} · ${size} cm · ${quantity} 件` });
     screen.querySelector(`[data-product="${product.id}"]`).focus({ preventScroll: true });
   }
 
@@ -552,6 +594,9 @@ function createCheckout(screen, refresh) {
         break;
       case 'choose-size':
         chooseSize(checkoutUniforms.find((entry) => entry.id === button.dataset.product));
+        break;
+      case 'uniform-quantity':
+        updateUniformQuantity(button);
         break;
       case 'close-size':
         button.closest('dialog').close();
