@@ -9,6 +9,7 @@ function createCheckout(screen, refresh) {
   const delayedResultWait = 8000;
   const cart = new Map();
   const pickup = createPickupDesk(screen);
+  const memberDirectory = createCheckoutMemberDirectory();
   let order = loadPayment();
   let view = order?.status || 'home';
   let school = checkoutSchools[0];
@@ -222,11 +223,74 @@ function createCheckout(screen, refresh) {
           </dl>
           <div class="checkout-actions">
             <div class="payable"><span>应付金额</span><strong>${money(total)}</strong></div>
-            <button class="primary full" type="button" data-checkout-action="create-order" ${count ? '' : 'disabled'}>确认结账 <span aria-hidden="true">→</span></button>
+            <div class="checkout-buttons">
+              <button class="primary full" type="button" data-checkout-action="member-checkout" ${count ? '' : 'disabled'}>会员结账</button>
+              <button class="secondary full" type="button" data-checkout-action="create-order" ${count ? '' : 'disabled'}>非会员结账</button>
+            </div>
           </div>
         </aside>
       </div>
+      <dialog class="member-dialog" aria-labelledby="member-title"></dialog>
     </section>`;
+  }
+
+  function renderMemberDialog(dialog, content) {
+    dialog.innerHTML = `<header class="member-dialog-heading">
+      <h2 id="member-title">会员结账</h2>
+      <button class="text-button close-dialog" type="button" data-checkout-action="close-member" aria-label="关闭">×</button>
+    </header>${content}`;
+  }
+
+  function showMemberForm(dialog) {
+    renderMemberDialog(dialog, `<form data-checkout-form="member" class="order-panel" novalidate>
+      <label for="member-phone">手机号码</label>
+      <input id="member-phone" type="tel" inputmode="tel" maxlength="26" autocomplete="off" placeholder="输入手机号" aria-describedby="member-hint member-error" autofocus>
+      <p id="member-hint" class="member-hint">如果该号码尚未注册，将自动注册为普通会员。</p>
+      <p id="member-error" class="form-error" role="alert"></p>
+      <button class="primary full" type="submit">查询会员</button>
+      <button class="text-button" type="button" data-checkout-action="demo-member">填入演示手机号 ${checkoutDemoPhone}</button>
+    </form>`);
+    if (dialog.open) {
+      dialog.querySelector('#member-phone').focus();
+    } else {
+      dialog.onclose = () => {
+        if (!dialog.open) dialog.replaceChildren();
+      };
+      dialog.showModal();
+    }
+  }
+
+  function showMatchedMember(dialog, member) {
+    renderMemberDialog(dialog, `<div class="member-profile">
+      <strong>${member.name}</strong>
+      <span>${member.tier}</span>
+      <span>${member.maskedPhone}</span>
+    </div>
+    <button class="primary full" type="button" data-confirm-member>确认并选择支付方式</button>
+    <button class="text-button" type="button" data-checkout-action="change-member">重新输入手机号</button>`);
+    const confirm = dialog.querySelector('[data-confirm-member]');
+    confirm.addEventListener('click', () => createOrder(member), { once: true });
+    confirm.focus();
+  }
+
+  async function matchMember(form) {
+    const input = form.querySelector('input');
+    const submit = form.querySelector('button[type="submit"]');
+    if (submit.disabled) return;
+    const phone = normalizeCheckoutPhone(input.value);
+    if (!phone) {
+      formError(form, '请输入澳门或香港 8 位手机号（香港请加 +852），或内地 11 位手机号。');
+      return;
+    }
+    input.readOnly = true;
+    submit.disabled = true;
+    const dialog = form.closest('dialog');
+    const match = await memberDirectory.match(phone);
+    if (!dialog.open || !dialog.contains(form) || view !== 'cart') return;
+
+    const member = memberDirectory.findOrRegister(match);
+    if (member.newMember) createOrder(member);
+    else showMatchedMember(dialog, member);
   }
 
   function cartGroup(label, items) {
@@ -260,6 +324,10 @@ function createCheckout(screen, refresh) {
       ${heading('选择支付方式', '', failed ? 'back-to-failure' : 'edit-cart', failed ? '返回支付结果' : '返回购物车')}
       <div class="panel payment-panel">
         ${paymentHeader()}
+        <p class="payment-member">${order.member
+          ? `会员结账 · ${safeText(order.member.name)} · ${safeText(order.member.maskedPhone)}`
+          : '非会员结账'}</p>
+        ${order.member?.newMember ? '<p class="scan-feedback" role="status">已自动注册为普通会员，可以继续支付。</p>' : ''}
         <div class="payment-methods">
           ${payments.map((payment, index) => `<button type="button" data-checkout-action="payment-method" data-index="${index}"><span>${payment}</span><span aria-hidden="true">→</span></button>`).join('')}
         </div>
@@ -407,7 +475,7 @@ function createCheckout(screen, refresh) {
 
   function formError(form, message) {
     const input = form.querySelector('input');
-    form.querySelector('#checkout-error').textContent = message;
+    form.querySelector('.form-error').textContent = message;
     if (message) {
       input.setAttribute('aria-invalid', 'true');
       input.focus();
@@ -467,12 +535,13 @@ function createCheckout(screen, refresh) {
     }
   }
 
-  function createOrder() {
+  function createOrder(member = null) {
     if (view !== 'cart' || !cart.size) return;
     order = {
       ...totals(),
       id: `POS-${Date.now().toString(36).toUpperCase()}-${crypto.getRandomValues(new Uint32Array(1))[0]}`,
       items: Array.from(cart.values()),
+      member,
       payment: null,
       status: 'unpaid',
     };
@@ -580,6 +649,9 @@ function createCheckout(screen, refresh) {
       case 'uniform':
         addUniform(form);
         break;
+      case 'member':
+        matchMember(form);
+        break;
       case 'product':
         scanProduct(form.querySelector('input').value.trim(), form);
         break;
@@ -590,7 +662,7 @@ function createCheckout(screen, refresh) {
   });
 
   screen.addEventListener('input', (event) => {
-    const form = event.target.closest('[data-checkout-form="product"], [data-checkout-form="payment"]');
+    const form = event.target.closest('[data-checkout-form="product"], [data-checkout-form="payment"], [data-checkout-form="member"]');
     if (form) formError(form, '');
   });
 
@@ -639,6 +711,21 @@ function createCheckout(screen, refresh) {
       case 'add':
         changeQuantity(cart.get(button.dataset.sku), button.dataset.checkoutAction === 'subtract' ? -1 : 1);
         break;
+      case 'member-checkout':
+      case 'change-member':
+        showMemberForm(screen.querySelector('.member-dialog'));
+        break;
+      case 'close-member':
+        button.closest('dialog').close();
+        break;
+      case 'demo-member': {
+        const input = button.form.querySelector('input');
+        if (input.readOnly) break;
+        input.value = checkoutDemoPhone;
+        formError(button.form, '');
+        input.focus();
+        break;
+      }
       case 'create-order':
         createOrder();
         break;
