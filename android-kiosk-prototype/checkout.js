@@ -77,8 +77,11 @@ function createCheckout(screen, refresh) {
     </ol>`;
   }
 
+  function cartSummary({ count, total }) {
+    return `<span>购物车 · ${count} 件</span><strong>${money(total)}</strong>`;
+  }
+
   function homeView() {
-    const { count, total } = totals();
     const uniforms = checkoutUniforms.filter((product) => product.school === school && product.stage === stage);
     return `<section class="shopping-page" aria-labelledby="page-title">
       <div class="shopping-heading">
@@ -107,14 +110,30 @@ function createCheckout(screen, refresh) {
         </div>
       </div>
       <div class="catalog-cart">
-        <div class="catalog-cart-copy"><span>购物车 · ${count} 件</span><strong>${money(total)}</strong></div>
-        <button class="primary" type="button" data-checkout-action="cart">下一步 · 扫实物 <span aria-hidden="true">→</span></button>
+        <div class="catalog-cart-copy">${cartSummary(totals())}</div>
+        <div class="catalog-cart-buttons">
+          <button class="secondary" type="button" data-checkout-action="show-selected" aria-haspopup="dialog">查看已选</button>
+          <button class="primary" type="button" data-checkout-action="cart">下一步 · 扫实物 <span aria-hidden="true">→</span></button>
+        </div>
       </div>
       <nav class="pickup-tools" aria-label="取货服务">
         <button class="text-button" type="button" data-checkout-action="pickup-status">查询取货进度</button>
         <button class="text-button" type="button" data-checkout-action="warehouse">仓库拣货</button>
       </nav>
       <dialog class="size-dialog" aria-labelledby="size-title"></dialog>
+      <dialog class="selected-dialog" aria-labelledby="selected-title">
+        <div class="selected-panel">
+          <header class="size-header">
+            <h2 id="selected-title" tabindex="-1" autofocus>已选商品</h2>
+            <button class="text-button close-dialog" type="button" data-checkout-action="close-dialog" aria-label="关闭">×</button>
+          </header>
+          <div class="selected-items"></div>
+          <footer class="selected-footer">
+            <div class="catalog-cart-copy" role="status"></div>
+            <button class="primary" type="button" data-checkout-action="close-dialog">继续选购</button>
+          </footer>
+        </div>
+      </dialog>
     </section>`;
   }
 
@@ -147,7 +166,7 @@ function createCheckout(screen, refresh) {
     dialog.innerHTML = `<form data-checkout-form="uniform" data-product="${product.id}">
       <header class="size-header">
         <div><h2 id="size-title">商品详情</h2><p>${product.school.name} · ${product.stage}</p></div>
-        <button class="text-button close-dialog" type="button" aria-label="关闭" data-checkout-action="close-size">×</button>
+        <button class="text-button close-dialog" type="button" aria-label="关闭" data-checkout-action="close-dialog">×</button>
       </header>
       <div class="size-content">
         <div class="size-product">
@@ -334,21 +353,48 @@ function createCheckout(screen, refresh) {
     else showRegistrationConfirmation(dialog, match, phone);
   }
 
-  function cartGroup(label, items) {
+  function cartGroup(label, items, review = false) {
     if (!items.length) return '';
-    return `<section class="cart-group"><h3>${label}</h3><ul class="cart-items">${items.map(cartRow).join('')}</ul></section>`;
+    return `<section class="cart-group"><h3>${label}</h3><ul class="cart-items">${items.map((item) => cartRow(item, review)).join('')}</ul></section>`;
   }
 
-  function cartRow(item) {
+  function renderSelectedItems(dialog, summary) {
+    const list = dialog.querySelector('.selected-items');
+    const items = Array.from(cart.values());
+    const scrollTop = list.scrollTop;
+    const focused = list.querySelector('button:focus');
+    const index = focused ? Array.from(list.querySelectorAll('.cart-row')).indexOf(focused.closest('.cart-row')) : -1;
+    list.innerHTML = items.length
+      ? cartGroup('校服 · 店员配货', items.filter((item) => item.kind === 'uniform'), true)
+        + cartGroup('实物商品 · 随身带走', items.filter((item) => item.kind === 'retail'), true)
+      : '<p class="cart-empty">还没有已选商品。</p>';
+    list.scrollTop = scrollTop;
+    dialog.querySelector('.catalog-cart-copy').innerHTML = cartSummary(summary);
+
+    if (!focused) return;
+    const rows = list.querySelectorAll('.cart-row');
+    const row = rows[Math.min(index, rows.length - 1)];
+    const next = row?.querySelector(`[data-checkout-action="${focused.dataset.checkoutAction}"]`);
+    (next || dialog.querySelector('.selected-footer button')).focus({ preventScroll: true });
+  }
+
+  function showSelectedItems() {
+    const dialog = screen.querySelector('.selected-dialog');
+    renderSelectedItems(dialog, totals());
+    dialog.showModal();
+  }
+
+  function cartRow(item, review) {
     return `<li class="cart-row${lastScan?.sku === item.sku ? ' just-scanned' : ''}" data-cart-sku="${item.sku}">
       <img src="${item.image}" width="76" height="76" alt="">
       <div class="cart-product"><strong>${item.name}</strong><span>${item.spec}</span>
         <p class="cart-price">${money(item.price)} / 件</p>
       </div>
-      <div class="quantity" aria-label="${item.name}数量">
+      <div class="quantity" role="group" aria-label="${item.name} ${item.spec} 数量">
         <button type="button" data-checkout-action="subtract" data-sku="${item.sku}" aria-label="${item.name}减一件">−</button>
         <strong aria-label="${item.quantity} 件">${item.quantity}</strong>
-        <button type="button" data-checkout-action="add" data-sku="${item.sku}" aria-label="${item.name}加一件">+</button>
+        ${review ? `<button class="remove-selected" type="button" data-checkout-action="remove-selected" data-sku="${item.sku}" aria-label="移除 ${item.name} ${item.spec}">移除</button>`
+          : `<button type="button" data-checkout-action="add" data-sku="${item.sku}" aria-label="${item.name}加一件">+</button>`}
       </div>
     </li>`;
   }
@@ -532,6 +578,15 @@ function createCheckout(screen, refresh) {
     if (quantity > 0) cart.set(product.sku, item);
     else cart.delete(product.sku);
     lastScan = scanned ? item : null;
+    const selection = screen.querySelector('.selected-dialog[open]');
+    if (selection) {
+      const summary = totals();
+      screen.querySelector('.catalog-cart > .catalog-cart-copy').innerHTML = cartSummary(summary);
+      const card = screen.querySelector(`.uniform-card[data-product="${item.productId}"]`);
+      if (card) card.outerHTML = uniformCard(checkoutUniforms.find((entry) => entry.id === item.productId));
+      renderSelectedItems(selection, summary);
+      return;
+    }
     refresh(scanned ? `已扫入 ${item.name}，当前 ${quantity} 件` : message, { preserveScroll: true });
   }
 
@@ -730,7 +785,10 @@ function createCheckout(screen, refresh) {
       case 'uniform-quantity':
         updateUniformQuantity(button);
         break;
-      case 'close-size':
+      case 'show-selected':
+        showSelectedItems();
+        break;
+      case 'close-dialog':
         button.closest('dialog').close();
         break;
       case 'pickup-status':
@@ -754,6 +812,11 @@ function createCheckout(screen, refresh) {
       case 'add':
         changeQuantity(cart.get(button.dataset.sku), button.dataset.checkoutAction === 'subtract' ? -1 : 1);
         break;
+      case 'remove-selected': {
+        const item = cart.get(button.dataset.sku);
+        changeQuantity(item, -item.quantity);
+        break;
+      }
       case 'member-checkout':
         showMemberForm(screen.querySelector('.member-dialog'));
         break;
