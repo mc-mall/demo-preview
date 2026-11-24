@@ -1,23 +1,17 @@
 'use strict';
 
 function createCheckout(screen, refresh) {
-  const demoMember = { phone: '00000001', maskedPhone: '0000••01', name: '陈女士', tier: '普通会员' };
   const demoPaymentCode = '000000000000000001';
-  const products = [
-    { barcode: '200000001001', name: 'MC 校园运动 POLO 套装', spec: '蓝色 / M', original: 23900, price: 18900, image: 'p001.svg', shortName: 'POLO 套装' },
-    { barcode: '200000001002', name: '夏季短袖校服衬衫', spec: '白色 / M', original: 10900, price: 9900, image: 'p003.svg', shortName: '短袖衬衫' },
-    { barcode: '200000001003', name: '运动袜（3 双装）', spec: '白色 / 均码', original: 2900, price: 2900, image: 'a002-socks.svg', shortName: '运动袜' },
-  ];
   const payments = ['Mpay', '中银智慧付', 'Alipay HK'];
   const paymentStorageKey = 'mc-mall.android-kiosk.payment.v1';
   const callbackWait = 1800;
   const queryWait = 650;
   const delayedResultWait = 8000;
-  const imageDirectory = '../mc-mall-ui-demo-spec/demo/assets/products/';
   const cart = new Map();
   let order = loadPayment();
   let view = order?.status || 'home';
-  let member = null;
+  let school = checkoutSchools[0];
+  let stage = school.stages[0];
   let selectedPayment = '';
   let lastScan = null;
   let querying = false;
@@ -28,6 +22,10 @@ function createCheckout(screen, refresh) {
     return `MOP ${(cents / 100).toFixed(2)}`;
   }
 
+  function safeText(value) {
+    return String(value).replace(/[&<>]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character]);
+  }
+
   function moveTo(nextView) {
     view = nextView;
     refresh();
@@ -35,8 +33,9 @@ function createCheckout(screen, refresh) {
 
   function reset() {
     cart.clear();
-    member = null;
     order = null;
+    school = checkoutSchools[0];
+    stage = school.stages[0];
     selectedPayment = '';
     lastScan = null;
     queryNote = '';
@@ -52,11 +51,10 @@ function createCheckout(screen, refresh) {
   }
 
   function totals() {
-    const summary = { count: 0, original: 0, total: 0 };
-    for (const [product, quantity] of cart) {
-      summary.count += quantity;
-      summary.original += product.original * quantity;
-      summary.total += product.price * quantity;
+    const summary = { count: 0, total: 0 };
+    for (const item of cart.values()) {
+      summary.count += item.quantity;
+      summary.total += item.price * item.quantity;
     }
     return summary;
   }
@@ -69,107 +67,150 @@ function createCheckout(screen, refresh) {
     </header>`;
   }
 
+  function shoppingSteps(current) {
+    return `<ol class="shopping-steps" aria-label="购物流程">
+      ${['选校服', '扫实物', '结账付款'].map((label, index) => {
+        const step = index + 1;
+        return `<li ${step === current ? 'aria-current="step"' : ''} class="${step < current ? 'completed' : ''}"><span aria-hidden="true">${step < current ? '✓' : step}</span>${label}</li>`;
+      }).join('')}
+    </ol>`;
+  }
+
   function homeView() {
-    return `<section class="home" aria-labelledby="page-title">
-      <div class="home-heading">
-        <h1 id="page-title" tabindex="-1">自助收银</h1>
-        <p class="description">选择登录方式，开始扫码购物</p>
+    const { count, total } = totals();
+    const uniforms = checkoutUniforms.filter((product) => product.school === school && product.stage === stage);
+    return `<section class="shopping-page" aria-labelledby="page-title">
+      <div class="shopping-heading">
+        <h1 id="page-title" tabindex="-1">自助购物</h1>
+        ${shoppingSteps(1)}
       </div>
-      <div class="home-actions">
-        <button class="action-card pickup-card" type="button" data-checkout-action="member">
-          <span class="card-icon" aria-hidden="true"><i class="member-icon"></i></span>
-          <span class="card-copy"><strong>会员登录</strong><small>输入会员手机号</small></span><span class="card-arrow" aria-hidden="true">→</span>
-        </button>
-        <button class="action-card deposit-card" type="button" data-checkout-action="guest">
-          <span class="card-icon" aria-hidden="true"><i class="barcode-icon"></i></span>
-          <span class="card-copy"><strong>非会员登录</strong><small>直接扫码结账</small></span><span class="card-arrow" aria-hidden="true">→</span>
-        </button>
-      </div>
-    </section>`;
-  }
-
-  function phoneView() {
-    return `<section class="flow" aria-labelledby="page-title">
-      ${heading('会员登录', '请输入已登记的会员手机号。', 'home')}
-      <div class="panel order-panel">
-        <form data-checkout-form="phone" novalidate>
-          <label for="checkout-phone">会员手机号</label>
-          <input id="checkout-phone" type="tel" inputmode="tel" maxlength="20" autocomplete="off" placeholder="请输入手机号" aria-describedby="checkout-error" data-checkout-focus>
-          <p id="checkout-error" class="form-error" role="alert"></p>
-          <button class="primary full" type="submit">确认</button>
-          <button class="text-button sample" type="button" data-checkout-action="demo-phone">填入演示手机号 <span>${demoMember.phone}</span></button>
-        </form>
-      </div>
-    </section>`;
-  }
-
-  function memberView() {
-    return `<section class="flow" aria-labelledby="page-title">
-      ${heading('会员信息', '', 'change-phone', '重新输入手机号')}
-      <div class="panel member-panel">
-        <div class="member-card">
-          <span class="card-icon" aria-hidden="true"><i class="member-icon"></i></span>
-          <div><strong>${member.name}</strong><span>${member.tier} · ${member.maskedPhone}</span></div>
+      <div class="catalog-layout">
+        <nav class="school-nav" aria-label="学校分类">
+          <h2>选择学校</h2>
+          ${checkoutSchools.map((entry) => `<button type="button" data-checkout-action="school" data-school="${entry.id}" aria-pressed="${entry === school}">
+            <img src="catalog/${entry.logo}" width="42" height="42" alt="">
+            <span>${entry.name}</span><span class="school-arrow" aria-hidden="true">›</span>
+          </button>`).join('')}
+        </nav>
+        <div class="catalog-main">
+          <div class="school-banner">
+            <div><h2>${school.name}</h2><p>按学段选购校服，付款后由店员配货</p></div>
+            <img src="catalog/${school.logo}" width="96" height="96" alt="">
+          </div>
+          <div class="stage-nav" role="group" aria-label="学段分类">
+            ${school.stages.map((entry) => `<button type="button" data-checkout-action="stage" data-stage="${entry}" aria-pressed="${entry === stage}">${entry}</button>`).join('')}
+          </div>
+          <div class="uniform-grid">
+            ${uniforms.map(uniformCard).join('')}
+          </div>
         </div>
-        <button class="primary full" type="button" data-checkout-action="cart">进入结账</button>
       </div>
+      <div class="catalog-cart">
+        <div class="catalog-cart-copy"><span>购物车 · ${count} 件</span><strong>${money(total)}</strong></div>
+        <button class="primary" type="button" data-checkout-action="cart">下一步 · 扫实物 <span aria-hidden="true">→</span></button>
+      </div>
+      <dialog class="size-dialog" aria-labelledby="size-title"></dialog>
     </section>`;
+  }
+
+  function uniformCard(product) {
+    const count = Array.from(cart.values()).reduce((sum, item) => sum + (item.productId === product.id ? item.quantity : 0), 0);
+    return `<button class="uniform-card" type="button" data-checkout-action="choose-size" data-product="${product.id}">
+      <span class="uniform-image"><img src="${product.image}" width="560" height="560" alt=""></span>
+      <span class="uniform-copy">
+        <strong>${product.name}</strong>
+        <span class="uniform-color">${product.color}${count ? ` · 已选 ${count} 件` : ''}</span>
+        <span class="uniform-price"><b>${money(product.price)}</b><span>选尺码 <span aria-hidden="true">＋</span></span></span>
+      </span>
+    </button>`;
+  }
+
+  function chooseSize(product) {
+    const dialog = screen.querySelector('.size-dialog');
+    dialog.innerHTML = `<form data-checkout-form="uniform" data-product="${product.id}">
+      <header class="size-header">
+        <div><h2 id="size-title">选择尺码</h2><p>${product.school.name} · ${product.stage}</p></div>
+        <button class="text-button close-dialog" type="button" aria-label="关闭" data-checkout-action="close-size">×</button>
+      </header>
+      <div class="size-product">
+        <img src="${product.image}" width="92" height="92" alt="">
+        <div><strong>${product.name}</strong><span>${product.color}</span><b>${money(product.price)}</b></div>
+      </div>
+      <fieldset class="size-options">
+        <legend>尺码（cm）</legend>
+        <div>${product.sizes.map((size, index) => `<label><input type="radio" name="size" value="${size}" required ${index === 0 ? 'autofocus' : ''}><span>${size}</span></label>`).join('')}</div>
+      </fieldset>
+      <button class="primary full" type="submit">加入购物车</button>
+    </form>`;
+    dialog.showModal();
+  }
+
+  function scannerPanel() {
+    return `<div class="panel order-panel scanner-panel">
+      <form data-checkout-form="product" novalidate>
+        <label for="checkout-barcode">非校服商品条形码</label>
+        <div class="scan-entry">
+          <input id="checkout-barcode" type="text" inputmode="none" maxlength="32" autocomplete="off" spellcheck="false" aria-describedby="checkout-error" placeholder="等待扫码" data-checkout-focus>
+          <button class="primary" type="submit">加入购物车</button>
+        </div>
+        <p id="checkout-error" class="form-error" role="alert"></p>
+      </form>
+      <div class="demo-products" aria-label="模拟商品扫码">
+        <span>模拟扫码</span>
+        ${checkoutRetail.map((product) => `<button class="text-button" type="button" data-checkout-action="demo-product" data-sku="${product.sku}" title="条形码 ${product.sku}">${product.shortName}</button>`).join('')}
+      </div>
+      ${lastScan ? `<p class="scan-feedback"><span aria-hidden="true">✓</span> 已扫入 ${lastScan.name}，当前 ${lastScan.quantity} 件</p>` : ''}
+    </div>`;
   }
 
   function cartView() {
-    const { count, original, total } = totals();
-    return `<section class="checkout-flow" aria-labelledby="page-title">
-      ${heading('扫码结账', '将商品条形码对准扫码器。', 'home', '返回收银首页')}
+    const { count, total } = totals();
+    const items = Array.from(cart.values());
+    const uniforms = items.filter((item) => item.kind === 'uniform');
+    const retail = items.filter((item) => item.kind === 'retail');
+    return `<section class="shopping-page" aria-labelledby="page-title">
+      <div class="shopping-heading">
+        ${heading('扫描实物商品', '将实物条形码对准扫码器。只买校服可直接结账。', 'browse', '返回选校服')}
+        ${shoppingSteps(2)}
+      </div>
       <div class="checkout-layout">
         <div class="checkout-main">
-          <div class="panel order-panel scanner-panel">
-            <form data-checkout-form="product" novalidate>
-              <label for="checkout-barcode">商品条形码</label>
-              <div class="scan-entry">
-                <input id="checkout-barcode" type="text" inputmode="none" maxlength="32" autocomplete="off" spellcheck="false" aria-describedby="checkout-error" placeholder="等待扫码" data-checkout-focus>
-                <button class="primary" type="submit">加入购物车</button>
-              </div>
-              <p id="checkout-error" class="form-error" role="alert"></p>
-            </form>
-            <div class="demo-products" aria-label="模拟商品扫码">
-              <span>模拟扫码</span>
-              ${products.map((product) => `<button class="text-button" type="button" data-checkout-action="demo-product" data-barcode="${product.barcode}" title="条形码 ${product.barcode}">${product.shortName}</button>`).join('')}
-            </div>
-            ${lastScan ? `<p class="scan-feedback"><span aria-hidden="true">✓</span> 已扫入 ${lastScan.product.name}，当前 ${lastScan.quantity} 件</p>` : ''}
-          </div>
+          ${scannerPanel()}
           <div class="panel cart-panel">
             <header class="cart-heading"><h2>购物车</h2><span>${count} 件商品</span></header>
-            ${count ? `<ul class="cart-items">${Array.from(cart, ([product, quantity]) => cartRow(product, quantity)).join('')}</ul>` : '<p class="cart-empty">扫码后，商品将在这里显示。</p>'}
+            ${count ? `${cartGroup('校服 · 店员配货', uniforms)}${cartGroup('实物商品 · 随身带走', retail)}` : '<p class="cart-empty">已选校服和扫入的实物商品将在这里合并结算。</p>'}
           </div>
         </div>
-        <aside class="panel checkout-summary" aria-label="金额明细">
+        <aside class="panel checkout-summary" aria-label="结账明细">
           <h2>结账明细</h2>
-          <p class="customer-label">${member ? `${member.name} · ${member.tier}` : '非会员'}</p>
           <dl class="receipt-details">
-            <div><dt>商品原价</dt><dd>${money(original)}</dd></div>
-            <div><dt>商品优惠</dt><dd>${total < original ? '−' : ''}${money(original - total)}</dd></div>
+            <div><dt>校服</dt><dd>${money(uniforms.reduce((sum, item) => sum + item.price * item.quantity, 0))}</dd></div>
+            <div><dt>实物商品</dt><dd>${money(retail.reduce((sum, item) => sum + item.price * item.quantity, 0))}</dd></div>
           </dl>
           <div class="checkout-actions">
             <div class="payable"><span>应付金额</span><strong>${money(total)}</strong></div>
-            <button class="primary full" type="button" data-checkout-action="create-order" ${count ? '' : 'disabled'}>确认结账</button>
+            <button class="primary full" type="button" data-checkout-action="create-order" ${count ? '' : 'disabled'}>确认结账 <span aria-hidden="true">→</span></button>
           </div>
         </aside>
       </div>
     </section>`;
   }
 
-  function cartRow(product, quantity) {
-    const discount = product.original - product.price;
-    return `<li class="cart-row${lastScan?.product === product ? ' just-scanned' : ''}" data-cart-barcode="${product.barcode}">
-      <img src="${imageDirectory}${product.image}" width="76" height="76" alt="">
-      <div class="cart-product"><strong>${product.name}</strong><span>${product.spec}</span>
-        <p class="cart-price">${money(product.price)} ${discount ? `<del>${money(product.original)}</del>` : ''}</p>
-        ${discount ? `<span class="product-discount">每件省 ${money(discount)}</span>` : '<span>无折扣</span>'}
+  function cartGroup(label, items) {
+    if (!items.length) return '';
+    return `<section class="cart-group"><h3>${label}</h3><ul class="cart-items">${items.map(cartRow).join('')}</ul></section>`;
+  }
+
+  function cartRow(item) {
+    return `<li class="cart-row${lastScan?.sku === item.sku ? ' just-scanned' : ''}" data-cart-sku="${item.sku}">
+      <img src="${item.image}" width="76" height="76" alt="">
+      <div class="cart-product"><strong>${item.name}</strong><span>${item.spec}</span>
+        <p class="cart-price">${money(item.price)} / 件</p>
       </div>
-      <div class="quantity" aria-label="${product.name}数量">
-        <button type="button" data-checkout-action="subtract" data-barcode="${product.barcode}" aria-label="${product.name}减一件">−</button>
-        <strong aria-label="${quantity} 件">${quantity}</strong>
-        <button type="button" data-checkout-action="add" data-barcode="${product.barcode}" aria-label="${product.name}加一件">+</button>
+      <div class="quantity" aria-label="${item.name}数量">
+        <button type="button" data-checkout-action="subtract" data-sku="${item.sku}" aria-label="${item.name}减一件">−</button>
+        <strong aria-label="${item.quantity} 件">${item.quantity}</strong>
+        <button type="button" data-checkout-action="add" data-sku="${item.sku}" aria-label="${item.name}加一件">+</button>
       </div>
     </li>`;
   }
@@ -182,6 +223,7 @@ function createCheckout(screen, refresh) {
   function methodsView() {
     const failed = order.status === 'failed';
     return `<section class="flow" aria-labelledby="page-title">
+      ${shoppingSteps(3)}
       ${heading('选择支付方式', '', failed ? 'back-to-failure' : 'edit-cart', failed ? '返回支付结果' : '返回购物车')}
       <div class="panel payment-panel">
         ${paymentHeader()}
@@ -250,20 +292,82 @@ function createCheckout(screen, refresh) {
     </section>`;
   }
 
+  function receiptHeader(title) {
+    const paidAt = new Intl.DateTimeFormat('zh-CN', {
+      timeZone: 'Asia/Macau', dateStyle: 'medium', timeStyle: 'short', hourCycle: 'h23',
+    }).format(order.paidAt);
+    return `<header class="receipt-heading">
+      <p>澳设商城 · 门店自助终端</p>
+      <h2>${title}</h2>
+      <p>订单号 ${order.id}</p>
+      <p>${paidAt} · 支付已确认（演示）</p>
+    </header>`;
+  }
+
+  function customerReceipt(pickingCount) {
+    return `<article class="order-receipt" aria-label="客户联">
+      ${receiptHeader('客户联')}
+      <ul class="receipt-items">${order.items.map((item) => `<li>
+        <div><strong>${safeText(item.name)}</strong><small>${safeText(item.spec)}</small><small>${money(item.price)} × ${item.quantity}</small></div>
+        <b>${money(item.price * item.quantity)}</b>
+      </li>`).join('')}</ul>
+      <dl class="receipt-details">
+        <div><dt>商品数量</dt><dd>${order.count} 件</dd></div>
+        <div><dt>支付方式</dt><dd>${order.payment}</dd></div>
+        <div><dt>实付金额</dt><dd>${money(order.total)}</dd></div>
+      </dl>
+      ${pickingCount ? '<p class="receipt-note">请保留本联，凭订单号领取店员配好的校服。</p>' : ''}
+    </article>`;
+  }
+
+  function warehouseReceipt(pickingItems, pickingCount) {
+    return `<article class="order-receipt" aria-label="仓库联">
+      ${receiptHeader('仓库联 · 拣货单')}
+      ${pickingCount ? `<ul class="receipt-items">${pickingItems.map((item) => `<li>
+        <div><strong>${safeText(item.name)}</strong><small>${safeText(item.spec)}</small>
+          <small>SKU ${safeText(item.sku)}</small><small>货位 ${safeText(item.location)}</small>
+        </div><b>× ${item.quantity}</b>
+      </li>`).join('')}</ul>
+      <dl class="receipt-details"><div><dt>应拣校服</dt><dd>${pickingCount} 件</dd></div></dl>
+      <p class="receipt-note">按货位、尺码及数量拣货，按订单号交接。</p>`
+        : '<p class="receipt-note">本单商品由客户随身带走，无需拣货。</p>'}
+    </article>`;
+  }
+
   function paidView() {
-    return `<section class="flow" aria-labelledby="page-title">
-      ${heading('支付完成')}
-      <div class="panel payment-panel payment-state">
+    const pickingItems = (order.items || []).filter((item) => item.kind === 'uniform')
+      .sort((first, second) => first.location.localeCompare(second.location));
+    const pickingCount = pickingItems.reduce((sum, item) => sum + item.quantity, 0);
+    return `<section class="paid-page" aria-labelledby="page-title">
+      <div class="panel paid-summary">
         <span class="success-mark" aria-hidden="true">✓</span>
+        ${heading('支付完成', pickingCount ? '请保留客户联，稍后凭订单号领取校服。' : '')}
         <div class="payment-amount"><span>实付金额</span><strong>${money(order.total)}</strong></div>
-        <dl class="receipt-details">
-          <div><dt>订单号</dt><dd>${order.id}</dd></div>
-          <div><dt>支付方式</dt><dd>${order.payment}</dd></div>
-          <div><dt>商品数量</dt><dd>${order.count} 件</dd></div>
-        </dl>
-        <button class="primary full" type="button" data-checkout-action="home">返回收银首页</button>
+        <p class="payment-order">${order.id} · ${order.payment} · ${order.count} 件</p>
+        <div class="paid-actions">
+          ${order.items ? '<button class="secondary" type="button" data-checkout-action="print">打印两联小票</button>' : ''}
+          <button class="primary" type="button" data-checkout-action="home">开始下一单</button>
+        </div>
       </div>
+      ${order.items ? `<div class="print-receipts">${customerReceipt(pickingCount)}${warehouseReceipt(pickingItems, pickingCount)}</div>`
+        : '<p class="receipt-note">旧版演示订单只保留支付信息。</p>'}
     </section>`;
+  }
+
+  function printReceipts() {
+    if (view !== 'paid' || !order?.items || !screen.querySelector('.print-receipts')) return;
+    order.printRequested = true;
+    savePayment();
+    window.print();
+  }
+
+  function scheduleReceiptPrint() {
+    const paidOrder = order;
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        if (order === paidOrder && !paidOrder.printRequested) printReceipts();
+      }, 0);
+    });
   }
 
   function formError(form, message) {
@@ -278,21 +382,47 @@ function createCheckout(screen, refresh) {
     }
   }
 
-  function changeQuantity(product, change, scanned = false) {
-    const quantity = (cart.get(product) || 0) + change;
-    if (quantity > 0) cart.set(product, quantity);
-    else cart.delete(product);
-    lastScan = scanned ? { product, quantity } : null;
-    refresh(scanned ? `已扫入 ${product.name}，当前 ${quantity} 件` : '', { preserveScroll: true });
+  function changeQuantity(product, change, { scanned = false, message = '' } = {}) {
+    const quantity = (cart.get(product.sku)?.quantity || 0) + change;
+    const item = { ...product, quantity };
+    if (quantity > 0) cart.set(product.sku, item);
+    else cart.delete(product.sku);
+    lastScan = scanned ? item : null;
+    refresh(scanned ? `已扫入 ${item.name}，当前 ${quantity} 件` : message, { preserveScroll: true });
+  }
+
+  function addUniform(form) {
+    const product = checkoutUniforms.find((entry) => entry.id === form.dataset.product);
+    const size = new FormData(form).get('size');
+    if (view !== 'home' || !product?.sizes.includes(size)) return;
+
+    form.closest('dialog').close();
+    changeQuantity({
+      kind: 'uniform', productId: product.id, sku: `${product.id}-${size}`,
+      name: product.name, spec: `${product.school.name} · ${product.stage} · ${product.color} · ${size} cm`,
+      price: product.price, image: product.image, location: product.location,
+    }, 1, { message: `已加入 ${product.name} · ${size} cm` });
+    screen.querySelector(`[data-product="${product.id}"]`).focus({ preventScroll: true });
+  }
+
+  function scanProduct(value, form) {
+    if (view !== 'cart') return;
+    const product = checkoutRetail.find((candidate) => candidate.sku === value);
+    if (product) {
+      changeQuantity({ ...product, kind: 'retail' }, 1, { scanned: true });
+    } else if (['200000001001', '200000001002'].includes(value) || checkoutUniforms.some(({ id }) => value.toUpperCase().startsWith(id))) {
+      formError(form, '请返回学校分类，选择校服和尺码。');
+    } else {
+      formError(form, value ? '未识别到实物商品，请核对条形码后重试。' : '请扫描商品条形码。');
+    }
   }
 
   function createOrder() {
-    if (!cart.size) return;
+    if (view !== 'cart' || !cart.size) return;
     order = {
       ...totals(),
       id: `POS-${Date.now().toString(36).toUpperCase()}-${++orderSequence}`,
-      items: Array.from(cart, ([product, quantity]) => ({ ...product, quantity })),
-      member,
+      items: Array.from(cart.values()),
       payment: null,
       status: 'unpaid',
     };
@@ -310,7 +440,10 @@ function createCheckout(screen, refresh) {
         && Number.isSafeInteger(saved.total) && saved.total >= 0 && Number.isSafeInteger(saved.count) && saved.count > 0
         && ['pending', 'unknown', 'failed', 'paid'].includes(saved.status)
         && ['paid', 'failed', 'delayed'].includes(saved.attempt?.result)
-        && Number.isFinite(saved.attempt.callbackAt) && Number.isFinite(saved.attempt.availableAt)) return saved;
+        && Number.isFinite(saved.attempt.callbackAt) && Number.isFinite(saved.attempt.availableAt)) {
+        if (!Array.isArray(saved.items) || !saved.items.length) delete saved.items;
+        return saved;
+      }
     } catch {
       // A payment can still be simulated in memory if browser storage is unavailable.
     }
@@ -320,8 +453,7 @@ function createCheckout(screen, refresh) {
   function savePayment() {
     try {
       if (order) {
-        const { id, total, count, payment, status, attempt } = order;
-        sessionStorage.setItem(paymentStorageKey, JSON.stringify({ id, total, count, payment, status, attempt }));
+        sessionStorage.setItem(paymentStorageKey, JSON.stringify(order));
       } else {
         sessionStorage.removeItem(paymentStorageKey);
       }
@@ -332,8 +464,10 @@ function createCheckout(screen, refresh) {
 
   function changePaymentStatus(status) {
     order.status = status;
+    if (status === 'paid') order.paidAt = Date.now();
     savePayment();
     moveTo(status);
+    if (status === 'paid' && order.items) scheduleReceiptPrint();
   }
 
   function schedulePaymentCallback() {
@@ -374,7 +508,7 @@ function createCheckout(screen, refresh) {
         changePaymentStatus('paid');
       } else {
         queryNote = '付款结果尚未确认，请稍后再查询。';
-        refresh(queryNote);
+        refresh();
       }
     }, queryWait);
   }
@@ -383,30 +517,21 @@ function createCheckout(screen, refresh) {
     const form = event.target;
     if (!form.matches('[data-checkout-form]')) return;
     event.preventDefault();
-    const value = form.querySelector('input').value.trim();
     switch (form.dataset.checkoutForm) {
-      case 'phone':
-        if (value === demoMember.phone) {
-          member = demoMember;
-          moveTo('member');
-        } else {
-          formError(form, value ? '未找到会员，请核对手机号后重试。' : '请输入会员手机号。');
-        }
+      case 'uniform':
+        addUniform(form);
         break;
-      case 'product': {
-        const product = products.find((candidate) => candidate.barcode === value);
-        if (product) changeQuantity(product, 1, true);
-        else formError(form, value ? '未识别到商品，请核对条形码后重试。' : '请扫描商品条形码。');
+      case 'product':
+        scanProduct(form.querySelector('input').value.trim(), form);
         break;
-      }
       case 'payment':
-        receivePaymentScan(value, form);
+        receivePaymentScan(form.querySelector('input').value.trim(), form);
         break;
     }
   });
 
   screen.addEventListener('input', (event) => {
-    const form = event.target.closest('form[data-checkout-form]');
+    const form = event.target.closest('[data-checkout-form="product"], [data-checkout-form="payment"]');
     if (form) formError(form, '');
   });
 
@@ -414,37 +539,46 @@ function createCheckout(screen, refresh) {
     const button = event.target.closest('[data-checkout-action]');
     if (!button || button.disabled) return;
     switch (button.dataset.checkoutAction) {
-      case 'member':
-      case 'change-phone':
-        member = null;
-        moveTo('phone');
+      case 'school':
+        school = checkoutSchools.find((entry) => entry.id === button.dataset.school);
+        stage = school.stages[0];
+        refresh('', { preserveScroll: true });
+        screen.querySelector(`[data-school="${school.id}"]`).focus({ preventScroll: true });
         break;
-      case 'guest':
+      case 'stage':
+        stage = button.dataset.stage;
+        refresh('', { preserveScroll: true });
+        screen.querySelector(`[data-stage="${stage}"]`).focus({ preventScroll: true });
+        break;
+      case 'choose-size':
+        chooseSize(checkoutUniforms.find((entry) => entry.id === button.dataset.product));
+        break;
+      case 'close-size':
+        button.closest('dialog').close();
+        break;
       case 'cart':
         moveTo('cart');
+        break;
+      case 'browse':
+        lastScan = null;
+        moveTo('home');
         break;
       case 'home':
         if (leave()) refresh();
         break;
-      case 'demo-phone': {
-        const input = screen.querySelector('#checkout-phone');
-        input.value = demoMember.phone;
-        formError(input.form, '');
-        input.focus();
-        break;
-      }
       case 'demo-product':
-      case 'subtract':
-      case 'add': {
-        const product = products.find((candidate) => candidate.barcode === button.dataset.barcode);
-        changeQuantity(product, button.dataset.checkoutAction === 'subtract' ? -1 : 1, button.dataset.checkoutAction === 'demo-product');
+        scanProduct(button.dataset.sku, screen.querySelector('[data-checkout-form="product"]'));
         break;
-      }
+      case 'subtract':
+      case 'add':
+        changeQuantity(cart.get(button.dataset.sku), button.dataset.checkoutAction === 'subtract' ? -1 : 1);
+        break;
       case 'create-order':
         createOrder();
         break;
       case 'edit-cart':
         order = null;
+        savePayment();
         moveTo('cart');
         break;
       case 'payment-method':
@@ -467,14 +601,18 @@ function createCheckout(screen, refresh) {
       case 'demo-payment':
         receivePaymentScan(demoPaymentCode, screen.querySelector('[data-checkout-form="payment"]'), button.dataset.result);
         break;
+      case 'print':
+        printReceipts();
+        break;
     }
   });
 
   const views = {
-    home: homeView, phone: phoneView, member: memberView, cart: cartView, methods: methodsView,
+    home: homeView, cart: cartView, methods: methodsView,
     scan: scanView, pending: pendingView, unknown: unknownView, failed: failedView, paid: paidView,
   };
   if (view === 'pending') schedulePaymentCallback();
+  if (view === 'paid' && order.items && !order.printRequested) scheduleReceiptPrint();
   return {
     render() {
       screen.innerHTML = views[view]();
