@@ -174,9 +174,18 @@ h1:focus { outline: none; }
 .door small { color: var(--muted); font-size: 12px; }
 .door:disabled { border-color: var(--line); background: #edf1f7; color: var(--muted); }
 .door[aria-pressed="true"] { border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); background: #eff3ff; color: var(--blue); }
+.door[aria-pressed="true"] small { color: var(--blue); }
+.locker-door-help { display: block; margin-bottom: 12px; color: var(--muted); font-size: 14px; }
 .door-panel, .done-panel { text-align: center; }
-.door-number { display: block; margin-bottom: 12px; color: var(--blue); font-size: clamp(64px, 13vw, 110px); font-weight: 850; line-height: 1; letter-spacing: -.055em; }
+.locker-open-doors { margin: 0 0 12px; padding: 0; list-style: none; }
+.locker-open-doors.multiple { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.door-number { color: var(--blue); font-size: clamp(64px, 13vw, 110px); font-weight: 850; line-height: 1; letter-spacing: -.055em; }
+.locker-open-doors.multiple .door-number { min-width: 68px; padding: 10px 12px; border: 1px solid #bfcbe0; border-radius: 11px; background: #eff3ff; font-size: clamp(24px, 5vw, 40px); }
+.locker-add-door { margin-top: 6px; }
+.locker-add-door:disabled { color: var(--muted); }
+.door-panel .locker-door-help { margin-bottom: 0; }
 .door-panel p:not(.flow-label), .done-panel p { margin-bottom: 18px; color: var(--muted); line-height: 1.5; }
+.door-panel p.form-error { color: #a52432; }
 .success-mark { width: 68px; height: 68px; margin: 3px auto 14px; border-radius: 50%; background: #e5f6ed; color: #176542; font-size: 35px; }
 #remaining { color: var(--ink); font-size: 30px; font-variant-numeric: tabular-nums; }
 
