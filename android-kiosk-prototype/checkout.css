@@ -233,10 +233,39 @@
 .quantity .remove-selected:hover { background: #fce4e5; }
 
 .checkout-summary { position: sticky; top: 16px; }
+.checkout-pickup { display: grid; gap: 7px; margin: 14px 0; }
+.checkout-pickup h3 { margin: 0 0 2px; font-size: 17px; }
+.pickup-option {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 3px 10px;
+  min-height: 58px;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+}
+.pickup-option::before {
+  content: '';
+  grid-row: span 2;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #a8b5c8;
+  border-radius: 50%;
+  background: var(--surface);
+}
+.pickup-option:hover { border-color: #91a6e2; }
+.pickup-option[aria-pressed="true"] { border-color: #839beb; background: #edf2ff; color: var(--blue); }
+.pickup-option[aria-pressed="true"]::before { border-color: var(--blue); box-shadow: inset 0 0 0 4px var(--blue); }
+.pickup-option strong { font-size: 16px; }
+.pickup-option span { color: var(--muted); font-size: 14px; line-height: 1.4; }
 .checkout-buttons { display: grid; gap: 8px; }
 .checkout-buttons button { min-height: 52px; font-size: 16px; }
 .checkout-buttons .secondary:disabled { background: #f1f4f8; color: var(--muted); }
-.member-dialog {
+.member-dialog, .pickup-station-dialog {
   width: min(calc(100% - 24px), 420px);
   max-height: calc(100dvh - 24px);
   padding: clamp(16px, 4vw, 24px);
@@ -245,9 +274,23 @@
   color: var(--ink);
   box-shadow: 0 18px 60px #101b3a45;
 }
-.member-dialog::backdrop { background: #121e3b88; }
-.member-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-.member-dialog-heading h2 { margin: 0; font-size: 23px; }
+.member-dialog::backdrop, .pickup-station-dialog::backdrop { background: #121e3b88; }
+.member-dialog-heading, .pickup-station-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.member-dialog-heading h2, .pickup-station-heading h2 { margin: 0; font-size: 23px; }
+.pickup-station-dialog > p { color: var(--muted); font-size: 14px; line-height: 1.5; }
+.pickup-stations { display: grid; gap: 8px; margin: 14px 0; }
+.pickup-stations label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.pickup-stations input { width: 18px; height: 18px; margin: 0; accent-color: var(--blue); }
+.pickup-stations label:has(input:checked) { border-color: #839beb; background: #edf2ff; color: var(--blue); }
 .member-phone-fields { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; }
 .member-phone-fields select {
   min-height: 52px;
@@ -278,6 +321,7 @@
 
 .payment-amount { display: grid; gap: 4px; }
 .payment-order { margin-top: 6px; color: var(--muted); font-size: 13px; }
+.payment-pickup { margin-top: 6px; color: var(--ink); font-size: 14px; font-weight: 650; }
 .payment-methods { display: grid; gap: 8px; margin-top: 18px; }
 .payment-methods button { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 55px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 11px; background: #f4f7fd; color: var(--ink); font-size: 17px; font-weight: 750; text-align: left; }
 .payment-methods button:hover { border-color: #91a6e2; background: #edf2ff; }
@@ -361,6 +405,7 @@
 }
 .pickup-status:empty { display: none; }
 .pickup-status[data-state="ready"] { background: #e5f6ed; color: #176542; }
+.pickup-status[data-state="in-transit"] { background: #eaf0ff; color: #1e43b6; }
 .pickup-status span { font-size: 14px; }
 .pickup-update { color: var(--ink); font-size: 14px; line-height: 1.5; }
 .pickup-update:empty { display: none; }
