@@ -29,7 +29,7 @@
 .shopping-steps .completed span { background: #e5f6ed; color: #176542; }
 .flow > .shopping-steps { margin-bottom: 14px; }
 
-.catalog-layout { display: grid; grid-template-columns: minmax(160px, 208px) minmax(0, 1fr); gap: 18px; }
+.catalog-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 18px; }
 .school-nav { align-self: start; padding: 14px 10px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
 .school-nav h2 { margin: 0 8px 10px; color: var(--muted); font-size: 14px; }
 .school-nav button {
@@ -89,7 +89,7 @@
   scrollbar-gutter: stable;
 }
 .catalog-list:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 14px; }
-.uniform-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.uniform-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .uniform-card {
   display: grid;
   align-content: start;
@@ -388,7 +388,7 @@
 .receipt-items b { white-space: nowrap; }
 .receipt-note { margin-top: 12px; color: var(--muted); font-size: 13px; line-height: 1.5; }
 
-@media (max-width: 760px) {
+@media (max-width: 539px), (max-width: 760px) and (orientation: landscape) {
   .catalog-layout { grid-template-columns: 1fr; gap: 10px; }
   .school-nav { display: flex; flex-wrap: wrap; align-items: center; padding: 6px; gap: 4px; }
   .school-nav h2 { flex-basis: 100%; margin: 2px 5px 0; }
@@ -401,7 +401,7 @@
   .shopping-heading { margin-bottom: 12px; }
   .shopping-steps li { font-size: 13px; }
   .school-banner { min-height: 88px; }
-  .uniform-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .uniform-grid { gap: 8px; }
   .uniform-card { padding: 7px; }
   .catalog-cart { margin-top: 10px; }
   .catalog-cart-buttons button { font-size: 14px; }
@@ -412,6 +412,22 @@
   .catalog-cart { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
   .catalog-cart > .catalog-cart-copy { display: flex; justify-content: space-between; align-items: center; }
   .catalog-cart-buttons { display: grid; grid-template-columns: 1fr 1.5fr; }
+}
+
+@media screen and (orientation: portrait) and (min-width: 540px) {
+  .catalog-layout { gap: clamp(16px, 2.2vw, 24px); }
+  .school-nav { padding: clamp(8px, 1.5vw, 16px); }
+  .school-nav h2 { margin-inline: 4px; font-size: clamp(15px, 1.7vw, 19px); }
+  .school-nav button { gap: clamp(6px, 1.2vw, 13px); min-height: clamp(58px, 9vw, 98px); font-size: clamp(15px, 2.2vw, 24px); }
+  .school-nav img { width: clamp(34px, 6.5vw, 70px); height: auto; }
+  .school-banner { min-height: clamp(116px, 14vw, 152px); }
+  .stage-nav button { min-height: clamp(44px, 5.6vw, 60px); font-size: clamp(15px, 1.9vw, 21px); }
+  .catalog-list { max-height: none; overflow: visible; }
+  .uniform-grid { gap: clamp(10px, 1.5vw, 16px); }
+  .uniform-card { padding: clamp(8px, 1.4vw, 15px); }
+  .uniform-image { width: 100%; }
+  .uniform-copy > strong, .uniform-price b { font-size: clamp(16px, 2.4vw, 26px); }
+  .uniform-color, .uniform-price > span { font-size: clamp(13px, 1.7vw, 18px); }
 }
 
 @page kiosk-receipt { margin: 4mm; }
