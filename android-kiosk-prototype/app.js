@@ -17,13 +17,19 @@ const announcement = document.querySelector('#announcement');
 const modeButtons = document.querySelectorAll('[data-mode]');
 const resetButton = document.querySelector('#reset-demo');
 const demoStatus = document.querySelector('#demo-status');
-const checkout = createCheckout(screen, render);
+let terminalStorageUnavailable = false;
 let terminal = loadTerminal();
 let mode = 'locker';
 let page = 'home';
 let order = null;
 let selectedDoor = '';
 let countdownTimer;
+const checkout = createCheckout(screen, render, {
+  storageKey: STORAGE_KEY,
+  reservedCodes: new Set(orders.map((entry) => entry.pickupCode)),
+  placement: (orderId) => loadTerminal(terminal).placements[orderId],
+  store: storeCheckoutOrder,
+});
 
 function initialTerminal() {
   return {
@@ -33,11 +39,12 @@ function initialTerminal() {
   };
 }
 
-function loadTerminal() {
+function loadTerminal(fallback = initialTerminal()) {
+  if (terminalStorageUnavailable) return fallback;
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY)) || initialTerminal();
   } catch {
-    return initialTerminal();
+    return fallback;
   }
 }
 
@@ -45,13 +52,13 @@ function saveTerminal() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(terminal));
   } catch {
-    // The current session can still run when browser storage is unavailable.
+    terminalStorageUnavailable = true;
   }
 }
 
 function goHome(message = '') {
   clearInterval(countdownTimer);
-  if (terminal.returnAt) {
+  if (page === 'pickup-done' && terminal.returnAt) {
     terminal.returnAt = 0;
     saveTerminal();
   }
@@ -65,6 +72,26 @@ function freeDoors() {
   const inUse = new Set(Object.values(terminal.placements));
   if (terminal.activeDoor) inUse.add(terminal.activeDoor.door);
   return doors.filter((door) => !inUse.has(door));
+}
+
+function withLatestTerminal(operation) {
+  const run = () => {
+    terminal = loadTerminal(terminal);
+    return operation();
+  };
+  return navigator.locks ? navigator.locks.request(STORAGE_KEY, run) : run();
+}
+
+function storeCheckoutOrder(orderId) {
+  return withLatestTerminal(() => {
+    const placement = terminal.placements[orderId];
+    if (placement) return placement;
+    const [door] = freeDoors();
+    if (!door) return '';
+    terminal.placements[orderId] = door;
+    saveTerminal();
+    return door;
+  });
 }
 
 function pageHeading(label, title, description = '', canGoBack = true) {
@@ -104,18 +131,18 @@ function renderOrderForm() {
   return `<section class="flow" aria-labelledby="page-title">
     ${depositing
       ? pageHeading('存货 · 1 / 3', '扫描订单小票', '将小票条形码对准扫码器，也可手动录入条形码。')
-      : pageHeading('取货', '验证订单', '直接扫描订单条形码，或输入 6 位自提码。')}
+      : pageHeading('取货', '验证订单', '扫描客户联取货条码或订单条形码，也可输入 6 位取货号。')}
     <div class="panel order-panel">
       ${depositing ? '<div class="scan-graphic" aria-hidden="true"><i class="barcode-icon"></i></div>' : ''}
       <form id="order-form" novalidate>
-        <label for="order-value">订单条形码</label>
+        <label for="order-value">${depositing ? '订单条形码' : '小票或订单条形码'}</label>
         <div class="${depositing ? '' : 'pickup-scan-input'}">
           ${depositing ? '' : '<i class="barcode-icon" aria-hidden="true"></i>'}
           <input id="order-value" type="text" inputmode="${depositing ? 'numeric' : 'none'}" maxlength="32" autocomplete="off" spellcheck="false" aria-describedby="form-error" placeholder="${depositing ? '扫描或输入条形码' : '等待扫码'}">
         </div>
         <p id="form-error" class="form-error" role="alert"></p>
         ${depositing ? '' : `<div class="pickup-code-entry">
-          <label for="pickup-code">或输入 6 位自提码</label>
+          <label for="pickup-code">或输入 6 位取货号 / 自提码</label>
           <input id="pickup-code" type="text" readonly tabindex="-1" placeholder="使用下方数字键盘" aria-describedby="form-error">
         </div>
         <div class="keypad" role="group" aria-label="数字键盘">
@@ -173,7 +200,7 @@ function renderPickupDone() {
 }
 
 function render(message = '', { preserveScroll = false } = {}) {
-  const transactionInProgress = Boolean(terminal.activeDoor || terminal.returnAt || (mode === 'checkout' && checkout.isPaymentPending()));
+  const transactionInProgress = mode === 'locker' ? ['door-open', 'pickup-done'].includes(page) : checkout.isPaymentPending();
   modeButtons.forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.mode === mode));
     button.disabled = transactionInProgress;
@@ -239,16 +266,27 @@ function validateOrder() {
     return;
   }
 
-  const matchingOrder = orders.find((entry) => field === scanner && entry.barcode === credential)
+  const sampleOrder = orders.find((entry) => field === scanner && entry.barcode === credential)
     || (usingCode && orders.find((entry) => entry.pickupCode === credential));
-  if (!matchingOrder) {
+  const receipt = usingCode ? checkout.findPickup(credential) : null;
+  const useReceipt = receipt && (!sampleOrder || (field === scanner && receipt.choice.method === 'locker'));
+  if (useReceipt && receipt.choice.method !== 'locker') {
+    showError(`该订单选择了${checkoutPickupMethods[receipt.choice.method].label}，请按小票说明取货。`, field);
+    return;
+  }
+  const orderId = useReceipt ? receipt.orderId : sampleOrder?.id;
+  if (!orderId) {
     showError(usingCode ? '自提码无效，请核对后重试。' : '未识别到订单，请核对条形码后重试。', field);
     return;
   }
 
-  const placement = terminal.placements[matchingOrder.id];
+  const placement = terminal.placements[orderId];
   if (placement === 'collected') {
     showError('该订单已取货。', field);
+    return;
+  }
+  if (terminal.activeDoor) {
+    showError('有柜门正在操作，请稍后重试。', field);
     return;
   }
   if (depositing) {
@@ -256,14 +294,14 @@ function validateOrder() {
       showError(`该订单已存入 ${placement} 柜门。`, field);
       return;
     }
-    order = matchingOrder;
+    order = sampleOrder;
     selectedDoor = '';
     page = 'door-selection';
     render();
-  } else if (!placement) {
+  } else if (!doors.includes(placement)) {
     showError('该订单尚未存入自提柜，请联系店员。', field);
   } else {
-    openDoor('pickup', matchingOrder.id, placement);
+    openDoor('pickup', orderId, placement);
   }
 }
 
@@ -300,7 +338,8 @@ function showPickupCountdown() {
   countdownTimer = setInterval(() => {
     const remaining = remainingSeconds();
     if (remaining === 0) {
-      goHome();
+      clearInterval(countdownTimer);
+      withLatestTerminal(() => goHome());
     } else {
       document.querySelector('#remaining').textContent = remaining;
     }
@@ -321,16 +360,25 @@ resetButton.addEventListener('click', () => {
     return;
   }
   if (window.confirm('确定重置演示订单和柜门状态？')) {
-    terminal = initialTerminal();
-    saveTerminal();
-    goHome('已重置演示数据。');
+    withLatestTerminal(() => {
+      if (terminal.activeDoor) {
+        goHome('有柜门正在操作，请完成后再重置。');
+        return;
+      }
+      terminal = initialTerminal();
+      saveTerminal();
+      goHome('已重置演示数据。');
+    });
   }
 });
 
 screen.addEventListener('submit', (event) => {
   if (event.target.id !== 'order-form') return;
   event.preventDefault();
-  validateOrder();
+  const form = event.target;
+  withLatestTerminal(() => {
+    if (form.isConnected) validateOrder();
+  });
 });
 
 screen.addEventListener('input', (event) => {
@@ -344,15 +392,17 @@ screen.addEventListener('click', (event) => {
 
   switch (button.dataset.action) {
     case 'deposit':
+      terminal = loadTerminal(terminal);
       page = 'deposit-scan';
       render();
       break;
     case 'pickup':
+      terminal = loadTerminal(terminal);
       page = 'pickup';
       render();
       break;
     case 'home':
-      goHome();
+      withLatestTerminal(() => goHome());
       break;
     case 'back':
       if (page === 'door-selection') {
@@ -393,11 +443,29 @@ screen.addEventListener('click', (event) => {
       screen.querySelector('[data-action="open-door"]').textContent = `打开 ${selectedDoor} 柜门`;
       break;
     case 'open-door':
-      if (freeDoors().includes(selectedDoor)) openDoor('deposit', order.id, selectedDoor);
+      withLatestTerminal(() => {
+        if (!button.isConnected) return;
+        if (!terminal.activeDoor && !terminal.placements[order.id] && freeDoors().includes(selectedDoor)) {
+          openDoor('deposit', order.id, selectedDoor);
+        } else {
+          selectedDoor = '';
+          render('柜门或订单状态已变化，请重新选择。');
+        }
+      });
       break;
-    case 'complete':
-      completeOrder();
+    case 'complete': {
+      const active = terminal.activeDoor;
+      withLatestTerminal(() => {
+        if (!button.isConnected) return;
+        const latest = terminal.activeDoor;
+        if (!active || !latest || latest.orderId !== active.orderId || latest.operation !== active.operation || latest.door !== active.door) {
+          goHome('本次柜门操作已结束。');
+          return;
+        }
+        completeOrder();
+      });
       break;
+    }
   }
 });
 

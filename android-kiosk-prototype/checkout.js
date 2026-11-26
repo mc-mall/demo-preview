@@ -1,6 +1,6 @@
 'use strict';
 
-function createCheckout(screen, refresh) {
+function createCheckout(screen, refresh, locker) {
   const demoPaymentCode = '000000000000000001';
   const payments = ['Mpay', '中银智慧付', 'Alipay HK'];
   const paymentStorageKey = 'mc-mall.android-kiosk.payment.v1';
@@ -8,7 +8,7 @@ function createCheckout(screen, refresh) {
   const queryWait = 650;
   const delayedResultWait = 8000;
   const cart = new Map();
-  const pickup = createPickupDesk(screen);
+  const pickup = createPickupDesk(screen, locker);
   const memberDirectory = createCheckoutMemberDirectory();
   let order = loadPayment();
   let view = order?.status || 'home';
@@ -542,6 +542,7 @@ function createCheckout(screen, refresh) {
   function customerReceipt(pickingCount) {
     return `<article class="order-receipt" aria-label="客户联">
       ${receiptHeader('客户联')}
+      ${pickupBarcode(order.pickupNumber)}
       <ul class="receipt-items">${order.items.map((item) => `<li>
         <div><strong>${safeText(item.name)}</strong><small>${safeText(item.spec)}</small><small>${money(item.price)} × ${item.quantity}</small></div>
         <b>${money(item.price * item.quantity)}</b>
@@ -957,6 +958,7 @@ function createCheckout(screen, refresh) {
     },
     leave,
     isPaymentPending,
+    findPickup: pickup.readRecord,
     hasRestoredPayment: () => Boolean(order),
   };
 }

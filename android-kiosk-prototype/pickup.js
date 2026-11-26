@@ -10,7 +10,7 @@ const checkoutPickupMethods = {
   locker: {
     label: '暂存智能柜',
     description: '店员存柜后，可自行安排时间回店取货。',
-    customerNote: '请保留小票，等待存柜通知。存柜后可自行安排时间到门店智能柜取货。',
+    customerNote: '请保留客户联。收到存柜通知后，可回店到自提柜的「取货」入口，扫描客户联条码开柜。',
     warehouseNote: '将商品存入门店自提柜后，再扫描本联条码确认存柜。',
   },
   partner: {
@@ -83,7 +83,7 @@ function pickupBarcode(number) {
   </svg>`;
 }
 
-function createPickupDesk(screen) {
+function createPickupDesk(screen, locker) {
   const prefix = 'mc-mall.android-kiosk.pickup.v1.';
   const volatile = new Map();
 
@@ -137,7 +137,7 @@ function createPickupDesk(screen) {
       ? Number(previousNumber)
       : crypto.getRandomValues(new Uint32Array(1))[0] % 1000000;
     let number = String(next).padStart(6, '0');
-    while (existing.has(number)) {
+    while (existing.has(number) || locker.reservedCodes.has(number)) {
       next = (next + 1) % 1000000;
       number = String(next).padStart(6, '0');
     }
@@ -157,9 +157,11 @@ function createPickupDesk(screen) {
       return ['waiting', '待拣货及配送交接', `店员配齐后会交给窝蜂，配送到${destination}。`];
     }
     if (method === 'locker') {
-      return record.readyAt
-        ? ['ready', '已存入智能柜，可以取货', '可自行安排时间回店，请按门店的智能柜取货通知领取。']
-        : ['waiting', '待拣货及存柜', '店员配齐并存入门店智能柜后，此处会显示存柜通知。'];
+      const placement = locker.placement(record.orderId);
+      if (placement === 'collected') return ['collected', '已在智能柜取货', '本单智能柜取货已完成。'];
+      if (placement) return ['ready', '已存入智能柜，可以取货', '请到门店自提柜选择「取货」，扫描客户联条码。'];
+      if (record.readyAt) return ['waiting', '待确认智能柜柜位', '请等店员确认柜位后再扫码取货。'];
+      return ['waiting', '待拣货及存柜', '店员配齐并存入门店智能柜后，此处会显示存柜通知。'];
     }
     return record.readyAt
       ? ['ready', '拣货完成，可以取货', '请到门店取货台，出示客户联或取货号。']
@@ -183,12 +185,13 @@ function createPickupDesk(screen) {
   }
 
   function queue() {
-    const unready = Array.from(records().values()).filter((record) => record.count && !record.readyAt);
+    const unready = Array.from(records().values()).filter((record) => record.count && (record.choice.method === 'locker'
+      ? !locker.placement(record.orderId) : !record.readyAt));
     const waiting = unready.filter((record) => !record.handedOffAt);
     const inTransit = unready.filter((record) => record.choice.method === 'partner' && record.handedOffAt);
     const buttons = { store: '模拟扫码', locker: '模拟存柜', partner: '模拟交窝蜂' };
     return `${waiting.length ? `<ul class="pickup-queue">${waiting.map((record) => `<li>
-      <span><strong>${record.number}</strong><small>${checkoutPickupLabel(record.choice)} · 待拣 ${record.count} 件</small></span>
+      <span><strong>${record.number}</strong><small>${checkoutPickupLabel(record.choice)} · ${record.readyAt ? '待确认柜位' : `待拣 ${record.count} 件`}</small></span>
       <button type="button" class="secondary" data-simulate-pickup="${record.number}">${buttons[record.choice.method]} <span class="sr-only">${record.number}</span></button>
     </li>`).join('')}</ul>` : '<p class="description">暂无待拣订单。</p>'}
     ${inTransit.length ? `<section class="warehouse-queue" aria-label="窝蜂配送中">
@@ -241,11 +244,26 @@ function createPickupDesk(screen) {
     </section>`;
   }
 
-  function scanWarehouse(number, form) {
+  async function scanWarehouse(number, form) {
     const result = screen.querySelector('[data-pickup-update]');
     const record = readRecord(number);
     if (!record || !record.count) {
       result.textContent = record ? `取货号 ${number} 无需仓库拣货。` : `未找到取货号 ${number}，请核对仓库联。`;
+      return;
+    }
+    const { method } = record.choice;
+    if (method === 'locker') {
+      const placement = await locker.store(record.orderId);
+      if (!form.isConnected) return;
+      if (!placement) {
+        result.textContent = '暂无空置柜门，请释放柜位后再确认存柜。';
+        return;
+      }
+      result.textContent = placement === 'collected'
+        ? `取货号 ${number} 已在智能柜取货。`
+        : `取货号 ${number} 已存入智能柜 ${placement}，可凭客户联扫码取货（演示）。`;
+      form.reset();
+      refreshQueue();
       return;
     }
     if (record.readyAt) {
@@ -257,14 +275,12 @@ function createPickupDesk(screen) {
       return;
     }
 
-    const { method } = record.choice;
     if (method === 'partner') {
       saveRecord({ ...record, handedOffAt: Date.now() });
       result.textContent = `取货号 ${number} 已交窝蜂配送（演示）。`;
     } else {
       saveRecord({ ...record, readyAt: Date.now() });
-      const message = method === 'locker' ? '已存入智能柜' : '拣货完成';
-      result.textContent = `取货号 ${number} ${message}，已更新客户取货通知（演示）。`;
+      result.textContent = `取货号 ${number} 拣货完成，已更新客户取货通知（演示）。`;
     }
     form.reset();
     refreshQueue();
@@ -319,10 +335,10 @@ function createPickupDesk(screen) {
   });
 
   window.addEventListener('storage', (event) => {
-    if (event.key && !event.key.startsWith(prefix)) return;
+    if (event.key && !event.key.startsWith(prefix) && event.key !== locker.storageKey) return;
     refreshStatus();
     refreshQueue();
   });
 
-  return { register, refreshStatus, warehouseView, statusView };
+  return { register, readRecord, refreshStatus, warehouseView, statusView };
 }
